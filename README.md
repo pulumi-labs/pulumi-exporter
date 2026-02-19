@@ -112,7 +112,7 @@ Configure via CLI flags, environment variables, or a YAML file. Flags take prece
 |------|---------|---------|-------------|
 | `--pulumi.access-token` | `PULUMI_ACCESS_TOKEN` | *(required)* | Pulumi Cloud access token |
 | `--pulumi.api-url` | `PULUMI_API_URL` | `https://api.pulumi.com` | Pulumi Cloud API base URL |
-| `--pulumi.organizations` | `PULUMI_ORGANIZATIONS` | *(required)* | Organizations to monitor (repeatable) |
+| `--pulumi.organizations` | `PULUMI_ORGANIZATIONS` | *(required)* | Organizations to monitor (repeatable, comma-separated) |
 | `--pulumi.collect-interval` | `PULUMI_COLLECT_INTERVAL` | `60s` | Polling interval |
 | `--otlp.endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` | `localhost:4318` | OTLP receiver endpoint (host:port) |
 | `--otlp.protocol` | `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | `http/protobuf` or `grpc` |
@@ -124,6 +124,22 @@ Configure via CLI flags, environment variables, or a YAML file. Flags take prece
 
 OTLP environment variable names follow the [OpenTelemetry SDK specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/).
 
+### Multiple Organizations
+
+The exporter supports monitoring multiple Pulumi organizations simultaneously. Configure them as a comma-separated list via the env var or as a YAML list:
+
+```bash
+# Via environment variable (comma-separated)
+PULUMI_ORGANIZATIONS=my-org,another-org
+
+# Via CLI flags (repeatable)
+--pulumi.organizations=my-org --pulumi.organizations=another-org
+```
+
+All metrics include an `org` label so you can filter, group, and compare across organizations in your dashboards. The Grafana dashboard includes a multi-select Organization dropdown.
+
+The `org` identity is modeled as an [OTel metric attribute](https://opentelemetry.io/docs/specs/semconv/resource/) (not a Resource attribute), which is the correct pattern for an exporter that observes multiple tenants from a single process -- matching how tools like Prometheus blackbox_exporter handle multi-target monitoring.
+
 ### YAML Config File
 
 ```yaml
@@ -132,6 +148,7 @@ pulumi:
   api-url: "https://api.pulumi.com"
   organizations:
     - "my-org"
+    - "another-org"
   collect-interval: 60s
 
 otlp:

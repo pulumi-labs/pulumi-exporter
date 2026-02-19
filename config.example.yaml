@@ -1,8 +1,9 @@
 pulumi:
   access-token: ""           # or PULUMI_ACCESS_TOKEN env var
   api-url: "https://api.pulumi.com"
-  organizations:
+  organizations:             # multiple orgs supported
     - "my-org"
+    - "another-org"
   collect-interval: 60s
 otlp:
   endpoint: "localhost:4318"       # or OTEL_EXPORTER_OTLP_ENDPOINT

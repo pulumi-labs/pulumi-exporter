@@ -31,7 +31,9 @@
         },
         "query": "label_values(pulumi_org_member_count, org)",
         "refresh": 2,
-        "includeAll": false,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
         "current": {},
         "label": "Organization"
       }
@@ -53,7 +55,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
       "targets": [
         {
-          "expr": "pulumi_org_member_count{org=\"$org\"}",
+          "expr": "pulumi_org_member_count{org=~\"$org\"}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -84,7 +86,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
       "targets": [
         {
-          "expr": "pulumi_org_team_count{org=\"$org\"}",
+          "expr": "pulumi_org_team_count{org=~\"$org\"}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -115,7 +117,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
       "targets": [
         {
-          "expr": "pulumi_org_environment_count{org=\"$org\"}",
+          "expr": "pulumi_org_environment_count{org=~\"$org\"}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -146,7 +148,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
       "targets": [
         {
-          "expr": "pulumi_org_policy_pack_count{org=\"$org\"}",
+          "expr": "pulumi_org_policy_pack_count{org=~\"$org\"}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -184,7 +186,7 @@
       "gridPos": { "h": 10, "w": 12, "x": 0, "y": 6 },
       "targets": [
         {
-          "expr": "sort_desc(topk(20, pulumi_stack_resource_count{org=\"$org\"} > 0))",
+          "expr": "sort_desc(topk(20, pulumi_stack_resource_count{org=~\"$org\"} > 0))",
           "legendFormat": "{{project}}/{{stack}}",
           "instant": true,
           "refId": "A"
@@ -225,7 +227,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
       "targets": [
         {
-          "expr": "time() - pulumi_stack_last_update_timestamp{org=\"$org\"}",
+          "expr": "time() - pulumi_stack_last_update_timestamp{org=~\"$org\"}",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -304,7 +306,7 @@
       "gridPos": { "h": 8, "w": 6, "x": 0, "y": 15 },
       "targets": [
         {
-          "expr": "sum by (result) (pulumi_update_total{org=\"$org\"})",
+          "expr": "sum by (result) (pulumi_update_total{org=~\"$org\"})",
           "legendFormat": "{{result}}",
           "instant": true,
           "refId": "A"
@@ -336,7 +338,7 @@
       "gridPos": { "h": 8, "w": 6, "x": 6, "y": 15 },
       "targets": [
         {
-          "expr": "sort_desc(sum by (kind) (pulumi_update_total{org=\"$org\"}))",
+          "expr": "sort_desc(sum by (kind) (pulumi_update_total{org=~\"$org\"}))",
           "legendFormat": "{{kind}}",
           "instant": true,
           "refId": "A"
@@ -367,7 +369,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 15 },
       "targets": [
         {
-          "expr": "sum(pulumi_update_duration_seconds_sum{org=\"$org\"}) / sum(pulumi_update_duration_seconds_count{org=\"$org\"})",
+          "expr": "sum(pulumi_update_duration_seconds_sum{org=~\"$org\"}) / sum(pulumi_update_duration_seconds_count{org=~\"$org\"})",
           "legendFormat": "",
           "refId": "A"
         }
@@ -396,7 +398,7 @@
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 19 },
       "targets": [
         {
-          "expr": "sum(pulumi_update_total{org=\"$org\"})",
+          "expr": "sum(pulumi_update_total{org=~\"$org\"})",
           "legendFormat": "",
           "refId": "A"
         }
@@ -424,7 +426,7 @@
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 15 },
       "targets": [
         {
-          "expr": "sum by (operation) (pulumi_update_resource_changes_total{org=\"$org\"})",
+          "expr": "sum by (operation) (pulumi_update_resource_changes_total{org=~\"$org\"})",
           "legendFormat": "{{operation}}",
           "instant": true,
           "refId": "A"
@@ -465,7 +467,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
       "targets": [
         {
-          "expr": "pulumi_deployment_status{org=\"$org\"}",
+          "expr": "pulumi_deployment_status{org=~\"$org\"}",
           "legendFormat": "{{status}}",
           "instant": true,
           "refId": "A"
@@ -493,7 +495,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
       "targets": [
         {
-          "expr": "pulumi_deployment_status{org=\"$org\"}",
+          "expr": "pulumi_deployment_status{org=~\"$org\"}",
           "legendFormat": "{{status}}",
           "refId": "A"
         }
@@ -541,7 +543,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 0, "y": 33 },
       "targets": [
         {
-          "expr": "sum(pulumi_org_policy_violations{org=\"$org\"})",
+          "expr": "sum(pulumi_org_policy_violations{org=~\"$org\"})",
           "legendFormat": "",
           "refId": "A"
         }
@@ -576,7 +578,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 33 },
       "targets": [
         {
-          "expr": "pulumi_org_policy_group_count{org=\"$org\"}",
+          "expr": "pulumi_org_policy_group_count{org=~\"$org\"}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -604,7 +606,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 12, "y": 33 },
       "targets": [
         {
-          "expr": "pulumi_org_policy_pack_count{org=\"$org\"}",
+          "expr": "pulumi_org_policy_pack_count{org=~\"$org\"}",
           "legendFormat": "",
           "refId": "A"
         }
@@ -632,7 +634,7 @@
       "gridPos": { "h": 5, "w": 6, "x": 18, "y": 33 },
       "targets": [
         {
-          "expr": "pulumi_org_policy_violations{org=\"$org\"}",
+          "expr": "pulumi_org_policy_violations{org=~\"$org\"}",
           "legendFormat": "{{level}} ({{kind}})",
           "instant": true,
           "refId": "A"
@@ -671,7 +673,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
       "targets": [
         {
-          "expr": "pulumi_org_neo_task_count{org=\"$org\"}",
+          "expr": "pulumi_org_neo_task_count{org=~\"$org\"}",
           "legendFormat": "{{status}}",
           "instant": true,
           "refId": "A"
@@ -699,7 +701,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
       "targets": [
         {
-          "expr": "sum(pulumi_org_neo_task_count{org=\"$org\"})",
+          "expr": "sum(pulumi_org_neo_task_count{org=~\"$org\"})",
           "legendFormat": "",
           "refId": "A"
         }
