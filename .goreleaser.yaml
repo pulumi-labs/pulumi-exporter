@@ -1,0 +1,112 @@
+version: 2
+
+env:
+  - CGO_ENABLED=0
+
+builds:
+  - binary: pulumi-exporter
+    ldflags:
+      - -s -w
+      - -X github.com/prometheus/common/version.Version={{.Version}}
+      - -X github.com/prometheus/common/version.Revision={{.FullCommit}}
+      - -X github.com/prometheus/common/version.Branch={{.Branch}}
+      - -X github.com/prometheus/common/version.BuildUser=goreleaser
+      - -X github.com/prometheus/common/version.BuildDate={{.Date}}
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE*
+      - README.md
+
+dockers:
+  - image_templates:
+      - "ghcr.io/dirien/pulumi-exporter:{{ .Version }}-amd64"
+      - "ghcr.io/dirien/pulumi-exporter:latest-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title=pulumi-exporter"
+      - "--label=org.opencontainers.image.description=OpenTelemetry Pulumi Cloud metrics exporter"
+      - "--label=org.opencontainers.image.url=https://github.com/dirien/pulumi-exporter"
+      - "--label=org.opencontainers.image.source=https://github.com/dirien/pulumi-exporter"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+    goarch: amd64
+
+  - image_templates:
+      - "ghcr.io/dirien/pulumi-exporter:{{ .Version }}-arm64"
+      - "ghcr.io/dirien/pulumi-exporter:latest-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title=pulumi-exporter"
+      - "--label=org.opencontainers.image.description=OpenTelemetry Pulumi Cloud metrics exporter"
+      - "--label=org.opencontainers.image.url=https://github.com/dirien/pulumi-exporter"
+      - "--label=org.opencontainers.image.source=https://github.com/dirien/pulumi-exporter"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+    goarch: arm64
+
+docker_manifests:
+  - name_template: "ghcr.io/dirien/pulumi-exporter:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/dirien/pulumi-exporter:{{ .Version }}-amd64"
+      - "ghcr.io/dirien/pulumi-exporter:{{ .Version }}-arm64"
+
+  - name_template: "ghcr.io/dirien/pulumi-exporter:latest"
+    image_templates:
+      - "ghcr.io/dirien/pulumi-exporter:latest-amd64"
+      - "ghcr.io/dirien/pulumi-exporter:latest-arm64"
+
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    output: true
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes"
+
+docker_signs:
+  - cmd: cosign
+    artifacts: manifests
+    output: true
+    args:
+      - sign
+      - "${artifact}"
+      - "--yes"
+
+sboms:
+  - artifacts: archive
+
+changelog:
+  use: github
+  groups:
+    - title: "Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Others"
+      order: 999

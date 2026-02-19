@@ -1,0 +1,11 @@
+pulumi:
+  access-token: ""           # or PULUMI_ACCESS_TOKEN env var
+  api-url: "https://api.pulumi.com"
+  organizations:
+    - "my-org"
+  collect-interval: 60s
+otlp:
+  endpoint: "localhost:4318"       # or OTEL_EXPORTER_OTLP_ENDPOINT
+  protocol: "http/protobuf"       # or "grpc" - or OTEL_EXPORTER_OTLP_PROTOCOL
+  insecure: false                  # or OTEL_EXPORTER_OTLP_INSECURE
+  headers: {}                      # or OTEL_EXPORTER_OTLP_HEADERS (key=value,key2=value2)

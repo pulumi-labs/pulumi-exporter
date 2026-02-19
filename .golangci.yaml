@@ -1,0 +1,30 @@
+version: "2"
+linters:
+  enable:
+    - forbidigo
+    - goconst
+    - gocritic
+    - gocyclo
+    - gosec
+    - nolintlint
+    - revive
+    - tagliatelle
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - wastedassign
+  settings:
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+          yaml: kebab
+    gocyclo:
+      min-complexity: 15
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
