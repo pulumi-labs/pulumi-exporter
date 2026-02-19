@@ -536,77 +536,9 @@
     {
       "type": "stat",
       "id": 17,
-      "title": "Policy Groups",
+      "title": "Violations",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 33 },
-      "targets": [
-        {
-          "expr": "pulumi_org_policy_group_count{org=\"$org\"}",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "fixed", "fixedColor": "blue" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "colorMode": "value",
-        "graphMode": "area",
-        "textMode": "value"
-      }
-    },
-    {
-      "type": "bargauge",
-      "id": 18,
-      "title": "Policy Violations",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 9, "x": 6, "y": 33 },
-      "targets": [
-        {
-          "expr": "pulumi_org_policy_violations{org=\"$org\"}",
-          "legendFormat": "{{level}} / {{kind}}",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 },
-              { "color": "red", "value": 5 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"] },
-        "displayMode": "gradient",
-        "orientation": "horizontal",
-        "showUnfilled": true,
-        "minVizWidth": 0,
-        "minVizHeight": 10
-      }
-    },
-    {
-      "type": "stat",
-      "id": 19,
-      "title": "Total Violations",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 9, "x": 15, "y": 33 },
+      "gridPos": { "h": 6, "w": 4, "x": 0, "y": 33 },
       "targets": [
         {
           "expr": "sum(pulumi_org_policy_violations{org=\"$org\"})",
@@ -635,6 +567,119 @@
         "graphMode": "area",
         "textMode": "value"
       }
+    },
+    {
+      "type": "stat",
+      "id": 25,
+      "title": "Policy Groups",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 3, "w": 4, "x": 4, "y": 33 },
+      "targets": [
+        {
+          "expr": "pulumi_org_policy_group_count{org=\"$org\"}",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 26,
+      "title": "Policy Packs",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 3, "w": 4, "x": 4, "y": 36 },
+      "targets": [
+        {
+          "expr": "pulumi_org_policy_pack_count{org=\"$org\"}",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "orange" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "table",
+      "id": 18,
+      "title": "Violation Details",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 6, "w": 16, "x": 8, "y": 33 },
+      "targets": [
+        {
+          "expr": "pulumi_org_policy_violations{org=\"$org\"}",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 3 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "custom": { "displayMode": "color-background-solid", "align": "center" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "level" }, "properties": [{ "id": "custom.width", "value": 120 }] },
+          { "matcher": { "id": "byName", "options": "kind" }, "properties": [{ "id": "custom.width", "value": 140 }] },
+          { "matcher": { "id": "byName", "options": "Value" }, "properties": [{ "id": "displayName", "value": "Count" }, { "id": "custom.width", "value": 100 }] }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Count", "desc": true }],
+        "cellHeight": "sm",
+        "footer": { "show": true, "reducer": ["sum"], "countRows": false }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "instance": true,
+              "job": true,
+              "org": true,
+              "service_name": true,
+              "service_version": true
+            },
+            "indexByName": { "level": 0, "kind": 1, "Value": 2 }
+          }
+        }
+      ]
     },
     {
       "collapsed": false,
