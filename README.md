@@ -8,6 +8,8 @@ Pulumi Cloud API  ◀──poll──  [pulumi-exporter]┤
                                               └──OTLP/gRPC──▶ Dynatrace, OTel Collector, Grafana Alloy
 ```
 
+The API client is generated from the official [Pulumi Cloud OpenAPI spec](https://www.pulumi.com/blog/announcing-openapi-support-pulumi-cloud/) using [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen).
+
 ## Install
 
 ### Binary (GitHub Releases)
@@ -50,22 +52,39 @@ Requires Go 1.24+.
 ```bash
 git clone https://github.com/dirien/pulumi-exporter.git
 cd pulumi-exporter
-go build -o pulumi-exporter .
+make build
 ```
 
 ## Quick Start
 
-### 1. Get a Pulumi access token
+### Option A: Docker Compose (recommended)
+
+The fastest way to see metrics end-to-end. Spins up Prometheus, Grafana, and the exporter with a pre-built dashboard.
+
+```bash
+cd deploy/docker-compose
+cp .env.example .env
+# Edit .env and set PULUMI_ACCESS_TOKEN and PULUMI_ORGANIZATIONS
+docker compose up --build -d
+```
+
+Open:
+- **Grafana**: http://localhost:3000 (admin / admin) -- dashboard loads as the home page
+- **Prometheus**: http://localhost:9090
+
+### Option B: Binary with OTel Collector
+
+#### 1. Get a Pulumi access token
 
 Create one at [app.pulumi.com/account/tokens](https://app.pulumi.com/account/tokens).
 
-### 2. Start a local OTel Collector
+#### 2. Start a local OTel Collector
 
 ```bash
 docker run -d --name otel-collector -p 4318:4318 otel/opentelemetry-collector:latest
 ```
 
-### 3. Run the exporter
+#### 3. Run the exporter
 
 ```bash
 export PULUMI_ACCESS_TOKEN=pul-xxx
@@ -76,15 +95,12 @@ export PULUMI_ACCESS_TOKEN=pul-xxx
   --otlp.insecure
 ```
 
-### 4. Verify
+#### 4. Verify
 
 ```bash
-# Health check
 curl http://localhost:8080/healthz
 # ok
 ```
-
-Metrics flow through the OTel Collector to whichever backend(s) you've configured.
 
 ## Configuration
 
@@ -98,14 +114,15 @@ Configure via CLI flags, environment variables, or a YAML file. Flags take prece
 | `--pulumi.api-url` | `PULUMI_API_URL` | `https://api.pulumi.com` | Pulumi Cloud API base URL |
 | `--pulumi.organizations` | `PULUMI_ORGANIZATIONS` | *(required)* | Organizations to monitor (repeatable) |
 | `--pulumi.collect-interval` | `PULUMI_COLLECT_INTERVAL` | `60s` | Polling interval |
-| `--otlp.endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` | `localhost:4318` | OTLP receiver endpoint |
+| `--otlp.endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` | `localhost:4318` | OTLP receiver endpoint (host:port) |
 | `--otlp.protocol` | `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | `http/protobuf` or `grpc` |
 | `--otlp.insecure` | `OTEL_EXPORTER_OTLP_INSECURE` | `false` | Disable TLS |
 | `--otlp.headers` | `OTEL_EXPORTER_OTLP_HEADERS` | *(empty)* | Comma-separated `key=value` pairs |
+| `--otlp.url-path` | `OTEL_EXPORTER_OTLP_METRICS_URL_PATH` | *(default OTel path)* | Custom URL path for OTLP metrics endpoint |
 | `--config.file` | `PULUMI_EXPORTER_CONFIG_FILE` | *(none)* | Path to YAML config file |
 | `--web.listen-address` | `PULUMI_EXPORTER_LISTEN_ADDRESS` | `:8080` | Health check listen address |
 
-OTLP environment variable names follow the [OpenTelemetry SDK specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/) for interoperability with other OTel tools.
+OTLP environment variable names follow the [OpenTelemetry SDK specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/).
 
 ### YAML Config File
 
@@ -121,6 +138,7 @@ otlp:
   endpoint: "localhost:4318"
   protocol: "http/protobuf"   # or "grpc"
   insecure: false
+  url-path: ""                # e.g. /api/v1/otlp/v1/metrics for Prometheus
   headers:
     Authorization: "Bearer <token>"
 ```
@@ -133,6 +151,8 @@ See [`config.example.yaml`](config.example.yaml) for a full template.
 
 ## Metrics
 
+### Stack Metrics
+
 | Metric | Type | Labels | Description |
 |--------|------|--------|-------------|
 | `pulumi_stack_resource_count` | Gauge | `org`, `project`, `stack` | Number of resources in a stack |
@@ -142,12 +162,27 @@ See [`config.example.yaml`](config.example.yaml) for a full template.
 | `pulumi_deployment_status` | Gauge | `org`, `status` | Deployments by status |
 | `pulumi_stack_last_update_timestamp` | Gauge | `org`, `project`, `stack` | Unix timestamp of last update |
 
+### Organization Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `pulumi_org_member_count` | Gauge | `org` | Number of organization members |
+| `pulumi_org_team_count` | Gauge | `org` | Number of teams |
+| `pulumi_org_environment_count` | Gauge | `org` | Number of ESC environments |
+| `pulumi_org_policy_group_count` | Gauge | `org` | Number of policy groups |
+| `pulumi_org_policy_pack_count` | Gauge | `org` | Number of policy packs |
+| `pulumi_org_policy_violations` | Gauge | `org`, `level`, `kind` | Policy violations by severity and type |
+| `pulumi_org_neo_task_count` | Gauge | `org`, `status` | Pulumi Neo AI tasks by status |
+
 ### Label Values
 
 - **`kind`**: `update`, `preview`, `destroy`, `refresh`, `import`
 - **`result`**: `succeeded`, `failed`, `in-progress`
 - **`operation`**: `create`, `update`, `delete`, `same`, `replace`
-- **`status`**: `running`, `succeeded`, `failed`, `not-started`, `accepted`
+- **`status`** (deployments): `running`, `succeeded`, `failed`, `not-started`, `accepted`
+- **`status`** (Neo tasks): `idle`, `running`
+- **`level`** (violations): `advisory`, `mandatory`, `disabled`
+- **`kind`** (violations): `preventative`, `audit`
 
 ### Histogram Buckets
 
@@ -159,23 +194,43 @@ See [`config.example.yaml`](config.example.yaml) for a full template.
 
 ## Backend Setup
 
-### Prometheus (v2.47+ with native OTLP receiver)
+### Docker Compose (Prometheus + Grafana)
+
+The included Docker Compose stack provides a ready-to-use setup with a pre-built Grafana dashboard.
 
 ```bash
-# prometheus.yml
-otlp:
-  protocols:
-    http:
-      endpoint: "0.0.0.0:4318"
+cd deploy/docker-compose
+cp .env.example .env
+# Set PULUMI_ACCESS_TOKEN and PULUMI_ORGANIZATIONS in .env
+docker compose up --build -d
+```
 
-# Start Prometheus
+- **Grafana**: http://localhost:3000 (admin / admin)
+- **Prometheus**: http://localhost:9090
+
+The exporter pushes metrics to Prometheus via its native OTLP receiver (`--web.enable-otlp-receiver`). The Grafana dashboard is auto-provisioned with 22 panels covering all 13 metrics.
+
+To stop:
+
+```bash
+docker compose down
+# To also remove data volumes:
+docker compose down -v
+```
+
+### Prometheus (standalone, v2.47+)
+
+Enable the OTLP receiver in Prometheus:
+
+```bash
 prometheus --config.file=prometheus.yml --web.enable-otlp-receiver
 ```
 
 ```bash
 ./pulumi-exporter \
   --pulumi.organizations=my-org \
-  --otlp.endpoint=localhost:4318 \
+  --otlp.endpoint=localhost:9090 \
+  --otlp.url-path=/api/v1/otlp/v1/metrics \
   --otlp.insecure
 ```
 
@@ -281,11 +336,7 @@ spec:
 
 ### Makefile
 
-The project ships a `Makefile` that wraps all common operations. Run `make help` to see available targets:
-
-```bash
-make help
-```
+Run `make help` to see all targets:
 
 | Target | Description |
 |--------|-------------|
@@ -308,16 +359,9 @@ make help
 ### Build and Test
 
 ```bash
-# Build with version info injected
 make build
-
-# Run all tests
 make test
-
-# Run tests with race detector
 make test-race
-
-# Run tests with coverage report
 make test-cover
 ```
 
@@ -329,84 +373,100 @@ make lint
 
 The project uses a strict linter configuration (`.golangci.yaml`) with gosec, revive, gocritic, gocyclo, and more. Formatting is enforced by gofumpt and goimports.
 
-### Regenerating the API Client
+### OpenAPI Client Generation
 
-The project includes a generated Go client from the [Pulumi Cloud OpenAPI spec](https://www.pulumi.com/blog/announcing-openapi-support-pulumi-cloud/). The spec is published at `https://api.pulumi.com/api/openapi/pulumi-spec.json`.
+All Pulumi Cloud API calls go through a generated Go client built from the official [Pulumi Cloud OpenAPI spec](https://api.pulumi.com/api/openapi/pulumi-spec.json). The `internal/client/` package provides a typed wrapper around the generated code in `internal/pulumiapi/`.
 
-To regenerate the client after Pulumi updates their API:
+To regenerate after Pulumi updates their API:
 
 ```bash
 make generate
 ```
 
-This downloads the latest spec and runs [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) to produce `internal/pulumiapi/client.gen.go`. The generation is scoped to only the 5 operations the exporter uses (configured in `oapi-codegen.yaml`):
+This downloads the latest spec and runs [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) to produce `internal/pulumiapi/client.gen.go`. Generation is scoped to the 12 operations the exporter uses (configured in `oapi-codegen.yaml`):
 
-- `ListUserStacks` -- `GET /api/user/stacks`
-- `GetStackResourceCount` -- `GET /api/stacks/{org}/{project}/{stack}/resources/count`
-- `GetStackUpdates` -- `GET /api/stacks/{org}/{project}/{stack}/updates`
-- `ListStackDeploymentsHandlerV2` -- `GET /api/stacks/{org}/{project}/{stack}/deployments`
-- `ListOrgDeployments` -- `GET /api/orgs/{org}/deployments`
-
-The hand-written client in `internal/client/` is the one used at runtime. The generated client in `internal/pulumiapi/` serves as a reference and can be wired in as a replacement when the full typed client is preferred.
+| Operation | Endpoint |
+|-----------|----------|
+| `ListUserStacks` | `GET /api/user/stacks` |
+| `GetStackResourceCount` | `GET /api/stacks/{org}/{project}/{stack}/resources/count` |
+| `GetStackUpdates` | `GET /api/stacks/{org}/{project}/{stack}/updates` |
+| `ListStackDeploymentsHandlerV2` | `GET /api/stacks/{org}/{project}/{stack}/deployments` |
+| `ListOrgDeployments` | `GET /api/orgs/{org}/deployments` |
+| `ListOrganizationMembers` | `GET /api/orgs/{org}/members` |
+| `ListTeams` | `GET /api/orgs/{org}/teams` |
+| `ListOrgEnvironments_esc` | `GET /api/esc/environments/{org}` |
+| `ListPolicyGroups` | `GET /api/orgs/{org}/policygroups` |
+| `ListPolicyPacks_orgs` | `GET /api/orgs/{org}/policypacks` |
+| `ListPolicyViolationsV2` | `GET /api/orgs/{org}/policyresults/violationsv2` |
+| `ListTasks` | `GET /api/preview/agents/{org}/tasks` |
 
 ### Project Structure
 
 ```
 pulumi-exporter/
-├── main.go                           # Delegates to cmd/pulumiexporter
-├── Makefile                          # Build, test, lint, generate targets
-├── oapi-codegen.yaml                 # OpenAPI code generation config
+├── main.go                              # Delegates to cmd/pulumiexporter
+├── Makefile                             # Build, test, lint, generate targets
+├── oapi-codegen.yaml                    # OpenAPI code generation config
 ├── cmd/pulumiexporter/
-│   └── main.go                       # CLI flags, wiring, signal handling
+│   └── main.go                          # CLI flags, wiring, signal handling
 ├── internal/
-│   ├── client/                       # Hand-written Pulumi Cloud API client
-│   │   ├── client.go                 # PulumiClient struct, doRequest helper
-│   │   ├── types.go                  # API response types
-│   │   ├── stacks.go                 # ListStacks, GetResourceCount
-│   │   ├── updates.go                # ListUpdates
-│   │   ├── deployments.go            # ListDeployments, ListOrgDeployments
-│   │   └── client_test.go            # httptest-based tests
-│   ├── pulumiapi/                    # Generated client from OpenAPI spec
-│   │   └── client.gen.go             # oapi-codegen output (DO NOT EDIT)
-│   ├── config/                       # CLI flags + env vars + YAML config
-│   │   ├── config.go                 # Config struct, RegisterFlags, LoadFile, Validate
+│   ├── pulumiapi/                       # Generated OpenAPI client (DO NOT EDIT)
+│   │   └── client.gen.go               # oapi-codegen output
+│   ├── client/                          # Typed wrapper around generated client
+│   │   ├── client.go                    # All API methods (stacks, orgs, ESC, Neo)
+│   │   └── types.go                     # Response types used by the collector
+│   ├── config/                          # CLI flags + env vars + YAML config
+│   │   ├── config.go                    # Config struct, RegisterFlags, Validate
 │   │   └── config_test.go
-│   ├── collector/                    # Metrics collection logic
-│   │   ├── collector.go              # PulumiAPI interface, ticker loop
-│   │   ├── instruments.go            # OTel instrument definitions
-│   │   ├── stack.go                  # Per-stack collection
-│   │   ├── deployments.go            # Org deployment collection
-│   │   └── collector_test.go         # Mock API + ManualReader tests
-│   └── exporter/                     # OTel MeterProvider setup
-│       ├── exporter.go               # OTLP HTTP/gRPC exporter creation
-│       └── exporter_test.go
-├── Dockerfile                        # Chainguard static base
-├── .goreleaser.yaml                  # Multi-arch builds, signing, SBOM
-├── .golangci.yaml                    # Linter configuration
+│   ├── collector/                       # Metrics collection logic
+│   │   ├── collector.go                 # PulumiAPI interface, ticker loop
+│   │   ├── instruments.go              # OTel instrument definitions (13 metrics)
+│   │   ├── stack.go                     # Per-stack collection
+│   │   ├── deployments.go              # Org deployment collection
+│   │   ├── org.go                       # Org-level collection (members, teams, ESC, policies, Neo)
+│   │   └── collector_test.go           # Mock API + ManualReader tests
+│   ├── exporter/                        # OTel MeterProvider setup
+│   │   ├── exporter.go                 # OTLP HTTP/gRPC exporter creation
+│   │   └── exporter_test.go
+│   └── version/                         # Build-time version info (ldflags)
+│       └── version.go
+├── deploy/
+│   └── docker-compose/                  # Ready-to-run observability stack
+│       ├── docker-compose.yaml          # Prometheus + Grafana + exporter
+│       ├── Dockerfile                   # Multi-stage build for the exporter
+│       ├── .env.example
+│       ├── prometheus/prometheus.yml
+│       └── grafana/
+│           ├── provisioning/            # Auto-provisioned datasource + dashboard
+│           └── dashboards/
+│               └── pulumi-exporter.json # 22-panel Grafana dashboard
+├── Dockerfile                           # Chainguard static base (release)
+├── .goreleaser.yaml                     # Multi-arch builds, signing, SBOM
+├── .golangci.yaml                       # Linter configuration
 └── .github/workflows/
-    ├── ci.yaml                       # Build, test, release
-    └── lint.yaml                     # golangci-lint
+    ├── ci.yaml                          # Build, test, release
+    └── lint.yaml                        # golangci-lint
 ```
-
-All application code lives under `internal/` (compiler-enforced import restriction). The `collector` package depends on a `PulumiAPI` interface rather than the concrete client, making it straightforward to mock in tests.
 
 ### Running Locally
 
-Start a local OTel Collector to receive metrics:
+**With Docker Compose** (easiest):
 
 ```bash
-docker run -d --name otel-collector -p 4318:4318 \
-  otel/opentelemetry-collector:latest
+cd deploy/docker-compose
+cp .env.example .env
+# Set PULUMI_ACCESS_TOKEN in .env
+docker compose up --build -d
 ```
 
-Run the exporter:
+**With `make run`**:
 
 ```bash
 PULUMI_ACCESS_TOKEN=pul-xxx make run \
   ARGS="--pulumi.organizations=my-org --otlp.endpoint=localhost:4318 --otlp.insecure"
 ```
 
-Or directly with `go run`:
+**With `go run`**:
 
 ```bash
 PULUMI_ACCESS_TOKEN=pul-xxx go run . \
@@ -416,8 +476,6 @@ PULUMI_ACCESS_TOKEN=pul-xxx go run . \
 ```
 
 ### GoReleaser Dry Run
-
-Test the full release pipeline without publishing:
 
 ```bash
 make release-snapshot
@@ -443,30 +501,20 @@ make release-snapshot
 ### Adding a New Metric
 
 1. Add the instrument to `internal/collector/instruments.go`
-2. Record values in `internal/collector/stack.go` or `internal/collector/deployments.go`
-3. If the metric requires new API data, add the endpoint to `internal/client/`
+2. Record values in the appropriate collector file (`stack.go`, `deployments.go`, or `org.go`)
+3. If the metric needs a new API endpoint:
+   - Add the operationId to `oapi-codegen.yaml` and run `make generate`
+   - Add a wrapper method to `internal/client/client.go`
+   - Add response types to `internal/client/types.go`
+   - Add the method to the `PulumiAPI` interface in `internal/collector/collector.go`
+   - Add a stub to the mock in `internal/collector/collector_test.go`
 4. Add tests
-
-### Adding a New API Endpoint
-
-1. Add response types to `internal/client/types.go`
-2. Add the method to the appropriate file in `internal/client/`
-3. Add the method to the `PulumiAPI` interface in `internal/collector/collector.go`
-4. Add httptest-based tests to `internal/client/client_test.go`
-5. Optionally, add the operationId to `oapi-codegen.yaml` and run `make generate` to update the generated client
 
 ### Regenerating After Pulumi API Changes
 
-When Pulumi releases API changes:
-
 ```bash
-# Regenerate the typed client
 make generate
-
-# Verify everything compiles
 make build
-
-# Run tests
 make test
 ```
 

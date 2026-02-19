@@ -8,4 +8,5 @@ otlp:
   endpoint: "localhost:4318"       # or OTEL_EXPORTER_OTLP_ENDPOINT
   protocol: "http/protobuf"       # or "grpc" - or OTEL_EXPORTER_OTLP_PROTOCOL
   insecure: false                  # or OTEL_EXPORTER_OTLP_INSECURE
+  url-path: ""                     # e.g. /api/v1/otlp/v1/metrics for Prometheus native OTLP
   headers: {}                      # or OTEL_EXPORTER_OTLP_HEADERS (key=value,key2=value2)
