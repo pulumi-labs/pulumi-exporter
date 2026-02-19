@@ -297,15 +297,48 @@
       "type": "row"
     },
     {
-      "type": "barchart",
+      "type": "piechart",
       "id": 10,
-      "title": "Updates by Kind",
+      "title": "Updates by Result",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 15 },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 15 },
       "targets": [
         {
-          "expr": "increase(pulumi_update_total{org=\"$org\"}[1h])",
-          "legendFormat": "{{kind}} ({{result}})",
+          "expr": "sum by (result) (pulumi_update_total{org=\"$org\"})",
+          "legendFormat": "{{result}}",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "succeeded" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "failed" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "in-progress" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] }
+        ]
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "pieType": "donut",
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
+      }
+    },
+    {
+      "type": "bargauge",
+      "id": 23,
+      "title": "Updates by Kind",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 15 },
+      "targets": [
+        {
+          "expr": "sort_desc(sum by (kind) (pulumi_update_total{org=\"$org\"}))",
+          "legendFormat": "{{kind}}",
+          "instant": true,
           "refId": "A"
         }
       ],
@@ -317,60 +350,74 @@
         "overrides": []
       },
       "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "displayMode": "gradient",
         "orientation": "horizontal",
-        "xTickLabelRotation": 0,
-        "showValue": "auto",
-        "stacking": "none",
-        "groupWidth": 0.7,
-        "barWidth": 0.97,
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "list", "placement": "bottom" }
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "namePlacement": "left"
       }
     },
     {
       "type": "stat",
       "id": 11,
-      "title": "Duration Percentiles",
+      "title": "Avg Duration",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 15 },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 15 },
       "targets": [
         {
-          "expr": "histogram_quantile(0.5, rate(pulumi_update_duration_seconds_bucket{org=\"$org\"}[1h]))",
-          "legendFormat": "p50",
+          "expr": "sum(pulumi_update_duration_seconds_sum{org=\"$org\"}) / sum(pulumi_update_duration_seconds_count{org=\"$org\"})",
+          "legendFormat": "",
           "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, rate(pulumi_update_duration_seconds_bucket{org=\"$org\"}[1h]))",
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "expr": "histogram_quantile(0.99, rate(pulumi_update_duration_seconds_bucket{org=\"$org\"}[1h]))",
-          "legendFormat": "p99",
-          "refId": "C"
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
-          "unit": "s"
+          "color": { "mode": "fixed", "fixedColor": "light-blue" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "light-blue", "value": null }] },
+          "unit": "s",
+          "decimals": 1
         },
         "overrides": []
       },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "value_and_name",
-        "orientation": "horizontal"
+        "graphMode": "area",
+        "textMode": "value"
       }
     },
     {
-      "type": "barchart",
+      "type": "stat",
+      "id": 24,
+      "title": "Total Updates",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 19 },
+      "targets": [
+        {
+          "expr": "sum(pulumi_update_total{org=\"$org\"})",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "semi-dark-blue" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "semi-dark-blue", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "piechart",
       "id": 12,
       "title": "Resource Changes",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -379,6 +426,7 @@
         {
           "expr": "sum by (operation) (pulumi_update_resource_changes_total{org=\"$org\"})",
           "legendFormat": "{{operation}}",
+          "instant": true,
           "refId": "A"
         }
       ],
@@ -387,17 +435,19 @@
           "color": { "mode": "palette-classic" },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "create" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "delete" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "update" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byName", "options": "same" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "replace" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] }
+        ]
       },
       "options": {
-        "orientation": "horizontal",
-        "xTickLabelRotation": 0,
-        "showValue": "auto",
-        "stacking": "none",
-        "groupWidth": 0.7,
-        "barWidth": 0.97,
-        "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "list", "placement": "bottom" }
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "pieType": "donut",
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
       }
     },
     {
