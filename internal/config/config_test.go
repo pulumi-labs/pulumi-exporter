@@ -32,7 +32,7 @@ func TestDefaults(t *testing.T) {
 		t.Errorf("expected endpoint %q, got %q", "localhost:4318", cfg.Exporters.Endpoint)
 	}
 
-	if cfg.Exporters.Protocol != "http/protobuf" {
+	if cfg.Exporters.Protocol != "http/protobuf" { //nolint:goconst
 		t.Errorf("expected protocol %q, got %q", "http/protobuf", cfg.Exporters.Protocol)
 	}
 
@@ -62,7 +62,7 @@ otlp:
 
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yaml")
-	if err := os.WriteFile(path, []byte(yamlContent), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(yamlContent), 0o600); err != nil {
 		t.Fatalf("failed to write temp config: %v", err)
 	}
 

@@ -16,6 +16,24 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for AgentTaskStatus.
+const (
+	AgentTaskStatusIdle    AgentTaskStatus = "idle"
+	AgentTaskStatusRunning AgentTaskStatus = "running"
+)
+
+// Defines values for AppPolicyGroupSummaryEntityType.
+const (
+	Accounts AppPolicyGroupSummaryEntityType = "accounts"
+	Stacks   AppPolicyGroupSummaryEntityType = "stacks"
+)
+
+// Defines values for AppPolicyGroupSummaryMode.
+const (
+	AppPolicyGroupSummaryModeAudit        AppPolicyGroupSummaryMode = "audit"
+	AppPolicyGroupSummaryModePreventative AppPolicyGroupSummaryMode = "preventative"
+)
+
 // Defines values for DeploymentJobStatus.
 const (
 	DeploymentJobStatusAccepted   DeploymentJobStatus = "accepted"
@@ -74,13 +92,112 @@ const (
 	ListDeploymentSnapshotStatusSucceeded  ListDeploymentSnapshotStatus = "succeeded"
 )
 
+// Defines values for OrganizationMemberRole.
+const (
+	OrganizationMemberRoleAdmin             OrganizationMemberRole = "admin"
+	OrganizationMemberRoleBillingManager    OrganizationMemberRole = "billing-manager"
+	OrganizationMemberRoleMember            OrganizationMemberRole = "member"
+	OrganizationMemberRoleNone              OrganizationMemberRole = "none"
+	OrganizationMemberRolePotentialMember   OrganizationMemberRole = "potential-member"
+	OrganizationMemberRoleStackCollaborator OrganizationMemberRole = "stack-collaborator"
+)
+
+// Defines values for PolicyViolationV2Kind.
+const (
+	PolicyViolationV2KindAudit        PolicyViolationV2Kind = "audit"
+	PolicyViolationV2KindPreventative PolicyViolationV2Kind = "preventative"
+)
+
 // Defines values for StepRunStatus.
 const (
-	Failed     StepRunStatus = "failed"
-	NotStarted StepRunStatus = "not-started"
-	Running    StepRunStatus = "running"
-	Succeeded  StepRunStatus = "succeeded"
+	StepRunStatusFailed     StepRunStatus = "failed"
+	StepRunStatusNotStarted StepRunStatus = "not-started"
+	StepRunStatusRunning    StepRunStatus = "running"
+	StepRunStatusSucceeded  StepRunStatus = "succeeded"
 )
+
+// Defines values for TeamKind.
+const (
+	Github TeamKind = "github"
+	Pulumi TeamKind = "pulumi"
+	Scim   TeamKind = "scim"
+)
+
+// Defines values for TeamUserRole.
+const (
+	TeamUserRoleAdmin  TeamUserRole = "admin"
+	TeamUserRoleMember TeamUserRole = "member"
+	TeamUserRoleNone   TeamUserRole = "none"
+)
+
+// Defines values for TeamAccountPermissionPermission.
+const (
+	TeamAccountPermissionPermissionN0 TeamAccountPermissionPermission = 0
+	TeamAccountPermissionPermissionN1 TeamAccountPermissionPermission = 1
+	TeamAccountPermissionPermissionN2 TeamAccountPermissionPermission = 2
+	TeamAccountPermissionPermissionN3 TeamAccountPermissionPermission = 3
+)
+
+// Defines values for TeamEnvironmentSettingsPermission.
+const (
+	TeamEnvironmentSettingsPermissionAdmin TeamEnvironmentSettingsPermission = "admin"
+	TeamEnvironmentSettingsPermissionNone  TeamEnvironmentSettingsPermission = "none"
+	TeamEnvironmentSettingsPermissionOpen  TeamEnvironmentSettingsPermission = "open"
+	TeamEnvironmentSettingsPermissionRead  TeamEnvironmentSettingsPermission = "read"
+	TeamEnvironmentSettingsPermissionWrite TeamEnvironmentSettingsPermission = "write"
+)
+
+// Defines values for TeamMemberInfoRole.
+const (
+	TeamMemberInfoRoleAdmin  TeamMemberInfoRole = "admin"
+	TeamMemberInfoRoleMember TeamMemberInfoRole = "member"
+	TeamMemberInfoRoleNone   TeamMemberInfoRole = "none"
+)
+
+// Defines values for TeamStackPermissionPermission.
+const (
+	TeamStackPermissionPermissionN0   TeamStackPermissionPermission = 0
+	TeamStackPermissionPermissionN101 TeamStackPermissionPermission = 101
+	TeamStackPermissionPermissionN102 TeamStackPermissionPermission = 102
+	TeamStackPermissionPermissionN103 TeamStackPermissionPermission = 103
+	TeamStackPermissionPermissionN104 TeamStackPermissionPermission = 104
+)
+
+// AgentEntity Represents agent entity.
+type AgentEntity struct {
+	Type string `json:"type"`
+}
+
+// AgentTask A Pulumi Copilot agent task representing a conversation and its associated context.
+type AgentTask struct {
+	// Id Unique identifier for the task.
+	Id string `json:"id"`
+
+	// Name Display name for the task, typically auto-generated from the initial user message.
+	Name string `json:"name"`
+
+	// Status Current execution status of the task.
+	Status AgentTaskStatus `json:"status"`
+
+	// CreatedAt When the task was created, in ISO 8601 format.
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Entities Pulumi entities (stacks, projects, etc.) that provide context for the agent.
+	Entities []AgentEntity `json:"entities"`
+
+	// IsShared Whether this task is shared with other org members.
+	IsShared bool `json:"isShared"`
+
+	// SharedAt When the task was first shared. Null if never shared.
+	SharedAt *time.Time `json:"sharedAt,omitempty"`
+
+	// CreatedBy UserInfo contains just the display information for a user.  This information may be returned from public APIs,
+	// and as such this structure must not contain sensitive information.  Please refer to User for this sort of thing.
+	CreatedBy UserInfo `json:"createdBy"`
+}
+
+// AgentTaskStatus Current execution status of the task.
+type AgentTaskStatus string
 
 // Aggregation Aggregation collects the top 5 aggregated values for the requested dimension.
 type Aggregation struct {
@@ -121,6 +238,18 @@ type AngularGridFilterModel struct {
 	Conditions *[]AngularGridFilterModel `json:"conditions,omitempty"`
 }
 
+// AppListPolicyGroupsResponse ListPolicyGroupsResponse lists a summary of the organization's Policy Groups.
+type AppListPolicyGroupsResponse struct {
+	// PolicyGroups List of policy groups
+	PolicyGroups []AppPolicyGroupSummary `json:"policyGroups"`
+}
+
+// AppListPolicyPacksResponse ListPolicyPacksResponse is the response to list an organization's Policy Packs.
+type AppListPolicyPacksResponse struct {
+	// PolicyPacks List of policy packs
+	PolicyPacks []AppPolicyPackWithVersions `json:"policyPacks"`
+}
+
 // AppListStacksResponse ListStacksResponse returns a set of stack summaries. This call is designed to be inexpensive.
 type AppListStacksResponse struct {
 	// Stacks List of stacks
@@ -131,6 +260,52 @@ type AppListStacksResponse struct {
 	//
 	// A value of nil means that all stacks have been returned.
 	ContinuationToken *string `json:"continuationToken,omitempty"`
+}
+
+// AppPolicyGroupSummary PolicyGroupSummary details the name, applicable stacks and the applied Policy
+// Packs for an organization's Policy Group.
+type AppPolicyGroupSummary struct {
+	// Name The unique name of the policy group.
+	Name string `json:"name"`
+
+	// IsOrgDefault Whether this is the organization's default policy group, applied to all stacks not in another group.
+	IsOrgDefault bool `json:"isOrgDefault"`
+
+	// NumStacks Number of stacks assigned to this policy group.
+	NumStacks int64 `json:"numStacks"`
+
+	// NumAccounts Number of cloud accounts assigned to this policy group.
+	NumAccounts *int64 `json:"numAccounts,omitempty"`
+
+	// EntityType The type of entity this policy group targets (e.g. stacks, accounts).
+	EntityType AppPolicyGroupSummaryEntityType `json:"entityType"`
+
+	// Mode The enforcement mode of the policy group.
+	Mode AppPolicyGroupSummaryMode `json:"mode"`
+
+	// NumEnabledPolicyPacks Number of policy packs currently enabled in this group.
+	NumEnabledPolicyPacks int64 `json:"numEnabledPolicyPacks"`
+}
+
+// AppPolicyGroupSummaryEntityType The type of entity this policy group targets (e.g. stacks, accounts).
+type AppPolicyGroupSummaryEntityType string
+
+// AppPolicyGroupSummaryMode The enforcement mode of the policy group.
+type AppPolicyGroupSummaryMode string
+
+// AppPolicyPackWithVersions PolicyPackWithVersions details the specifics of a Policy Pack and all its available versions.
+type AppPolicyPackWithVersions struct {
+	// Name The name
+	Name string `json:"name"`
+
+	// DisplayName The display name
+	DisplayName string `json:"displayName"`
+
+	// Versions List of versions
+	Versions []int64 `json:"versions"`
+
+	// VersionTags List of version tags
+	VersionTags []string `json:"versionTags"`
 }
 
 // AppStackLinks Represents app stack links.
@@ -217,6 +392,30 @@ type DeploymentNestedUpdateResult string
 
 // DeploymentNestedUpdateKind The kind of update operation.
 type DeploymentNestedUpdateKind string
+
+// EnvironmentLinks EnvironmentLinks contains hypermedia links related to an environment resource.
+type EnvironmentLinks struct {
+	// Self The URL for this environment resource.
+	Self *string `json:"self,omitempty"`
+}
+
+// EnvironmentReferrerMetadata EnvironmentReferrerMetadata contains counts of different types of entities that reference an environment.
+type EnvironmentReferrerMetadata struct {
+	// EnvironmentReferrerCount The number of environments that reference this environment.
+	EnvironmentReferrerCount int64 `json:"environmentReferrerCount"`
+
+	// StackReferrerCount The number of stacks that reference this environment.
+	StackReferrerCount int64 `json:"stackReferrerCount"`
+
+	// InsightsAccountReferrerCount The number of Insights accounts that reference this environment.
+	InsightsAccountReferrerCount int64 `json:"insightsAccountReferrerCount"`
+}
+
+// EnvironmentSettings EnvironmentSettings contains settings that control the behavior of an environment.
+type EnvironmentSettings struct {
+	// DeletionProtected Whether the environment is protected from deletion.
+	DeletionProtected bool `json:"deletionProtected"`
+}
 
 // EscAccessExpr An AccessExpr represents a property access with a receiving value.
 type EscAccessExpr struct {
@@ -467,6 +666,18 @@ type EscValue struct {
 	Trace EscTrace `json:"trace"`
 }
 
+// FGARole FGARole represents basic FGAC role information for organization members
+type FGARole struct {
+	// Id The unique identifier of the role.
+	Id string `json:"id"`
+
+	// Name The name of the role.
+	Name string `json:"name"`
+
+	// ModifiedAt The timestamp when the role was last modified.
+	ModifiedAt time.Time `json:"modifiedAt"`
+}
+
 // GetStackResourceCountResponse GetStackResourceCountResponse returns the number of resources at a particular update.
 type GetStackResourceCountResponse struct {
 	// ResourceCount The number of resources in the stack
@@ -518,6 +729,16 @@ type InsightsResourceWithVersion struct {
 
 	// PolicyState The policy evaluation state for the resource
 	PolicyState *string `json:"policyState,omitempty"`
+}
+
+// ListAgentTasksResponse Response containing a paginated list of agent tasks.
+type ListAgentTasksResponse struct {
+	// Tasks Tasks contains the list of tasks for this page.
+	Tasks []AgentTask `json:"tasks"`
+
+	// ContinuationToken ContinuationToken can be used to fetch the next page of results.
+	// If null, there are no more results available.
+	ContinuationToken *string `json:"continuationToken,omitempty"`
 }
 
 // ListDeploymentResponse ListDeploymentResponse is the response from the API when listing Deployments.
@@ -617,6 +838,164 @@ type ListDeploymentSnapshotAgentPool struct {
 	// Name The agent pool name
 	Name string `json:"name"`
 }
+
+// ListEnvironmentsResponse Response containing a list of environments for an organization.
+type ListEnvironmentsResponse struct {
+	// Environments The list of environments
+	Environments []OrgEnvironment `json:"environments"`
+
+	// NextToken Token for fetching the next page of results
+	NextToken *string `json:"nextToken,omitempty"`
+}
+
+// ListOrganizationMembersResponse ListOrganizationMembersResponse lists all members within an organization.
+type ListOrganizationMembersResponse struct {
+	// Members The list of organization members
+	Members []OrganizationMember `json:"members"`
+
+	// ContinuationToken An opaque token for fetching the next page of members
+	ContinuationToken *string `json:"continuationToken,omitempty"`
+}
+
+// ListPolicyViolationsV2Response Response containing a paginated list of policy violations (v2).
+type ListPolicyViolationsV2Response struct {
+	// PolicyViolations The list of policy violations
+	PolicyViolations []PolicyViolationV2 `json:"policyViolations"`
+
+	// ContinuationToken Continuation token for pagination
+	ContinuationToken *string `json:"continuationToken,omitempty"`
+}
+
+// ListTeamsResponse ListTeamsResponse lists all teams within an organization.
+type ListTeamsResponse struct {
+	// Teams The list of teams
+	Teams []Team `json:"teams"`
+}
+
+// MemberLinks MemberLinks contains hypermedia links related to an organization member.
+type MemberLinks struct {
+	// Self A self-referencing hypermedia link (URL) to this member resource.
+	Self *string `json:"self,omitempty"`
+}
+
+// OrgEnvironment OrgEnvironment represents an environment within an organization.
+type OrgEnvironment struct {
+	// Id The unique identifier of the environment.
+	Id string `json:"id"`
+
+	// Organization The login name of the organization that owns this environment.
+	Organization *string `json:"organization,omitempty"`
+
+	// Project The project name that contains this environment, if project-scoped.
+	Project *string `json:"project,omitempty"`
+
+	// Name The name of the environment.
+	Name *string `json:"name,omitempty"`
+
+	// Created The ISO 8601 timestamp when the environment was created.
+	Created string `json:"created"`
+
+	// Modified The ISO 8601 timestamp when the environment was last modified.
+	Modified string `json:"modified"`
+
+	// Tags User-defined key-value tags associated with the environment for organization and filtering.
+	Tags map[string]string `json:"tags"`
+
+	// DeletedAt The ISO 8601 timestamp when the environment was soft-deleted, or null if not deleted.
+	DeletedAt *string `json:"deletedAt,omitempty"`
+
+	// Links EnvironmentLinks contains hypermedia links related to an environment resource.
+	Links *EnvironmentLinks `json:"links,omitempty"`
+
+	// ReferrerMetadata EnvironmentReferrerMetadata contains counts of different types of entities that reference an environment.
+	ReferrerMetadata EnvironmentReferrerMetadata `json:"referrerMetadata"`
+
+	// Settings EnvironmentSettings contains settings that control the behavior of an environment.
+	Settings EnvironmentSettings `json:"settings"`
+}
+
+// OrganizationMember OrganizationMember defines a member of an organization.
+type OrganizationMember struct {
+	// Role The member's role within the organization.
+	Role OrganizationMemberRole `json:"role"`
+
+	// User UserInfo contains just the display information for a user.  This information may be returned from public APIs,
+	// and as such this structure must not contain sensitive information.  Please refer to User for this sort of thing.
+	User UserInfo `json:"user"`
+
+	// Created When the member joined the organization.
+	Created time.Time `json:"created"`
+
+	// KnownToPulumi KnownToPulumi returns if the organization member has a Pulumi account.
+	KnownToPulumi bool `json:"knownToPulumi"`
+
+	// VirtualAdmin VirtualAdmin indicates that the member does not have admin access on the
+	// backing identity provider, but does have admin access to the Pulumi organization.
+	VirtualAdmin bool `json:"virtualAdmin"`
+
+	// Links MemberLinks contains hypermedia links related to an organization member.
+	Links *MemberLinks `json:"links,omitempty"`
+
+	// FgaRole FGARole represents basic FGAC role information for organization members
+	FgaRole FGARole `json:"fgaRole"`
+}
+
+// OrganizationMemberRole The member's role within the organization.
+type OrganizationMemberRole string
+
+// PolicyViolationV2 PolicyViolationV2 represents a policy violation detected during an update or resource scan.
+type PolicyViolationV2 struct {
+	// Id The unique identifier of the policy violation.
+	Id string `json:"id"`
+
+	// ProjectName The name of the project containing the violating resource.
+	ProjectName string `json:"projectName"`
+
+	// StackName The name of the stack containing the violating resource.
+	StackName *string `json:"stackName,omitempty"`
+
+	// StackVersion The stack version where the violation was detected.
+	StackVersion *int64 `json:"stackVersion,omitempty"`
+
+	// AccountName The Insights account name associated with the violation, for resource-scoped violations.
+	AccountName *string `json:"accountName,omitempty"`
+
+	// ResourceVersion The resource version where the violation was detected.
+	ResourceVersion *int64 `json:"resourceVersion,omitempty"`
+
+	// PolicyPack The name of the policy pack that produced this violation.
+	PolicyPack string `json:"policyPack"`
+
+	// PolicyPackTag The tag of the policy pack version that produced this violation.
+	PolicyPackTag string `json:"policyPackTag"`
+
+	// PolicyName The name of the policy that was violated.
+	PolicyName string `json:"policyName"`
+
+	// ResourceURN The URN of the resource that violated the policy.
+	ResourceURN string `json:"resourceURN"`
+
+	// ResourceType The type of the resource that violated the policy.
+	ResourceType string `json:"resourceType"`
+
+	// ResourceName The name of the resource that violated the policy.
+	ResourceName string `json:"resourceName"`
+
+	// Message A human-readable message describing the policy violation.
+	Message string `json:"message"`
+
+	// ObservedAt The timestamp when the violation was observed.
+	ObservedAt time.Time `json:"observedAt"`
+
+	// Level The enforcement level of the violated policy (e.g. advisory, mandatory, disabled).
+	Level string `json:"level"`
+
+	// Kind The kind of policy violation (audit or preventative).
+	Kind PolicyViolationV2Kind `json:"kind"`
+}
+
+// PolicyViolationV2Kind The kind of policy violation (audit or preventative).
+type PolicyViolationV2Kind string
 
 // ResourceResult ResourceResult is the user-facing type for our indexed resources.
 // If you add a property here, don't forget to update fieldMappings to make it
@@ -725,6 +1104,129 @@ type StepRun struct {
 // StepRunStatus The current status of the step.
 type StepRunStatus string
 
+// Team Team describes a Pulumi team. A Pulumi team may have its organization
+// managed by another service, such as GitHub.
+type Team struct {
+	// Kind The kind of team (e.g., pulumi or GitHub-backed).
+	Kind TeamKind `json:"kind"`
+
+	// Name The unique identifier name of the team within the organization.
+	Name string `json:"name"`
+
+	// DisplayName The human-readable display name shown in the UI.
+	DisplayName string `json:"displayName"`
+
+	// Description A free-form text description of the team's purpose.
+	Description string `json:"description"`
+
+	// Members The list of team members.
+	Members *[]TeamMemberInfo `json:"members,omitempty"`
+
+	// Stacks The list of stack permissions granted to the team.
+	Stacks *[]TeamStackPermission `json:"stacks,omitempty"`
+
+	// Environments The list of environment settings for the team.
+	Environments *[]TeamEnvironmentSettings `json:"environments,omitempty"`
+
+	// Accounts The list of account permissions granted to the team.
+	Accounts *[]TeamAccountPermission `json:"accounts,omitempty"`
+
+	// ListMembersError ListMembersError is the error message if an error was encountered whilst trying to
+	// contact the team's backend (eg. GitHub). The UI will only show this error if it is non-nil
+	// and if Members itself is an empty slice.
+	ListMembersError *string `json:"listMembersError,omitempty"`
+
+	// UserRole UserRole is the calling user's role on the given team.
+	UserRole *TeamUserRole `json:"userRole,omitempty"`
+
+	// RoleIds RoleIDs are the IDs of the FGA roles assigned to the team, if any.
+	// Currently only one role per team is supported.
+	RoleIds *[]string `json:"roleIds,omitempty"`
+}
+
+// TeamKind The kind of team (e.g., pulumi or GitHub-backed).
+type TeamKind string
+
+// TeamUserRole UserRole is the calling user's role on the given team.
+type TeamUserRole string
+
+// TeamAccountPermission TeamAccountPermission is the permission team membership grants to an account.
+type TeamAccountPermission struct {
+	// AccountName The Insights account name.
+	AccountName string `json:"accountName"`
+
+	// Permission The permission level the team has on this Insights account.
+	Permission TeamAccountPermissionPermission `json:"permission"`
+
+	// PermissionSetName Display name of the permission set for this account, when available. Enables read-only entity access UI without requiring RoleRead.
+	PermissionSetName *string `json:"permissionSetName,omitempty"`
+}
+
+// TeamAccountPermissionPermission The permission level the team has on this Insights account.
+type TeamAccountPermissionPermission int64
+
+// TeamEnvironmentSettings TeamEnvironmentSettings contains additional settings a team applies to an environment.
+type TeamEnvironmentSettings struct {
+	// ProjectName The project containing the environment.
+	ProjectName string `json:"projectName"`
+
+	// EnvName The environment within the project.
+	EnvName string `json:"envName"`
+
+	// Permission The permission level the team has on this environment.
+	Permission TeamEnvironmentSettingsPermission `json:"permission"`
+
+	// MaxOpenDuration The maximum duration (in nanoseconds) an environment session can remain open.
+	MaxOpenDuration *int64 `json:"maxOpenDuration,omitempty"`
+
+	// PermissionSetName Display name of the permission set for this environment, when available. Enables read-only entity access UI without requiring RoleRead.
+	PermissionSetName *string `json:"permissionSetName,omitempty"`
+}
+
+// TeamEnvironmentSettingsPermission The permission level the team has on this environment.
+type TeamEnvironmentSettingsPermission string
+
+// TeamMemberInfo defines model for TeamMemberInfo.
+type TeamMemberInfo struct {
+	// Name The user's display name.
+	Name string `json:"name"`
+
+	// Role The member's role within the team.
+	Role TeamMemberInfoRole `json:"role"`
+
+	// GithubLogin The user's login name.
+	GithubLogin string `json:"githubLogin"`
+
+	// AvatarUrl The URL of the user's avatar image.
+	AvatarUrl string `json:"avatarUrl"`
+
+	// Email IMPORTANT: The email address of the user is only included on a few admin-only APIs.
+	// For nearly all APIs that return a UserInfo object, this will not be provided.
+	// considered sensitive information.
+	Email *string `json:"email,omitempty"`
+}
+
+// TeamMemberInfoRole The member's role within the team.
+type TeamMemberInfoRole string
+
+// TeamStackPermission TeamStackPermission is the permission team membership grants to a stack.
+type TeamStackPermission struct {
+	// ProjectName The project containing the stack.
+	ProjectName string `json:"projectName"`
+
+	// StackName The stack within the project.
+	StackName string `json:"stackName"`
+
+	// Permission The permission level the team has on this stack (e.g., read, write, admin).
+	Permission TeamStackPermissionPermission `json:"permission"`
+
+	// PermissionSetName Display name of the permission set for this stack, when available. Enables read-only entity access UI without requiring RoleRead.
+	PermissionSetName *string `json:"permissionSetName,omitempty"`
+}
+
+// TeamStackPermissionPermission The permission level the team has on this stack (e.g., read, write, admin).
+type TeamStackPermissionPermission int64
+
 // UserInfo UserInfo contains just the display information for a user.  This information may be returned from public APIs,
 // and as such this structure must not contain sensitive information.  Please refer to User for this sort of thing.
 type UserInfo struct {
@@ -743,6 +1245,21 @@ type UserInfo struct {
 	Email *string `json:"email,omitempty"`
 }
 
+// ListOrgEnvironmentsEscParams defines parameters for ListOrgEnvironmentsEsc.
+type ListOrgEnvironmentsEscParams struct {
+	// ContinuationToken Continuation token for paginated results
+	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
+
+	// IncludeReferrerMetadata Whether to include referrer metadata. Defaults to false.
+	IncludeReferrerMetadata *bool `form:"includeReferrerMetadata,omitempty" json:"includeReferrerMetadata,omitempty"`
+
+	// MaxResults Maximum number of results for pagination
+	MaxResults *int64 `form:"maxResults,omitempty" json:"maxResults,omitempty"`
+
+	// RoleID The custom role to use for listing environments
+	RoleID *string `form:"roleID,omitempty" json:"roleID,omitempty"`
+}
+
 // ListOrgDeploymentsParams defines parameters for ListOrgDeployments.
 type ListOrgDeploymentsParams struct {
 	// Asc Sort in ascending order when true (default false)
@@ -756,6 +1273,30 @@ type ListOrgDeploymentsParams struct {
 
 	// Sort Field to sort results by
 	Sort *string `form:"sort,omitempty" json:"sort,omitempty"`
+}
+
+// ListOrganizationMembersParams defines parameters for ListOrganizationMembers.
+type ListOrganizationMembersParams struct {
+	// ContinuationToken Token for paginated result retrieval
+	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
+
+	// Type Member type to list: 'frontend' for Pulumi Service members or 'backend' for organization backend members
+	Type *string `form:"type,omitempty" json:"type,omitempty"`
+}
+
+// ListPolicyPacksOrgsParams defines parameters for ListPolicyPacksOrgs.
+type ListPolicyPacksOrgsParams struct {
+	// Policypack The policy pack name
+	Policypack *string `form:"policypack,omitempty" json:"policypack,omitempty"`
+}
+
+// ListTasksParams defines parameters for ListTasks.
+type ListTasksParams struct {
+	// ContinuationToken Token for retrieving the next page of results
+	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
+
+	// PageSize Number of results per page
+	PageSize *int64 `form:"pageSize,omitempty" json:"pageSize,omitempty"`
 }
 
 // ListStackDeploymentsHandlerV2Params defines parameters for ListStackDeploymentsHandlerV2.
@@ -882,8 +1423,29 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// ListOrgEnvironmentsEsc request
+	ListOrgEnvironmentsEsc(ctx context.Context, orgName string, params *ListOrgEnvironmentsEscParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListOrgDeployments request
 	ListOrgDeployments(ctx context.Context, orgName string, params *ListOrgDeploymentsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListOrganizationMembers request
+	ListOrganizationMembers(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPolicyGroups request
+	ListPolicyGroups(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPolicyPacksOrgs request
+	ListPolicyPacksOrgs(ctx context.Context, orgName string, params *ListPolicyPacksOrgsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListPolicyViolationsV2 request
+	ListPolicyViolationsV2(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListTeams request
+	ListTeams(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListTasks request
+	ListTasks(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListStackDeploymentsHandlerV2 request
 	ListStackDeploymentsHandlerV2(ctx context.Context, orgName string, projectName string, stackName string, params *ListStackDeploymentsHandlerV2Params, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -898,8 +1460,92 @@ type ClientInterface interface {
 	ListUserStacks(ctx context.Context, params *ListUserStacksParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
+func (c *Client) ListOrgEnvironmentsEsc(ctx context.Context, orgName string, params *ListOrgEnvironmentsEscParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListOrgEnvironmentsEscRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListOrgDeployments(ctx context.Context, orgName string, params *ListOrgDeploymentsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListOrgDeploymentsRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListOrganizationMembers(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListOrganizationMembersRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPolicyGroups(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPolicyGroupsRequest(c.Server, orgName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPolicyPacksOrgs(ctx context.Context, orgName string, params *ListPolicyPacksOrgsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPolicyPacksOrgsRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListPolicyViolationsV2(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPolicyViolationsV2Request(c.Server, orgName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListTeams(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTeamsRequest(c.Server, orgName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListTasks(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListTasksRequest(c.Server, orgName, params)
 	if err != nil {
 		return nil, err
 	}
@@ -956,6 +1602,110 @@ func (c *Client) ListUserStacks(ctx context.Context, params *ListUserStacksParam
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewListOrgEnvironmentsEscRequest generates requests for ListOrgEnvironmentsEsc
+func NewListOrgEnvironmentsEscRequest(server string, orgName string, params *ListOrgEnvironmentsEscParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/esc/environments/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ContinuationToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "continuationToken", runtime.ParamLocationQuery, *params.ContinuationToken); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.IncludeReferrerMetadata != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "includeReferrerMetadata", runtime.ParamLocationQuery, *params.IncludeReferrerMetadata); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxResults != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "maxResults", runtime.ParamLocationQuery, *params.MaxResults); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.RoleID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "roleID", runtime.ParamLocationQuery, *params.RoleID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewListOrgDeploymentsRequest generates requests for ListOrgDeployments
@@ -1038,6 +1788,308 @@ func NewListOrgDeploymentsRequest(server string, orgName string, params *ListOrg
 		if params.Sort != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListOrganizationMembersRequest generates requests for ListOrganizationMembers
+func NewListOrganizationMembersRequest(server string, orgName string, params *ListOrganizationMembersParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/orgs/%s/members", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ContinuationToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "continuationToken", runtime.ParamLocationQuery, *params.ContinuationToken); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Type != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "type", runtime.ParamLocationQuery, *params.Type); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListPolicyGroupsRequest generates requests for ListPolicyGroups
+func NewListPolicyGroupsRequest(server string, orgName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/orgs/%s/policygroups", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListPolicyPacksOrgsRequest generates requests for ListPolicyPacksOrgs
+func NewListPolicyPacksOrgsRequest(server string, orgName string, params *ListPolicyPacksOrgsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/orgs/%s/policypacks", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Policypack != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "policypack", runtime.ParamLocationQuery, *params.Policypack); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListPolicyViolationsV2Request generates requests for ListPolicyViolationsV2
+func NewListPolicyViolationsV2Request(server string, orgName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/orgs/%s/policyresults/violationsv2", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListTeamsRequest generates requests for ListTeams
+func NewListTeamsRequest(server string, orgName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/orgs/%s/teams", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListTasksRequest generates requests for ListTasks
+func NewListTasksRequest(server string, orgName string, params *ListTasksParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/preview/agents/%s/tasks", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.ContinuationToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "continuationToken", runtime.ParamLocationQuery, *params.ContinuationToken); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.PageSize != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "pageSize", runtime.ParamLocationQuery, *params.PageSize); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1518,8 +2570,29 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// ListOrgEnvironmentsEscWithResponse request
+	ListOrgEnvironmentsEscWithResponse(ctx context.Context, orgName string, params *ListOrgEnvironmentsEscParams, reqEditors ...RequestEditorFn) (*ListOrgEnvironmentsEscResp, error)
+
 	// ListOrgDeploymentsWithResponse request
 	ListOrgDeploymentsWithResponse(ctx context.Context, orgName string, params *ListOrgDeploymentsParams, reqEditors ...RequestEditorFn) (*ListOrgDeploymentsResp, error)
+
+	// ListOrganizationMembersWithResponse request
+	ListOrganizationMembersWithResponse(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*ListOrganizationMembersResp, error)
+
+	// ListPolicyGroupsWithResponse request
+	ListPolicyGroupsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyGroupsResp, error)
+
+	// ListPolicyPacksOrgsWithResponse request
+	ListPolicyPacksOrgsWithResponse(ctx context.Context, orgName string, params *ListPolicyPacksOrgsParams, reqEditors ...RequestEditorFn) (*ListPolicyPacksOrgsResp, error)
+
+	// ListPolicyViolationsV2WithResponse request
+	ListPolicyViolationsV2WithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyViolationsV2Resp, error)
+
+	// ListTeamsWithResponse request
+	ListTeamsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListTeamsResp, error)
+
+	// ListTasksWithResponse request
+	ListTasksWithResponse(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*ListTasksResp, error)
 
 	// ListStackDeploymentsHandlerV2WithResponse request
 	ListStackDeploymentsHandlerV2WithResponse(ctx context.Context, orgName string, projectName string, stackName string, params *ListStackDeploymentsHandlerV2Params, reqEditors ...RequestEditorFn) (*ListStackDeploymentsHandlerV2Resp, error)
@@ -1532,6 +2605,28 @@ type ClientWithResponsesInterface interface {
 
 	// ListUserStacksWithResponse request
 	ListUserStacksWithResponse(ctx context.Context, params *ListUserStacksParams, reqEditors ...RequestEditorFn) (*ListUserStacksResp, error)
+}
+
+type ListOrgEnvironmentsEscResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ListEnvironmentsResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListOrgEnvironmentsEscResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListOrgEnvironmentsEscResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type ListOrgDeploymentsResp struct {
@@ -1550,6 +2645,138 @@ func (r ListOrgDeploymentsResp) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListOrgDeploymentsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListOrganizationMembersResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ListOrganizationMembersResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListOrganizationMembersResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListOrganizationMembersResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPolicyGroupsResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppListPolicyGroupsResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPolicyGroupsResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPolicyGroupsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPolicyPacksOrgsResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *AppListPolicyPacksResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPolicyPacksOrgsResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPolicyPacksOrgsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListPolicyViolationsV2Resp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ListPolicyViolationsV2Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ListPolicyViolationsV2Resp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListPolicyViolationsV2Resp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListTeamsResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ListTeamsResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTeamsResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTeamsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ListTasksResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ListAgentTasksResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListTasksResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListTasksResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1644,6 +2871,15 @@ func (r ListUserStacksResp) StatusCode() int {
 	return 0
 }
 
+// ListOrgEnvironmentsEscWithResponse request returning *ListOrgEnvironmentsEscResp
+func (c *ClientWithResponses) ListOrgEnvironmentsEscWithResponse(ctx context.Context, orgName string, params *ListOrgEnvironmentsEscParams, reqEditors ...RequestEditorFn) (*ListOrgEnvironmentsEscResp, error) {
+	rsp, err := c.ListOrgEnvironmentsEsc(ctx, orgName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListOrgEnvironmentsEscResp(rsp)
+}
+
 // ListOrgDeploymentsWithResponse request returning *ListOrgDeploymentsResp
 func (c *ClientWithResponses) ListOrgDeploymentsWithResponse(ctx context.Context, orgName string, params *ListOrgDeploymentsParams, reqEditors ...RequestEditorFn) (*ListOrgDeploymentsResp, error) {
 	rsp, err := c.ListOrgDeployments(ctx, orgName, params, reqEditors...)
@@ -1651,6 +2887,60 @@ func (c *ClientWithResponses) ListOrgDeploymentsWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseListOrgDeploymentsResp(rsp)
+}
+
+// ListOrganizationMembersWithResponse request returning *ListOrganizationMembersResp
+func (c *ClientWithResponses) ListOrganizationMembersWithResponse(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*ListOrganizationMembersResp, error) {
+	rsp, err := c.ListOrganizationMembers(ctx, orgName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListOrganizationMembersResp(rsp)
+}
+
+// ListPolicyGroupsWithResponse request returning *ListPolicyGroupsResp
+func (c *ClientWithResponses) ListPolicyGroupsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyGroupsResp, error) {
+	rsp, err := c.ListPolicyGroups(ctx, orgName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPolicyGroupsResp(rsp)
+}
+
+// ListPolicyPacksOrgsWithResponse request returning *ListPolicyPacksOrgsResp
+func (c *ClientWithResponses) ListPolicyPacksOrgsWithResponse(ctx context.Context, orgName string, params *ListPolicyPacksOrgsParams, reqEditors ...RequestEditorFn) (*ListPolicyPacksOrgsResp, error) {
+	rsp, err := c.ListPolicyPacksOrgs(ctx, orgName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPolicyPacksOrgsResp(rsp)
+}
+
+// ListPolicyViolationsV2WithResponse request returning *ListPolicyViolationsV2Resp
+func (c *ClientWithResponses) ListPolicyViolationsV2WithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyViolationsV2Resp, error) {
+	rsp, err := c.ListPolicyViolationsV2(ctx, orgName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListPolicyViolationsV2Resp(rsp)
+}
+
+// ListTeamsWithResponse request returning *ListTeamsResp
+func (c *ClientWithResponses) ListTeamsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListTeamsResp, error) {
+	rsp, err := c.ListTeams(ctx, orgName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTeamsResp(rsp)
+}
+
+// ListTasksWithResponse request returning *ListTasksResp
+func (c *ClientWithResponses) ListTasksWithResponse(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*ListTasksResp, error) {
+	rsp, err := c.ListTasks(ctx, orgName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListTasksResp(rsp)
 }
 
 // ListStackDeploymentsHandlerV2WithResponse request returning *ListStackDeploymentsHandlerV2Resp
@@ -1689,6 +2979,32 @@ func (c *ClientWithResponses) ListUserStacksWithResponse(ctx context.Context, pa
 	return ParseListUserStacksResp(rsp)
 }
 
+// ParseListOrgEnvironmentsEscResp parses an HTTP response from a ListOrgEnvironmentsEscWithResponse call
+func ParseListOrgEnvironmentsEscResp(rsp *http.Response) (*ListOrgEnvironmentsEscResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListOrgEnvironmentsEscResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListEnvironmentsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListOrgDeploymentsResp parses an HTTP response from a ListOrgDeploymentsWithResponse call
 func ParseListOrgDeploymentsResp(rsp *http.Response) (*ListOrgDeploymentsResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -1705,6 +3021,162 @@ func ParseListOrgDeploymentsResp(rsp *http.Response) (*ListOrgDeploymentsResp, e
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest ListDeploymentResponseV2
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListOrganizationMembersResp parses an HTTP response from a ListOrganizationMembersWithResponse call
+func ParseListOrganizationMembersResp(rsp *http.Response) (*ListOrganizationMembersResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListOrganizationMembersResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListOrganizationMembersResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPolicyGroupsResp parses an HTTP response from a ListPolicyGroupsWithResponse call
+func ParseListPolicyGroupsResp(rsp *http.Response) (*ListPolicyGroupsResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPolicyGroupsResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppListPolicyGroupsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPolicyPacksOrgsResp parses an HTTP response from a ListPolicyPacksOrgsWithResponse call
+func ParseListPolicyPacksOrgsResp(rsp *http.Response) (*ListPolicyPacksOrgsResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPolicyPacksOrgsResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest AppListPolicyPacksResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListPolicyViolationsV2Resp parses an HTTP response from a ListPolicyViolationsV2WithResponse call
+func ParseListPolicyViolationsV2Resp(rsp *http.Response) (*ListPolicyViolationsV2Resp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListPolicyViolationsV2Resp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListPolicyViolationsV2Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListTeamsResp parses an HTTP response from a ListTeamsWithResponse call
+func ParseListTeamsResp(rsp *http.Response) (*ListTeamsResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTeamsResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListTeamsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListTasksResp parses an HTTP response from a ListTasksWithResponse call
+func ParseListTasksResp(rsp *http.Response) (*ListTasksResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListTasksResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListAgentTasksResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

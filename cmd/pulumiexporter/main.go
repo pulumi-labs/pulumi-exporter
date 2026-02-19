@@ -1,3 +1,4 @@
+// Package pulumiexporter provides the entrypoint for the pulumi-exporter application.
 package pulumiexporter
 
 import (
@@ -11,16 +12,23 @@ import (
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
-	"github.com/prometheus/common/version"
 
 	"github.com/dirien/pulumi-exporter/internal/client"
 	"github.com/dirien/pulumi-exporter/internal/collector"
 	"github.com/dirien/pulumi-exporter/internal/config"
 	"github.com/dirien/pulumi-exporter/internal/exporter"
+	"github.com/dirien/pulumi-exporter/internal/version"
 )
 
 // Main is the entrypoint for the pulumi-exporter application.
 func Main() {
+	if err := run(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	app := kingpin.New("pulumi-exporter", "OpenTelemetry Pulumi Cloud metrics exporter.")
 	app.Version(version.Print("pulumi-exporter"))
 	app.HelpFlag.Short('h')
@@ -41,15 +49,13 @@ func Main() {
 		String()
 
 	if _, err := app.Parse(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("parsing flags: %w", err)
 	}
 
 	// Load config file if specified.
 	if *configFile != "" {
 		if err := cfg.LoadFile(*configFile); err != nil {
-			fmt.Fprintf(os.Stderr, "error loading config: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("loading config: %w", err)
 		}
 	}
 
@@ -58,8 +64,7 @@ func Main() {
 
 	// Validate configuration.
 	if err := cfg.Validate(); err != nil {
-		fmt.Fprintf(os.Stderr, "configuration error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("configuration error: %w", err)
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -78,18 +83,19 @@ func Main() {
 
 	exp, err := exporter.NewExporter(ctx, otlpCfg, version.Version)
 	if err != nil {
-		logger.Error("failed to create exporter", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to create exporter: %w", err)
 	}
 
-	// Create Pulumi API client.
-	apiClient := client.NewPulumiClient(cfg.Pulumi.APIURL, cfg.Pulumi.AccessToken)
+	// Create Pulumi API client backed by the generated OpenAPI client.
+	apiClient, err := client.NewClient(cfg.Pulumi.APIURL, cfg.Pulumi.AccessToken)
+	if err != nil {
+		return fmt.Errorf("failed to create API client: %w", err)
+	}
 
 	// Create collector.
 	coll, err := collector.NewCollector(apiClient, cfg, exp.Meter(), logger)
 	if err != nil {
-		logger.Error("failed to create collector", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to create collector: %w", err)
 	}
 
 	// Start collector in background.
@@ -103,11 +109,11 @@ func Main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "ok")
+		_, _ = fmt.Fprint(w, "ok")
 	})
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "ok")
+		_, _ = fmt.Fprint(w, "ok")
 	})
 
 	srv := &http.Server{
@@ -144,4 +150,5 @@ func Main() {
 	}
 
 	logger.Info("pulumi-exporter stopped")
+	return nil
 }

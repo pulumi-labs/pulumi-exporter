@@ -19,7 +19,7 @@ func TestNewExporterHTTP(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewExporter() returned unexpected error: %v", err)
 	}
-	defer exp.Shutdown(ctx)
+	defer func() { _ = exp.Shutdown(ctx) }()
 
 	if m := exp.Meter(); m == nil {
 		t.Fatal("Meter() returned nil")
@@ -40,7 +40,7 @@ func TestNewExporterGRPC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewExporter() returned unexpected error: %v", err)
 	}
-	defer exp.Shutdown(ctx)
+	defer func() { _ = exp.Shutdown(ctx) }()
 
 	if m := exp.Meter(); m == nil {
 		t.Fatal("Meter() returned nil")

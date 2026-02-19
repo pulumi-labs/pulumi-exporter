@@ -1,3 +1,4 @@
+// Package config provides configuration loading from flags, env vars, and YAML files.
 package config
 
 import (
@@ -76,7 +77,7 @@ func RegisterFlags(app *kingpin.Application) *Config {
 
 // LoadFile loads a YAML configuration file and overlays it onto the existing config.
 func (c *Config) LoadFile(path string) error {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // path comes from user-provided config flag
 	if err != nil {
 		return fmt.Errorf("reading config file: %w", err)
 	}

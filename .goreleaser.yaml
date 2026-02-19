@@ -7,11 +7,11 @@ builds:
   - binary: pulumi-exporter
     ldflags:
       - -s -w
-      - -X github.com/prometheus/common/version.Version={{.Version}}
-      - -X github.com/prometheus/common/version.Revision={{.FullCommit}}
-      - -X github.com/prometheus/common/version.Branch={{.Branch}}
-      - -X github.com/prometheus/common/version.BuildUser=goreleaser
-      - -X github.com/prometheus/common/version.BuildDate={{.Date}}
+      - -X github.com/dirien/pulumi-exporter/internal/version.Version={{.Version}}
+      - -X github.com/dirien/pulumi-exporter/internal/version.Revision={{.FullCommit}}
+      - -X github.com/dirien/pulumi-exporter/internal/version.Branch={{.Branch}}
+      - -X github.com/dirien/pulumi-exporter/internal/version.BuildUser=goreleaser
+      - -X github.com/dirien/pulumi-exporter/internal/version.BuildDate={{.Date}}
     goos:
       - linux
       - windows

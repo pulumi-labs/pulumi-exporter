@@ -1,3 +1,4 @@
+// Package collector implements periodic metrics collection from Pulumi Cloud.
 package collector
 
 import (
@@ -18,6 +19,13 @@ type PulumiAPI interface {
 	GetResourceCount(ctx context.Context, org, project, stack string) (*client.ResourceCountResponse, error)
 	ListUpdates(ctx context.Context, org, project, stack string, page, pageSize int) (*client.ListUpdatesResponse, error)
 	ListOrgDeployments(ctx context.Context, org string) (*client.ListDeploymentsResponse, error)
+	ListMembers(ctx context.Context, org string) (*client.ListMembersResponse, error)
+	ListTeams(ctx context.Context, org string) (*client.ListTeamsResponse, error)
+	ListEnvironments(ctx context.Context, org string) (*client.ListEnvironmentsResponse, error)
+	ListPolicyGroups(ctx context.Context, org string) (*client.ListPolicyGroupsResponse, error)
+	ListPolicyPacks(ctx context.Context, org string) (*client.ListPolicyPacksResponse, error)
+	ListPolicyViolations(ctx context.Context, org string) (*client.ListPolicyViolationsResponse, error)
+	ListNeoTasks(ctx context.Context, org string) (*client.ListNeoTasksResponse, error)
 }
 
 // Collector periodically collects metrics from the Pulumi Cloud API.
@@ -105,9 +113,10 @@ func (c *Collector) collect(ctx context.Context) {
 
 	wg.Wait()
 
-	// Collect org-level deployments.
+	// Collect org-level metrics.
 	for _, org := range c.cfg.Pulumi.Organizations {
 		c.collectOrgDeployments(ctx, org)
+		c.collectOrgMetrics(ctx, org)
 	}
 
 	c.logger.Info("collection complete")

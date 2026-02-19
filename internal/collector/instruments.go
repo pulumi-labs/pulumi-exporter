@@ -12,6 +12,14 @@ type Instruments struct {
 	updateResourceChanges metric.Int64Counter
 	deploymentStatus      metric.Int64Gauge
 	stackLastUpdate       metric.Float64Gauge
+
+	orgMemberCount      metric.Int64Gauge
+	orgTeamCount        metric.Int64Gauge
+	orgEnvironmentCount metric.Int64Gauge
+	orgPolicyGroupCount metric.Int64Gauge
+	orgPolicyPackCount  metric.Int64Gauge
+	orgPolicyViolations metric.Int64Gauge
+	orgNeoTaskCount     metric.Int64Gauge
 }
 
 // NewInstruments creates all OTel metric instruments.
@@ -59,6 +67,55 @@ func NewInstruments(meter metric.Meter) (*Instruments, error) {
 		return nil, err
 	}
 
+	orgMemberCount, err := meter.Int64Gauge("pulumi_org_member_count",
+		metric.WithDescription("Number of members in a Pulumi organization"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	orgTeamCount, err := meter.Int64Gauge("pulumi_org_team_count",
+		metric.WithDescription("Number of teams in a Pulumi organization"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	orgEnvironmentCount, err := meter.Int64Gauge("pulumi_org_environment_count",
+		metric.WithDescription("Number of ESC environments in a Pulumi organization"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	orgPolicyGroupCount, err := meter.Int64Gauge("pulumi_org_policy_group_count",
+		metric.WithDescription("Number of policy groups in a Pulumi organization"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	orgPolicyPackCount, err := meter.Int64Gauge("pulumi_org_policy_pack_count",
+		metric.WithDescription("Number of policy packs in a Pulumi organization"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	orgPolicyViolations, err := meter.Int64Gauge("pulumi_org_policy_violations",
+		metric.WithDescription("Number of policy violations by level and kind"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	orgNeoTaskCount, err := meter.Int64Gauge("pulumi_org_neo_task_count",
+		metric.WithDescription("Number of Pulumi Neo AI tasks by status"),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Instruments{
 		stackResourceCount:    stackResourceCount,
 		updateDuration:        updateDuration,
@@ -66,5 +123,12 @@ func NewInstruments(meter metric.Meter) (*Instruments, error) {
 		updateResourceChanges: updateResourceChanges,
 		deploymentStatus:      deploymentStatus,
 		stackLastUpdate:       stackLastUpdate,
+		orgMemberCount:        orgMemberCount,
+		orgTeamCount:          orgTeamCount,
+		orgEnvironmentCount:   orgEnvironmentCount,
+		orgPolicyGroupCount:   orgPolicyGroupCount,
+		orgPolicyPackCount:    orgPolicyPackCount,
+		orgPolicyViolations:   orgPolicyViolations,
+		orgNeoTaskCount:       orgNeoTaskCount,
 	}, nil
 }

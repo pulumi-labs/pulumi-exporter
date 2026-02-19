@@ -1,3 +1,4 @@
+// Package exporter manages the OpenTelemetry MeterProvider for OTLP metric export.
 package exporter
 
 import (

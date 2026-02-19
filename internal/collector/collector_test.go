@@ -38,6 +38,34 @@ func (m *mockAPI) ListOrgDeployments(_ context.Context, org string) (*client.Lis
 	return m.deployments[org], nil
 }
 
+func (m *mockAPI) ListMembers(_ context.Context, _ string) (*client.ListMembersResponse, error) {
+	return &client.ListMembersResponse{}, nil
+}
+
+func (m *mockAPI) ListTeams(_ context.Context, _ string) (*client.ListTeamsResponse, error) {
+	return &client.ListTeamsResponse{}, nil
+}
+
+func (m *mockAPI) ListEnvironments(_ context.Context, _ string) (*client.ListEnvironmentsResponse, error) {
+	return &client.ListEnvironmentsResponse{}, nil
+}
+
+func (m *mockAPI) ListPolicyGroups(_ context.Context, _ string) (*client.ListPolicyGroupsResponse, error) {
+	return &client.ListPolicyGroupsResponse{}, nil
+}
+
+func (m *mockAPI) ListPolicyPacks(_ context.Context, _ string) (*client.ListPolicyPacksResponse, error) {
+	return &client.ListPolicyPacksResponse{}, nil
+}
+
+func (m *mockAPI) ListPolicyViolations(_ context.Context, _ string) (*client.ListPolicyViolationsResponse, error) {
+	return &client.ListPolicyViolationsResponse{}, nil
+}
+
+func (m *mockAPI) ListNeoTasks(_ context.Context, _ string) (*client.ListNeoTasksResponse, error) {
+	return &client.ListNeoTasksResponse{}, nil
+}
+
 func newTestCollector(t *testing.T, api PulumiAPI) (*Collector, *sdkmetric.ManualReader) {
 	t.Helper()
 

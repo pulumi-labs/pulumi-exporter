@@ -11,3 +11,10 @@ output-options:
     - GetStackUpdates
     - ListStackDeploymentsHandlerV2
     - ListOrgDeployments
+    - ListOrganizationMembers
+    - ListTeams
+    - ListOrgEnvironments_esc
+    - ListPolicyGroups
+    - ListPolicyPacks_orgs
+    - ListPolicyViolationsV2
+    - ListTasks
