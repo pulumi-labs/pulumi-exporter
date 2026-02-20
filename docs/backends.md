@@ -48,6 +48,20 @@ prometheus --config.file=prometheus.yml --web.enable-otlp-receiver
   --otlp.insecure
 ```
 
+## Honeycomb
+
+You need an Ingest API key (prefix `hcaik_`). Create one under Settings > API Keys > Create Ingest Key.
+
+```bash
+./pulumi-exporter \
+  --pulumi.organizations=my-org \
+  --otlp.endpoint=api.honeycomb.io:443 \
+  --otlp.protocol=grpc \
+  --otlp.headers="x-honeycomb-team=<HONEYCOMB_INGEST_KEY>"
+```
+
+Metrics appear in the environment tied to the ingest key. Note: Honeycomb Management API keys (`hcamk_` prefix) won't work here — you need an ingest key.
+
 ## DataDog
 
 ```bash
