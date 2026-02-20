@@ -13,7 +13,14 @@ make fmt            # gofumpt + goimports via golangci-lint
 make generate       # Download Pulumi OpenAPI spec + regenerate Go client
 ```
 
-Always run `make lint` and `make test-race` before considering work done. The linter config (`.golangci.yaml`) enforces gocyclo (max 15), gosec, revive, gocritic, tagliatelle (snake_case JSON, kebab-case YAML), tparallel, and gofumpt formatting.
+Always run `make lint` and `make test-race` before considering work done. The linter config (`.golangci.yaml`) enforces:
+
+- **Style**: revive, gocritic, goconst, gofumpt, goimports, tagliatelle (snake_case JSON, kebab-case YAML), misspell, dupword
+- **Bugs**: errcheck, errorlint, copyloopvar, unconvert, unparam, wastedassign, bodyclose
+- **Security**: gosec (G117 excluded — config field name false positive)
+- **Complexity**: gocyclo (max 15), prealloc
+- **Tests**: tparallel, thelper
+- **Hygiene**: nolintlint, forbidigo
 
 ## Project Layout
 
