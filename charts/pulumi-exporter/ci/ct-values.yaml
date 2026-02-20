@@ -1,0 +1,14 @@
+# Test values for chart-testing (ct install).
+# Uses a dummy token — the pod starts and health probes pass,
+# but metric collection will fail (expected in CI).
+image:
+  pullPolicy: Never
+pulumiAccessToken: "pul-dummy-for-ct-install-test"
+pulumiOrganizations:
+  - "test-org"
+collectInterval: "60s"
+maxConcurrency: 5
+otlp:
+  endpoint: "localhost:4318"
+  protocol: "http/protobuf"
+  insecure: true

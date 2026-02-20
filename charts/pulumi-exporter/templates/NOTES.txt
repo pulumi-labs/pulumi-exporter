@@ -1,0 +1,26 @@
+Pulumi Exporter has been deployed.
+
+1. Check the health endpoint:
+{{- if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "pulumi-exporter.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  curl http://$NODE_IP:$NODE_PORT/healthz
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch the status by running 'kubectl get svc -w {{ include "pulumi-exporter.fullname" . }}'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "pulumi-exporter.fullname" . }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  curl http://$SERVICE_IP:{{ .Values.service.port }}/healthz
+{{- else if contains "ClusterIP" .Values.service.type }}
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "pulumi-exporter.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  curl http://127.0.0.1:{{ .Values.service.port }}/healthz
+{{- end }}
+
+2. The exporter pushes metrics via OTLP to:
+{{- if .Values.otlp.endpoint }}
+   Endpoint: {{ .Values.otlp.endpoint }}
+   Protocol: {{ .Values.otlp.protocol }}
+{{- else }}
+   WARNING: No OTLP endpoint configured. Set otlp.endpoint in your values.
+{{- end }}
+
+3. Monitored organizations: {{ join ", " .Values.pulumiOrganizations }}

@@ -1,5 +1,5 @@
 # Binaries
-pulumi-exporter
+/pulumi-exporter
 *.exe
 *.exe~
 *.dll

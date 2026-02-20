@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pulumi-exporter.fullname" . }}
+  labels:
+    app: {{ template "pulumi-exporter.name" . }}
+    chart: {{ template "pulumi-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "pulumi-exporter.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "pulumi-exporter.name" . }}
+        release: {{ .Release.Name }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ template "pulumi-exporter.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ template "pulumi-exporter.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --pulumi.organizations={{ join "," .Values.pulumiOrganizations }}
+            - --pulumi.collect-interval={{ .Values.collectInterval }}
+            - --pulumi.max-concurrency={{ .Values.maxConcurrency }}
+            {{- if .Values.pulumiAPIURL }}
+            - --pulumi.api-url={{ .Values.pulumiAPIURL }}
+            {{- end }}
+            {{- if .Values.otlp.endpoint }}
+            - --otlp.endpoint={{ .Values.otlp.endpoint }}
+            {{- end }}
+            {{- if .Values.otlp.protocol }}
+            - --otlp.protocol={{ .Values.otlp.protocol }}
+            {{- end }}
+            {{- if .Values.otlp.insecure }}
+            - --otlp.insecure
+            {{- end }}
+            {{- if .Values.otlp.urlPath }}
+            - --otlp.url-path={{ .Values.otlp.urlPath }}
+            {{- end }}
+            {{- if .Values.otlp.headers }}
+            - --otlp.headers={{ .Values.otlp.headers }}
+            {{- end }}
+          ports:
+            - name: health
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          env:
+            - name: PULUMI_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pulumi-exporter.secretName" . }}
+                  key: access-token
+          {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

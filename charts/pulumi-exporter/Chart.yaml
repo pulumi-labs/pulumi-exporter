@@ -1,0 +1,32 @@
+apiVersion: v2
+name: pulumi-exporter
+icon: https://www.pulumi.com/logos/brand/avatar-on-white.svg
+description: A Helm chart for the Pulumi Cloud OpenTelemetry metrics exporter
+keywords:
+  - pulumi
+  - opentelemetry
+  - otel
+  - metrics
+  - exporter
+  - prometheus
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+home: https://github.com/dirien/pulumi-exporter/
+sources:
+  - https://github.com/dirien/pulumi-exporter/
+maintainers:
+  - email: engin.diri@ediri.de
+    name: dirien
+
+annotations:
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/changes: |
+    - initial chart release
+  artifacthub.io/images: |
+    - name: pulumi-exporter
+      image: ghcr.io/dirien/pulumi-exporter:0.1.0
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/maintainers: |
+    - name: dirien
+      email: engin.diri@ediri.de

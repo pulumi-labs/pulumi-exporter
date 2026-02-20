@@ -33,6 +33,10 @@ internal/config/                        → CLI flags + env vars + YAML config
 internal/exporter/                      → OTel MeterProvider / OTLP exporter setup
 internal/version/                       → build-time version info (ldflags)
 deploy/docker-compose/                  → Prometheus + Grafana + exporter stack
+charts/pulumi-exporter/                 → Helm chart (templates, values, ci test values)
+.github/configs/                        → ct-lint, cr, lintconf YAML configs
+.github/workflows/helm-publish.yaml     → Chart publish (chart-releaser + OCI + cosign)
+.github/workflows/lint-and-test.yaml    → CT lint + Trivy + kind install on PRs
 ```
 
 ## Go Version and Module
@@ -99,6 +103,74 @@ The generated client in `internal/pulumiapi/client.gen.go` is produced by oapi-c
 Never edit `client.gen.go` manually — always modify `oapi-codegen.yaml` and run `make generate`.
 
 **Never create hand-rolled HTTP/REST calls** (e.g. `http.NewRequest`, `http.Get`, raw `net/http` usage) to the Pulumi Cloud API. Always use the OpenAPI-generated client in `internal/pulumiapi/`. If an endpoint is not yet available, add its operationId to `oapi-codegen.yaml`, run `make generate`, then write a typed wrapper in `internal/client/client.go`. This ensures consistent auth, error handling, and response parsing across all API calls.
+
+## Helm Chart
+
+The chart lives under `charts/pulumi-exporter/`. It follows the same patterns as [dirien/minecraft-prometheus-exporter](https://github.com/dirien/minecraft-prometheus-exporter).
+
+### Chart Structure
+
+```
+charts/pulumi-exporter/
+├── Chart.yaml              # Metadata, appVersion, ArtifactHub annotations
+├── values.yaml             # All configurable values (helm-docs comments)
+├── README.md.gotmpl        # helm-docs template
+├── README.md               # Generated — do not edit by hand
+├── .helmignore
+├── ci/
+│   └── ct-values.yaml      # Test values for ct install (dummy token, pullPolicy: Never)
+└── templates/
+    ├── _helpers.tpl         # name, fullname, chart, image, serviceAccountName, secretName
+    ├── NOTES.txt
+    ├── deployment.yaml
+    ├── service.yaml
+    ├── serviceaccount.yaml
+    ├── secret.yaml          # Conditional — skipped when existingSecret is set
+    ├── servicemonitor.yaml  # Optional — requires Prometheus Operator CRD
+    └── tests/
+        └── test-connection.yaml
+```
+
+### Makefile Targets
+
+```bash
+make helm-lint      # helm lint
+make helm-template  # Render templates with test values
+make helm-docs      # Regenerate chart README via helm-docs
+make ct-lint        # chart-testing lint (schema, YAML, maintainers)
+make helm-test      # All of the above in sequence
+make kind-create    # Create a kind cluster for e2e testing
+make ct-install     # Build image, load into kind, ct install
+make kind-delete    # Delete the kind cluster
+make helm-test-e2e  # kind-create + ct-install + kind-delete
+```
+
+### Versioning
+
+- `Chart.yaml` `version` = chart version (bump when templates/values change)
+- `Chart.yaml` `appVersion` = application image version
+- `_helpers.tpl` `pulumi-exporter.image` defaults tag to `.Chart.AppVersion` when `image.tag` is empty
+- Update `artifacthub.io/images` annotation when bumping `appVersion`
+
+### CI/CD Workflows
+
+- **`helm-publish.yaml`** — triggers on push to `main` touching `charts/**`. Runs ArtifactHub lint, chart-releaser (GH Pages), pushes OCI to `ghcr.io`, cosign signs.
+- **`lint-and-test.yaml`** — triggers on PRs touching `charts/**`. Runs Trivy IaC scan, ct lint, ArtifactHub lint, kind cluster + ct install.
+- Config files: `.github/configs/cr.yaml`, `ct-lint.yaml`, `lintconf.yaml`
+
+### Secret Management
+
+The chart supports two modes for the Pulumi access token:
+- `pulumiAccessToken: "pul-xxx"` — chart creates a Secret (dev/testing)
+- `existingSecret: "my-secret"` — references a pre-existing Secret with key `access-token` (production)
+
+### Modifying the Chart
+
+1. Edit templates/values as needed
+2. Run `make helm-docs` to regenerate `charts/pulumi-exporter/README.md`
+3. Run `make helm-test` to validate (lint, template, ct lint)
+4. Bump `version` in `Chart.yaml` if templates/values changed
+5. Bump `appVersion` + `artifacthub.io/images` if the app image changed
 
 ## Docker Compose Stack
 

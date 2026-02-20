@@ -26,7 +26,8 @@ LDFLAGS      += -X $(VERSION_PKG).BuildUser=$(USER)
 LDFLAGS      += -X $(VERSION_PKG).BuildDate=$(BUILD_DATE)
 
 .PHONY: all build test test-race lint fmt vet clean generate download-spec help
-.PHONY: release-snapshot docker run
+.PHONY: release-snapshot docker run helm-lint helm-docs helm-template helm-test ct-lint
+.PHONY: kind-create kind-delete ct-install helm-test-e2e
 
 all: lint test build ## Run lint, test, and build
 
@@ -75,6 +76,42 @@ download-spec: ## Download the latest Pulumi Cloud OpenAPI spec
 	curl -sSfL $(OAPI_SPEC) -o pulumi-spec.json
 	@echo "Downloaded OpenAPI spec to pulumi-spec.json"
 
+##@ Helm
+
+helm-lint: ## Lint the Helm chart
+	helm lint charts/pulumi-exporter/
+
+helm-docs: ## Generate Helm chart README with helm-docs
+	helm-docs -c charts/pulumi-exporter -t README.md.gotmpl -o README.md
+
+helm-template: ## Render chart templates locally
+	helm template test-release charts/pulumi-exporter/ \
+		--set pulumiAccessToken=pul-test \
+		--set "pulumiOrganizations={my-org}" \
+		--set otlp.endpoint=otel-collector:4318 \
+		--set otlp.insecure=true
+
+ct-lint: ## Run chart-testing lint (ct lint)
+	ct lint --debug --config .github/configs/ct-lint.yaml --lint-conf .github/configs/lintconf.yaml --charts charts/pulumi-exporter
+
+helm-test: helm-lint helm-template helm-docs ct-lint ## Run all Helm chart validations
+
+KIND_CLUSTER := pulumi-exporter-ct
+
+kind-create: ## Create a kind cluster for chart testing
+	kind create cluster --name $(KIND_CLUSTER) --wait 60s
+	@echo "kind cluster '$(KIND_CLUSTER)' ready"
+
+kind-delete: ## Delete the kind cluster
+	kind delete cluster --name $(KIND_CLUSTER)
+
+ct-install: ## Run ct install against a kind cluster (requires kind-create first)
+	docker build -t ghcr.io/dirien/pulumi-exporter:0.1.0 -f deploy/docker-compose/Dockerfile .
+	kind load docker-image ghcr.io/dirien/pulumi-exporter:0.1.0 --name $(KIND_CLUSTER)
+	ct install --debug --config .github/configs/ct-lint.yaml --charts charts/pulumi-exporter
+
+helm-test-e2e: kind-create ct-install kind-delete ## Create kind cluster, run ct install, tear down
+
 ##@ Release
 
 release-snapshot: ## GoReleaser dry run (no publish)
@@ -91,7 +128,8 @@ deps: ## Download and tidy Go module dependencies
 
 tools: ## Install development tools
 	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
-	@echo "Installed oapi-codegen"
+	go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
+	@echo "Installed oapi-codegen and helm-docs"
 
 ##@ Help
 

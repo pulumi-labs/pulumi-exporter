@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "pulumi-exporter.fullname" . }}-test-connection"
+  labels:
+    app: {{ template "pulumi-exporter.name" . }}
+    chart: {{ template "pulumi-exporter.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+  - name: wget
+    image: busybox
+    command: ['wget']
+    args: ['{{ include "pulumi-exporter.fullname" . }}:{{ .Values.service.port }}/healthz', '-q', '-O', '-']
+  restartPolicy: Never

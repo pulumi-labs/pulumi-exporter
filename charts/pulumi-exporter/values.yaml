@@ -1,0 +1,130 @@
+# Default values for pulumi-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# -- (int) Number of replicas
+replicaCount: 1
+
+serviceAccount:
+  # -- Specifies whether a ServiceAccount should be created
+  create: true
+  # -- The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+image:
+  # -- The docker image repository to use
+  repository: ghcr.io/dirien/pulumi-exporter
+  # -- The docker image tag to use
+  # @default Chart appVersion
+  tag: ""
+  # -- The docker image pull policy
+  pullPolicy: IfNotPresent
+
+# -- String to override the default generated name
+nameOverride: ""
+# -- String to override the default generated fullname
+fullnameOverride: ""
+
+# -- Pulumi Cloud access token (required). Use existingSecret instead for production.
+pulumiAccessToken: ""
+
+# -- Use an existing Secret for the Pulumi access token.
+# The secret must contain a key named `access-token`.
+existingSecret: ""
+
+# -- Pulumi Cloud API base URL
+pulumiAPIURL: "https://api.pulumi.com"
+
+# -- List of Pulumi organizations to monitor (required)
+pulumiOrganizations: []
+# - my-org
+# - another-org
+
+# -- Polling interval for metrics collection
+collectInterval: "60s"
+
+# -- Maximum number of concurrent stack API calls (1-100)
+maxConcurrency: 10
+
+otlp:
+  # -- OTLP exporter endpoint (host:port)
+  endpoint: ""
+  # -- OTLP protocol: "http/protobuf" or "grpc"
+  protocol: "http/protobuf"
+  # -- Disable TLS for OTLP endpoint
+  insecure: false
+  # -- Custom URL path for OTLP metrics endpoint
+  urlPath: ""
+  # -- Additional OTLP headers as comma-separated key=value pairs
+  headers: ""
+
+service:
+  # -- Specifies what type of Service should be created
+  type: ClusterIP
+  # -- Health check service port
+  port: 8080
+  # -- Additional annotations
+  annotations: {}
+
+serviceMonitor:
+  # -- When set true then use a ServiceMonitor to configure scraping
+  enabled: false
+  # -- Set the namespace the ServiceMonitor should be deployed
+  # namespace: monitoring
+  # -- Set how frequently Prometheus should scrape
+  # interval: 30s
+  # -- Set path to telemetry path
+  # telemetryPath: /metrics
+  # -- Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
+  # labels:
+  # -- Set timeout for scrape
+  # timeout: 10s
+  # -- Set of labels to transfer on the Kubernetes Service onto the target.
+  # targetLabels: []
+  # -- metricRelabelings: []
+
+# -- Set the resources requests and limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# -- Set the node selector for the pod.
+nodeSelector: {}
+
+# -- Set the tolerations for the pod.
+tolerations: []
+
+# -- Set the affinity for the pod.
+affinity: {}
+
+# -- Extra environment variables
+extraEnv: []
+
+# -- Annotations for the pods
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10003
+  runAsGroup: 10003
+  fsGroup: 10003
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  privileged: false
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsGroup: 10003
+  runAsUser: 10003
+  seccompProfile:
+    type: RuntimeDefault
+  capabilities:
+    drop:
+      - ALL

@@ -1,0 +1,83 @@
+# Pulumi Cloud Exporter
+
+{{ template "chart.badgesSection" . }}
+
+![Pulumi](https://img.shields.io/badge/Pulumi-8A3391?style=for-the-badge&logo=pulumi&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-3D348B?style=for-the-badge&logo=opentelemetry&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Helm](https://img.shields.io/badge/helm-0F1689?style=for-the-badge&logo=helm&logoColor=white)
+
+## Description
+
+{{ template "chart.description" . }}
+
+Standalone OpenTelemetry metrics exporter for [Pulumi Cloud](https://www.pulumi.com/product/pulumi-cloud/).
+Polls the Pulumi API on a configurable interval and pushes metrics over OTLP to any observability backend
+(Prometheus, Grafana, Datadog, Dynatrace, NewRelic, etc.).
+
+## Usage (via OCI Registry)
+
+To install the chart using the OCI artifact, run:
+
+```bash
+helm install pulumi-exporter oci://ghcr.io/dirien/charts/pulumi-exporter --version {{ .Version }}
+```
+
+Requires Helm >= 3.8.0.
+
+## Usage (via Helm Repository)
+
+```bash
+helm repo add pulumi-exporter https://dirien.github.io/pulumi-exporter
+helm repo update
+```
+
+### Installing the Chart
+
+```bash
+helm install pulumi-exporter pulumi-exporter/pulumi-exporter --version {{ .Version }}
+```
+
+### Example: Minimal Installation
+
+```bash
+helm install pulumi-exporter pulumi-exporter/pulumi-exporter \
+  --set pulumiAccessToken=pul-xxxxxxxxxxxx \
+  --set "pulumiOrganizations={my-org}" \
+  --set otlp.endpoint=otel-collector:4318 \
+  --set otlp.insecure=true
+```
+
+### Example: Using an Existing Secret
+
+Create the secret first:
+
+```bash
+kubectl create secret generic pulumi-credentials \
+  --from-literal=access-token=pul-xxxxxxxxxxxx
+```
+
+Then install with:
+
+```bash
+helm install pulumi-exporter pulumi-exporter/pulumi-exporter \
+  --set existingSecret=pulumi-credentials \
+  --set "pulumiOrganizations={my-org,another-org}" \
+  --set otlp.endpoint=otel-collector:4318 \
+  --set otlp.insecure=true
+```
+
+### Uninstalling the Chart
+
+```bash
+helm uninstall pulumi-exporter
+```
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.maintainersSection" . }}
