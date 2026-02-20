@@ -101,7 +101,7 @@ pulumi-exporter/
 │   │   ├── org.go                       # Org-level collection
 │   │   └── collector_test.go
 │   ├── exporter/                        # OTel MeterProvider setup
-│   └── version/                         # Build-time version info
+│   └── appinfo/                         # Build-time version info (ldflags)
 ├── dashboards/                          # Grafana dashboard JSON
 ├── charts/pulumi-exporter/              # Helm chart
 ├── deploy/docker-compose/               # Prometheus + Grafana + exporter
