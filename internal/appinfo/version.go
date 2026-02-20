@@ -1,5 +1,5 @@
-// Package buildinfo holds build-time version information, injected via ldflags.
-package buildinfo
+// Package appinfo holds build-time version information, injected via ldflags.
+package appinfo
 
 import "fmt"
 
