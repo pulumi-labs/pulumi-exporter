@@ -11,6 +11,7 @@ services:
       - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
       - OTEL_EXPORTER_OTLP_INSECURE=true
       - PULUMI_COLLECT_INTERVAL=${PULUMI_COLLECT_INTERVAL:-60s}
+      - PULUMI_MAX_CONCURRENCY=${PULUMI_MAX_CONCURRENCY:-10}
     depends_on:
       - prometheus
     restart: unless-stopped

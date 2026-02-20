@@ -66,6 +66,10 @@ func (m *mockAPI) ListNeoTasks(_ context.Context, _ string) (*client.ListNeoTask
 	return &client.ListNeoTasksResponse{}, nil
 }
 
+func (m *mockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client.PolicyResultsMetadataResponse, error) {
+	return &client.PolicyResultsMetadataResponse{}, nil
+}
+
 func newTestCollector(t *testing.T, api PulumiAPI) (*Collector, *sdkmetric.ManualReader) {
 	t.Helper()
 
@@ -77,6 +81,7 @@ func newTestCollector(t *testing.T, api PulumiAPI) (*Collector, *sdkmetric.Manua
 		Pulumi: config.PulumiConfig{
 			Organizations:   []string{"test-org"},
 			CollectInterval: 10 * time.Second,
+			MaxConcurrency:  10,
 		},
 	}
 
@@ -285,4 +290,104 @@ func TestCollectConcurrency(t *testing.T) {
 
 	// This should not deadlock with the semaphore.
 	c.collect(ctx)
+}
+
+func TestCollectTimeout(t *testing.T) {
+	t.Parallel()
+
+	// Use a slow mock that blocks until context is cancelled.
+	api := &slowMockAPI{delay: 5 * time.Second}
+
+	reader := sdkmetric.NewManualReader()
+	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(reader))
+	meter := mp.Meter("test")
+
+	cfg := &config.Config{
+		Pulumi: config.PulumiConfig{
+			Organizations:   []string{"test-org"},
+			CollectInterval: 1 * time.Second, // Short interval -> timeout clamps to 10s minimum
+			MaxConcurrency:  5,
+		},
+	}
+
+	c, err := NewCollector(api, cfg, meter, slog.Default())
+	if err != nil {
+		t.Fatalf("failed to create collector: %v", err)
+	}
+
+	// Cancel the parent context quickly; collect should respect it.
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	// collect should return without hanging thanks to context cancellation.
+	done := make(chan struct{})
+	go func() {
+		c.collect(ctx)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// OK - collect returned
+	case <-time.After(5 * time.Second):
+		t.Fatal("collect did not respect context cancellation")
+	}
+}
+
+// slowMockAPI is a mock that blocks on ListStacks until the context is cancelled.
+type slowMockAPI struct {
+	delay time.Duration
+}
+
+func (m *slowMockAPI) ListStacks(ctx context.Context) (*client.ListStacksResponse, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-time.After(m.delay):
+		return &client.ListStacksResponse{}, nil
+	}
+}
+
+func (m *slowMockAPI) GetResourceCount(_ context.Context, _, _, _ string) (*client.ResourceCountResponse, error) {
+	return &client.ResourceCountResponse{}, nil
+}
+
+func (m *slowMockAPI) ListUpdates(_ context.Context, _, _, _ string, _, _ int) (*client.ListUpdatesResponse, error) {
+	return &client.ListUpdatesResponse{}, nil
+}
+
+func (m *slowMockAPI) ListOrgDeployments(_ context.Context, _ string) (*client.ListDeploymentsResponse, error) {
+	return &client.ListDeploymentsResponse{}, nil
+}
+
+func (m *slowMockAPI) ListMembers(_ context.Context, _ string) (*client.ListMembersResponse, error) {
+	return &client.ListMembersResponse{}, nil
+}
+
+func (m *slowMockAPI) ListTeams(_ context.Context, _ string) (*client.ListTeamsResponse, error) {
+	return &client.ListTeamsResponse{}, nil
+}
+
+func (m *slowMockAPI) ListEnvironments(_ context.Context, _ string) (*client.ListEnvironmentsResponse, error) {
+	return &client.ListEnvironmentsResponse{}, nil
+}
+
+func (m *slowMockAPI) ListPolicyGroups(_ context.Context, _ string) (*client.ListPolicyGroupsResponse, error) {
+	return &client.ListPolicyGroupsResponse{}, nil
+}
+
+func (m *slowMockAPI) ListPolicyPacks(_ context.Context, _ string) (*client.ListPolicyPacksResponse, error) {
+	return &client.ListPolicyPacksResponse{}, nil
+}
+
+func (m *slowMockAPI) ListPolicyViolations(_ context.Context, _ string) (*client.ListPolicyViolationsResponse, error) {
+	return &client.ListPolicyViolationsResponse{}, nil
+}
+
+func (m *slowMockAPI) ListNeoTasks(_ context.Context, _ string) (*client.ListNeoTasksResponse, error) {
+	return &client.ListNeoTasksResponse{}, nil
+}
+
+func (m *slowMockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client.PolicyResultsMetadataResponse, error) {
+	return &client.PolicyResultsMetadataResponse{}, nil
 }

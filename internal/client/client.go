@@ -139,25 +139,35 @@ func (c *Client) ListOrgDeployments(ctx context.Context, org string) (*ListDeplo
 	return &ListDeploymentsResponse{Deployments: deployments}, nil
 }
 
-// ListMembers returns the members of an organization.
+// ListMembers returns the members of an organization, handling pagination.
 func (c *Client) ListMembers(ctx context.Context, org string) (*ListMembersResponse, error) {
-	resp, err := c.gen.ListOrganizationMembersWithResponse(ctx, org, nil)
-	if err != nil {
-		return nil, fmt.Errorf("listing members: %w", err)
-	}
-	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing members: unexpected status %d", resp.StatusCode())
+	var allMembers []MemberInfo
+	var contToken *string
+
+	for {
+		resp, err := c.gen.ListOrganizationMembersWithResponse(ctx, org,
+			&pulumiapi.ListOrganizationMembersParams{ContinuationToken: contToken})
+		if err != nil {
+			return nil, fmt.Errorf("listing members: %w", err)
+		}
+		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+			return nil, fmt.Errorf("listing members: unexpected status %d", resp.StatusCode())
+		}
+
+		for _, m := range resp.JSON200.Members {
+			allMembers = append(allMembers, MemberInfo{
+				Role: string(m.Role),
+				User: UserInfo{Name: m.User.Name, GitHubLogin: m.User.GithubLogin},
+			})
+		}
+
+		if resp.JSON200.ContinuationToken == nil || *resp.JSON200.ContinuationToken == "" {
+			break
+		}
+		contToken = resp.JSON200.ContinuationToken
 	}
 
-	members := make([]MemberInfo, 0, len(resp.JSON200.Members))
-	for _, m := range resp.JSON200.Members {
-		members = append(members, MemberInfo{
-			Role: string(m.Role),
-			User: UserInfo{Name: m.User.Name, GitHubLogin: m.User.GithubLogin},
-		})
-	}
-
-	return &ListMembersResponse{Members: members}, nil
+	return &ListMembersResponse{Members: allMembers}, nil
 }
 
 // ListTeams returns the teams of an organization.
@@ -182,26 +192,36 @@ func (c *Client) ListTeams(ctx context.Context, org string) (*ListTeamsResponse,
 	return &ListTeamsResponse{Teams: teams}, nil
 }
 
-// ListEnvironments returns the ESC environments of an organization.
+// ListEnvironments returns the ESC environments of an organization, handling pagination.
 func (c *Client) ListEnvironments(ctx context.Context, org string) (*ListEnvironmentsResponse, error) {
-	resp, err := c.gen.ListOrgEnvironmentsEscWithResponse(ctx, org, nil)
-	if err != nil {
-		return nil, fmt.Errorf("listing environments: %w", err)
-	}
-	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing environments: unexpected status %d", resp.StatusCode())
+	var allEnvs []EnvironmentInfo
+	var contToken *string
+
+	for {
+		resp, err := c.gen.ListOrgEnvironmentsEscWithResponse(ctx, org,
+			&pulumiapi.ListOrgEnvironmentsEscParams{ContinuationToken: contToken})
+		if err != nil {
+			return nil, fmt.Errorf("listing environments: %w", err)
+		}
+		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+			return nil, fmt.Errorf("listing environments: unexpected status %d", resp.StatusCode())
+		}
+
+		for _, e := range resp.JSON200.Environments {
+			allEnvs = append(allEnvs, EnvironmentInfo{
+				Name:         derefStr(e.Name),
+				Organization: derefStr(e.Organization),
+				Project:      derefStr(e.Project),
+			})
+		}
+
+		if resp.JSON200.NextToken == nil || *resp.JSON200.NextToken == "" {
+			break
+		}
+		contToken = resp.JSON200.NextToken
 	}
 
-	envs := make([]EnvironmentInfo, 0, len(resp.JSON200.Environments))
-	for _, e := range resp.JSON200.Environments {
-		envs = append(envs, EnvironmentInfo{
-			Name:         derefStr(e.Name),
-			Organization: derefStr(e.Organization),
-			Project:      derefStr(e.Project),
-		})
-	}
-
-	return &ListEnvironmentsResponse{Environments: envs}, nil
+	return &ListEnvironmentsResponse{Environments: allEnvs}, nil
 }
 
 // ListPolicyGroups returns the policy groups of an organization.
@@ -272,6 +292,24 @@ func (c *Client) ListPolicyViolations(ctx context.Context, org string) (*ListPol
 	}
 
 	return &ListPolicyViolationsResponse{PolicyViolations: violations}, nil
+}
+
+// GetPolicyResultsMetadata returns policy compliance metadata for an organization.
+func (c *Client) GetPolicyResultsMetadata(ctx context.Context, org string) (*PolicyResultsMetadataResponse, error) {
+	resp, err := c.gen.GetPolicyResultsMetadataWithResponse(ctx, org)
+	if err != nil {
+		return nil, fmt.Errorf("getting policy results metadata: %w", err)
+	}
+	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+		return nil, fmt.Errorf("getting policy results metadata: unexpected status %d", resp.StatusCode())
+	}
+
+	return &PolicyResultsMetadataResponse{
+		PolicyTotalCount:         resp.JSON200.PolicyTotalCount,
+		PolicyWithIssuesCount:    resp.JSON200.PolicyWithIssuesCount,
+		ResourcesTotalCount:      resp.JSON200.ResourcesTotalCount,
+		ResourcesWithIssuesCount: resp.JSON200.ResourcesWithIssuesCount,
+	}, nil
 }
 
 // ListNeoTasks returns all Neo AI tasks for an organization, handling pagination.

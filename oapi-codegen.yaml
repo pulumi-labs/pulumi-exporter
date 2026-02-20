@@ -18,3 +18,4 @@ output-options:
     - ListPolicyPacks_orgs
     - ListPolicyViolationsV2
     - ListTasks
+    - GetPolicyResultsMetadata

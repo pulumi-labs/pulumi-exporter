@@ -5,6 +5,7 @@ pulumi:
     - "my-org"
     - "another-org"
   collect-interval: 60s
+  max-concurrency: 10          # concurrent stack API calls (1-100)
 otlp:
   endpoint: "localhost:4318"       # or OTEL_EXPORTER_OTLP_ENDPOINT
   protocol: "http/protobuf"       # or "grpc" - or OTEL_EXPORTER_OTLP_PROTOCOL

@@ -943,6 +943,21 @@ type OrganizationMember struct {
 // OrganizationMemberRole The member's role within the organization.
 type OrganizationMemberRole string
 
+// PolicyResultsMetadata PolicyResultsMetadata returns high level policy compliance statistics for an organization.
+type PolicyResultsMetadata struct {
+	// PolicyTotalCount Total number of policies
+	PolicyTotalCount int64 `json:"policyTotalCount"`
+
+	// PolicyWithIssuesCount Number of policies with issues
+	PolicyWithIssuesCount int64 `json:"policyWithIssuesCount"`
+
+	// ResourcesTotalCount Total number of resources covered by policies
+	ResourcesTotalCount int64 `json:"resourcesTotalCount"`
+
+	// ResourcesWithIssuesCount Number of resources with issues
+	ResourcesWithIssuesCount int64 `json:"resourcesWithIssuesCount"`
+}
+
 // PolicyViolationV2 PolicyViolationV2 represents a policy violation detected during an update or resource scan.
 type PolicyViolationV2 struct {
 	// Id The unique identifier of the policy violation.
@@ -1438,6 +1453,9 @@ type ClientInterface interface {
 	// ListPolicyPacksOrgs request
 	ListPolicyPacksOrgs(ctx context.Context, orgName string, params *ListPolicyPacksOrgsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetPolicyResultsMetadata request
+	GetPolicyResultsMetadata(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListPolicyViolationsV2 request
 	ListPolicyViolationsV2(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1510,6 +1528,18 @@ func (c *Client) ListPolicyGroups(ctx context.Context, orgName string, reqEditor
 
 func (c *Client) ListPolicyPacksOrgs(ctx context.Context, orgName string, params *ListPolicyPacksOrgsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPolicyPacksOrgsRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetPolicyResultsMetadata(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPolicyResultsMetadataRequest(c.Server, orgName)
 	if err != nil {
 		return nil, err
 	}
@@ -1964,6 +1994,40 @@ func NewListPolicyPacksOrgsRequest(server string, orgName string, params *ListPo
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPolicyResultsMetadataRequest generates requests for GetPolicyResultsMetadata
+func NewGetPolicyResultsMetadataRequest(server string, orgName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orgName", runtime.ParamLocationPath, orgName)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/orgs/%s/policyresults/metadata", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -2585,6 +2649,9 @@ type ClientWithResponsesInterface interface {
 	// ListPolicyPacksOrgsWithResponse request
 	ListPolicyPacksOrgsWithResponse(ctx context.Context, orgName string, params *ListPolicyPacksOrgsParams, reqEditors ...RequestEditorFn) (*ListPolicyPacksOrgsResp, error)
 
+	// GetPolicyResultsMetadataWithResponse request
+	GetPolicyResultsMetadataWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*GetPolicyResultsMetadataResp, error)
+
 	// ListPolicyViolationsV2WithResponse request
 	ListPolicyViolationsV2WithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyViolationsV2Resp, error)
 
@@ -2711,6 +2778,28 @@ func (r ListPolicyPacksOrgsResp) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r ListPolicyPacksOrgsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetPolicyResultsMetadataResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PolicyResultsMetadata
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPolicyResultsMetadataResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPolicyResultsMetadataResp) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -2916,6 +3005,15 @@ func (c *ClientWithResponses) ListPolicyPacksOrgsWithResponse(ctx context.Contex
 	return ParseListPolicyPacksOrgsResp(rsp)
 }
 
+// GetPolicyResultsMetadataWithResponse request returning *GetPolicyResultsMetadataResp
+func (c *ClientWithResponses) GetPolicyResultsMetadataWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*GetPolicyResultsMetadataResp, error) {
+	rsp, err := c.GetPolicyResultsMetadata(ctx, orgName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPolicyResultsMetadataResp(rsp)
+}
+
 // ListPolicyViolationsV2WithResponse request returning *ListPolicyViolationsV2Resp
 func (c *ClientWithResponses) ListPolicyViolationsV2WithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyViolationsV2Resp, error) {
 	rsp, err := c.ListPolicyViolationsV2(ctx, orgName, reqEditors...)
@@ -3099,6 +3197,32 @@ func ParseListPolicyPacksOrgsResp(rsp *http.Response) (*ListPolicyPacksOrgsResp,
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest AppListPolicyPacksResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPolicyResultsMetadataResp parses an HTTP response from a GetPolicyResultsMetadataWithResponse call
+func ParseGetPolicyResultsMetadataResp(rsp *http.Response) (*GetPolicyResultsMetadataResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPolicyResultsMetadataResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PolicyResultsMetadata
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

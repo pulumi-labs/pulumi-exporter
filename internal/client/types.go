@@ -134,6 +134,14 @@ type PolicyViolation struct {
 	Kind        string `json:"kind"`
 }
 
+// PolicyResultsMetadataResponse represents the response from GET /api/orgs/{org}/policyresults/metadata.
+type PolicyResultsMetadataResponse struct {
+	PolicyTotalCount         int64
+	PolicyWithIssuesCount    int64
+	ResourcesTotalCount      int64
+	ResourcesWithIssuesCount int64
+}
+
 // ListNeoTasksResponse represents the response from GET /api/preview/agents/{org}/tasks.
 type ListNeoTasksResponse struct {
 	Tasks             []NeoTask `json:"tasks"`

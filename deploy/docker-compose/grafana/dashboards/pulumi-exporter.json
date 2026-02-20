@@ -537,10 +537,152 @@
     },
     {
       "type": "stat",
+      "id": 27,
+      "title": "Policy Compliance Score",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 33 },
+      "targets": [
+        {
+          "expr": "(pulumi_org_policy_total{org=~\"$org\"} - pulumi_org_policy_with_issues{org=~\"$org\"}) / (pulumi_org_policy_total{org=~\"$org\"} > 0) * 100",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 28,
+      "title": "Resource Compliance Score",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 33 },
+      "targets": [
+        {
+          "expr": "(pulumi_org_governed_resources_total{org=~\"$org\"} - pulumi_org_governed_resources_with_issues{org=~\"$org\"}) / (pulumi_org_governed_resources_total{org=~\"$org\"} > 0) * 100",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 29,
+      "title": "Policies with Issues",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 33 },
+      "targets": [
+        {
+          "expr": "pulumi_org_policy_with_issues{org=~\"$org\"}",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 30,
+      "title": "Resources with Issues",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 33 },
+      "targets": [
+        {
+          "expr": "pulumi_org_governed_resources_with_issues{org=~\"$org\"}",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
       "id": 17,
       "title": "Violations",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 33 },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 38 },
       "targets": [
         {
           "expr": "sum(pulumi_org_policy_violations{org=~\"$org\"})",
@@ -575,7 +717,7 @@
       "id": 25,
       "title": "Policy Groups",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 33 },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 38 },
       "targets": [
         {
           "expr": "pulumi_org_policy_group_count{org=~\"$org\"}",
@@ -603,7 +745,7 @@
       "id": 26,
       "title": "Policy Packs",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 33 },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 38 },
       "targets": [
         {
           "expr": "pulumi_org_policy_pack_count{org=~\"$org\"}",
@@ -631,7 +773,7 @@
       "id": 18,
       "title": "Violations by Level",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 33 },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 38 },
       "targets": [
         {
           "expr": "pulumi_org_policy_violations{org=~\"$org\"}",
@@ -660,7 +802,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 },
       "id": 20,
       "title": "Pulumi Neo AI Tasks",
       "type": "row"
@@ -670,7 +812,7 @@
       "id": 21,
       "title": "Tasks by Status",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
       "targets": [
         {
           "expr": "pulumi_org_neo_task_count{org=~\"$org\"}",
@@ -698,7 +840,7 @@
       "id": 22,
       "title": "Total Tasks",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
       "targets": [
         {
           "expr": "sum(pulumi_org_neo_task_count{org=~\"$org\"})",
@@ -736,5 +878,5 @@
   "timezone": "browser",
   "title": "Pulumi Cloud Exporter",
   "uid": "pulumi-cloud-exporter",
-  "version": 1
+  "version": 3
 }

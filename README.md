@@ -114,6 +114,7 @@ Configure via CLI flags, environment variables, or a YAML file. Flags take prece
 | `--pulumi.api-url` | `PULUMI_API_URL` | `https://api.pulumi.com` | Pulumi Cloud API base URL |
 | `--pulumi.organizations` | `PULUMI_ORGANIZATIONS` | *(required)* | Organizations to monitor (repeatable, comma-separated) |
 | `--pulumi.collect-interval` | `PULUMI_COLLECT_INTERVAL` | `60s` | Polling interval |
+| `--pulumi.max-concurrency` | `PULUMI_MAX_CONCURRENCY` | `10` | Max concurrent stack API calls (1-100) |
 | `--otlp.endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` | `localhost:4318` | OTLP receiver endpoint (host:port) |
 | `--otlp.protocol` | `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | `http/protobuf` or `grpc` |
 | `--otlp.insecure` | `OTEL_EXPORTER_OTLP_INSECURE` | `false` | Disable TLS |
@@ -139,6 +140,30 @@ PULUMI_ORGANIZATIONS=my-org,another-org
 All metrics include an `org` label so you can filter, group, and compare across organizations in your dashboards. The Grafana dashboard includes a multi-select Organization dropdown.
 
 The `org` identity is modeled as an [OTel metric attribute](https://opentelemetry.io/docs/specs/semconv/resource/) (not a Resource attribute), which is the correct pattern for an exporter that observes multiple tenants from a single process -- matching how tools like Prometheus blackbox_exporter handle multi-target monitoring.
+
+### Large Organizations
+
+Each collection cycle makes 2 API calls per stack (resource count + updates) plus 8–10 calls per org. The collect interval must be long enough for all calls to complete. A cycle that exceeds 90% of the interval is cancelled to prevent overlap.
+
+Recommended settings based on total stack count across all monitored orgs:
+
+| Stacks | Interval | Concurrency | Notes |
+|--------|----------|-------------|-------|
+| < 50 | `60s` | `10` | Default settings work fine |
+| 50–200 | `2m` | `15` | |
+| 200–500 | `3m` | `20` | |
+| 500–1000 | `5m` | `30` | Tested: 500+ stacks across 3 orgs completes in ~2 min |
+| 1000+ | `10m` | `50` | Watch for API rate limits |
+
+Example for a large org:
+
+```bash
+PULUMI_COLLECT_INTERVAL=5m \
+PULUMI_MAX_CONCURRENCY=30 \
+  ./pulumi-exporter --pulumi.organizations=my-large-org ...
+```
+
+If you see `context deadline exceeded` errors in the logs, increase the collect interval. The exporter automatically paginates all org-level API responses (members, environments, etc.) and parallelizes org-level metric collection. Collection cycles are bounded by a timeout of 90% of the collect interval (minimum 10 seconds) to prevent overlap.
 
 ### YAML Config File
 
@@ -190,6 +215,10 @@ See [`config.example.yaml`](config.example.yaml) for a full template.
 | `pulumi_org_policy_pack_count` | Gauge | `org` | Number of policy packs |
 | `pulumi_org_policy_violations` | Gauge | `org`, `level`, `kind` | Policy violations by severity and type |
 | `pulumi_org_neo_task_count` | Gauge | `org`, `status` | Pulumi Neo AI tasks by status |
+| `pulumi_org_policy_total` | Gauge | `org` | Total number of policies |
+| `pulumi_org_policy_with_issues` | Gauge | `org` | Number of policies with issues |
+| `pulumi_org_governed_resources_total` | Gauge | `org` | Total governed resources |
+| `pulumi_org_governed_resources_with_issues` | Gauge | `org` | Governed resources with issues |
 
 ### Label Values
 
@@ -225,7 +254,7 @@ docker compose up --build -d
 - **Grafana**: http://localhost:3000 (admin / admin)
 - **Prometheus**: http://localhost:9090
 
-The exporter pushes metrics to Prometheus via its native OTLP receiver (`--web.enable-otlp-receiver`). The Grafana dashboard is auto-provisioned with 22 panels covering all 13 metrics.
+The exporter pushes metrics to Prometheus via its native OTLP receiver (`--web.enable-otlp-receiver`). The Grafana dashboard is auto-provisioned with 26 panels covering all 17 metrics.
 
 To stop:
 
@@ -400,7 +429,7 @@ To regenerate after Pulumi updates their API:
 make generate
 ```
 
-This downloads the latest spec and runs [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) to produce `internal/pulumiapi/client.gen.go`. Generation is scoped to the 12 operations the exporter uses (configured in `oapi-codegen.yaml`):
+This downloads the latest spec and runs [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) to produce `internal/pulumiapi/client.gen.go`. Generation is scoped to the 13 operations the exporter uses (configured in `oapi-codegen.yaml`):
 
 | Operation | Endpoint |
 |-----------|----------|
@@ -416,6 +445,7 @@ This downloads the latest spec and runs [oapi-codegen](https://github.com/oapi-c
 | `ListPolicyPacks_orgs` | `GET /api/orgs/{org}/policypacks` |
 | `ListPolicyViolationsV2` | `GET /api/orgs/{org}/policyresults/violationsv2` |
 | `ListTasks` | `GET /api/preview/agents/{org}/tasks` |
+| `GetPolicyResultsMetadata` | `GET /api/orgs/{org}/policyresults/metadata` |
 
 ### Project Structure
 
@@ -437,7 +467,7 @@ pulumi-exporter/
 │   │   └── config_test.go
 │   ├── collector/                       # Metrics collection logic
 │   │   ├── collector.go                 # PulumiAPI interface, ticker loop
-│   │   ├── instruments.go              # OTel instrument definitions (13 metrics)
+│   │   ├── instruments.go              # OTel instrument definitions (17 metrics)
 │   │   ├── stack.go                     # Per-stack collection
 │   │   ├── deployments.go              # Org deployment collection
 │   │   ├── org.go                       # Org-level collection (members, teams, ESC, policies, Neo)
@@ -456,7 +486,7 @@ pulumi-exporter/
 │       └── grafana/
 │           ├── provisioning/            # Auto-provisioned datasource + dashboard
 │           └── dashboards/
-│               └── pulumi-exporter.json # 22-panel Grafana dashboard
+│               └── pulumi-exporter.json # 26-panel Grafana dashboard
 ├── Dockerfile                           # Chainguard static base (release)
 ├── .goreleaser.yaml                     # Multi-arch builds, signing, SBOM
 ├── .golangci.yaml                       # Linter configuration

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel/metric"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/dirien/pulumi-exporter/internal/client"
 	"github.com/dirien/pulumi-exporter/internal/config"
@@ -26,6 +27,7 @@ type PulumiAPI interface {
 	ListPolicyPacks(ctx context.Context, org string) (*client.ListPolicyPacksResponse, error)
 	ListPolicyViolations(ctx context.Context, org string) (*client.ListPolicyViolationsResponse, error)
 	ListNeoTasks(ctx context.Context, org string) (*client.ListNeoTasksResponse, error)
+	GetPolicyResultsMetadata(ctx context.Context, org string) (*client.PolicyResultsMetadataResponse, error)
 }
 
 // Collector periodically collects metrics from the Pulumi Cloud API.
@@ -78,7 +80,15 @@ func (c *Collector) Run(ctx context.Context) error {
 func (c *Collector) collect(ctx context.Context) {
 	c.logger.Info("collecting metrics")
 
-	stacks, err := c.client.ListStacks(ctx)
+	// Apply a collection timeout: 90% of the collect interval, clamped to a 10s minimum.
+	timeout := c.cfg.Pulumi.CollectInterval * 9 / 10
+	if timeout < 10*time.Second {
+		timeout = 10 * time.Second
+	}
+	collectCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	stacks, err := c.client.ListStacks(collectCtx)
 	if err != nil {
 		c.logger.Error("failed to list stacks", "error", err)
 		return
@@ -91,8 +101,7 @@ func (c *Collector) collect(ctx context.Context) {
 	}
 
 	// Fan out stack collection with a semaphore.
-	const maxConcurrency = 5
-	sem := make(chan struct{}, maxConcurrency)
+	sem := make(chan struct{}, c.cfg.Pulumi.MaxConcurrency)
 	var wg sync.WaitGroup
 
 	for _, stack := range stacks.Stacks {
@@ -107,17 +116,23 @@ func (c *Collector) collect(ctx context.Context) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			c.collectStack(ctx, s)
+			c.collectStack(collectCtx, s)
 		}(stack)
 	}
 
 	wg.Wait()
 
-	// Collect org-level metrics.
+	// Collect org-level metrics with bounded parallelism.
+	g, gCtx := errgroup.WithContext(collectCtx)
+	g.SetLimit(3)
 	for _, org := range c.cfg.Pulumi.Organizations {
-		c.collectOrgDeployments(ctx, org)
-		c.collectOrgMetrics(ctx, org)
+		g.Go(func() error {
+			c.collectOrgDeployments(gCtx, org)
+			c.collectOrgMetrics(gCtx, org)
+			return nil
+		})
 	}
+	_ = g.Wait()
 
 	c.logger.Info("collection complete")
 }

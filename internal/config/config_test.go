@@ -153,7 +153,8 @@ func TestValidateMissingOrgs(t *testing.T) {
 
 	cfg := &Config{
 		Pulumi: PulumiConfig{
-			AccessToken: "some-token",
+			AccessToken:    "some-token",
+			MaxConcurrency: 10,
 		},
 		Exporters: ExportersConfig{
 			Protocol: "http/protobuf",
@@ -175,8 +176,9 @@ func TestValidateInvalidProtocol(t *testing.T) {
 
 	cfg := &Config{
 		Pulumi: PulumiConfig{
-			AccessToken:   "some-token",
-			Organizations: []string{"org1"},
+			AccessToken:    "some-token",
+			Organizations:  []string{"org1"},
+			MaxConcurrency: 10,
 		},
 		Exporters: ExportersConfig{
 			Protocol: "invalid",
@@ -199,8 +201,9 @@ func TestValidateSuccess(t *testing.T) {
 
 	cfg := &Config{
 		Pulumi: PulumiConfig{
-			AccessToken:   "pul-token",
-			Organizations: []string{"myorg"},
+			AccessToken:    "pul-token",
+			Organizations:  []string{"myorg"},
+			MaxConcurrency: 10,
 		},
 		Exporters: ExportersConfig{
 			Protocol: "grpc",
@@ -244,5 +247,63 @@ func TestParseHeadersEmpty(t *testing.T) {
 
 	if cfg.Exporters.Headers != nil {
 		t.Errorf("expected nil headers for empty input, got %v", cfg.Exporters.Headers)
+	}
+}
+
+func TestMaxConcurrencyDefault(t *testing.T) {
+	t.Parallel()
+
+	app := kingpin.New("test", "")
+	cfg := RegisterFlags(app)
+
+	_, err := app.Parse([]string{})
+	if err != nil {
+		t.Fatalf("unexpected parse error: %v", err)
+	}
+
+	if cfg.Pulumi.MaxConcurrency != 10 {
+		t.Errorf("expected max-concurrency 10, got %d", cfg.Pulumi.MaxConcurrency)
+	}
+}
+
+func TestMaxConcurrencyValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		value   int
+		wantErr bool
+	}{
+		{"zero", 0, true},
+		{"negative", -1, true},
+		{"too high", 101, true},
+		{"minimum", 1, false},
+		{"middle", 50, false},
+		{"maximum", 100, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := &Config{
+				Pulumi: PulumiConfig{
+					AccessToken:    "token",
+					Organizations:  []string{"org"},
+					MaxConcurrency: tt.value,
+				},
+				Exporters: ExportersConfig{
+					Protocol: "http/protobuf",
+				},
+			}
+
+			err := cfg.Validate()
+			if tt.wantErr && err == nil {
+				t.Errorf("expected error for max-concurrency=%d, got nil", tt.value)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("unexpected error for max-concurrency=%d: %v", tt.value, err)
+			}
+		})
 	}
 }

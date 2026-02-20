@@ -23,6 +23,7 @@ type PulumiConfig struct {
 	APIURL          string        `yaml:"api-url"`
 	Organizations   []string      `yaml:"organizations"`
 	CollectInterval time.Duration `yaml:"collect-interval"`
+	MaxConcurrency  int           `yaml:"max-concurrency"`
 }
 
 // ExportersConfig holds exporter configuration.
@@ -57,6 +58,11 @@ func RegisterFlags(app *kingpin.Application) *Config {
 		Default("60s").
 		Envar("PULUMI_COLLECT_INTERVAL").
 		DurationVar(&cfg.Pulumi.CollectInterval)
+
+	app.Flag("pulumi.max-concurrency", "Maximum number of concurrent stack API calls (1-100).").
+		Default("10").
+		Envar("PULUMI_MAX_CONCURRENCY").
+		IntVar(&cfg.Pulumi.MaxConcurrency)
 
 	app.Flag("otlp.endpoint", "OTLP exporter endpoint.").
 		Default("localhost:4318").
@@ -134,6 +140,10 @@ func (c *Config) Validate() error {
 
 	if len(c.Pulumi.Organizations) == 0 {
 		return fmt.Errorf("at least one pulumi organization is required")
+	}
+
+	if c.Pulumi.MaxConcurrency < 1 || c.Pulumi.MaxConcurrency > 100 {
+		return fmt.Errorf("max-concurrency must be between 1 and 100, got %d", c.Pulumi.MaxConcurrency)
 	}
 
 	switch c.Exporters.Protocol {

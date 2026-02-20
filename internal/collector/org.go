@@ -5,18 +5,22 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"golang.org/x/sync/errgroup"
 )
 
 func (c *Collector) collectOrgMetrics(ctx context.Context, org string) {
 	orgAttr := metric.WithAttributes(attribute.String("org", org))
 
-	c.collectMembers(ctx, org, orgAttr)
-	c.collectTeams(ctx, org, orgAttr)
-	c.collectEnvironments(ctx, org, orgAttr)
-	c.collectPolicyGroups(ctx, org, orgAttr)
-	c.collectPolicyPacks(ctx, org, orgAttr)
-	c.collectPolicyViolations(ctx, org)
-	c.collectNeoTasks(ctx, org)
+	g, gCtx := errgroup.WithContext(ctx)
+	g.Go(func() error { c.collectMembers(gCtx, org, orgAttr); return nil })
+	g.Go(func() error { c.collectTeams(gCtx, org, orgAttr); return nil })
+	g.Go(func() error { c.collectEnvironments(gCtx, org, orgAttr); return nil })
+	g.Go(func() error { c.collectPolicyGroups(gCtx, org, orgAttr); return nil })
+	g.Go(func() error { c.collectPolicyPacks(gCtx, org, orgAttr); return nil })
+	g.Go(func() error { c.collectPolicyViolations(gCtx, org); return nil })
+	g.Go(func() error { c.collectNeoTasks(gCtx, org); return nil })
+	g.Go(func() error { c.collectPolicyResultsMetadata(gCtx, org, orgAttr); return nil })
+	_ = g.Wait()
 }
 
 func (c *Collector) collectMembers(ctx context.Context, org string, attrs metric.MeasurementOption) {
@@ -91,6 +95,18 @@ func (c *Collector) collectPolicyViolations(ctx context.Context, org string) {
 			attribute.String("kind", key[1]),
 		))
 	}
+}
+
+func (c *Collector) collectPolicyResultsMetadata(ctx context.Context, org string, attrs metric.MeasurementOption) {
+	resp, err := c.client.GetPolicyResultsMetadata(ctx, org)
+	if err != nil {
+		c.logger.Error("failed to get policy results metadata", "org", org, "error", err)
+		return
+	}
+	c.instruments.orgPolicyTotal.Record(ctx, resp.PolicyTotalCount, attrs)
+	c.instruments.orgPolicyWithIssues.Record(ctx, resp.PolicyWithIssuesCount, attrs)
+	c.instruments.orgResourcesTotal.Record(ctx, resp.ResourcesTotalCount, attrs)
+	c.instruments.orgResourcesIssues.Record(ctx, resp.ResourcesWithIssuesCount, attrs)
 }
 
 func (c *Collector) collectNeoTasks(ctx context.Context, org string) {
