@@ -131,4 +131,4 @@ helm uninstall pulumi-exporter
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| pulumi-labs | <engin.diri@ediri.de> |  |
+| pulumi-labs | <engin@pulumi.com> |  |
