@@ -37,3 +37,14 @@ config.yaml
 # Downloaded OpenAPI spec (regenerated via make download-spec)
 pulumi-spec.json
 **/.env
+
+# Pulumi stack configs (contain encrypted secrets)
+deploy/**/Pulumi.*.yaml
+
+# Node.js
+node_modules/
+
+# Python
+__pycache__/
+venv/
+*.pyc

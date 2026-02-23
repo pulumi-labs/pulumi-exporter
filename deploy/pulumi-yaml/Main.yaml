@@ -1,0 +1,53 @@
+config:
+  pulumi-access-token:
+    type: string
+  organizations:
+    type: string
+  collect-interval:
+    type: string
+  max-concurrency:
+    type: integer
+
+variables:
+  orgList:
+    fn::split:
+      - ","
+      - ${organizations}
+
+resources:
+  namespace:
+    type: kubernetes:core/v1:Namespace
+    properties:
+      metadata:
+        name: pulumi-exporter
+
+  secret:
+    type: kubernetes:core/v1:Secret
+    properties:
+      metadata:
+        name: pulumi-credentials
+        namespace: ${namespace.metadata.name}
+      type: Opaque
+      stringData:
+        access-token: ${pulumi-access-token}
+
+  release:
+    type: kubernetes:helm.sh/v3:Release
+    properties:
+      chart: oci://ghcr.io/pulumi-labs/charts/pulumi-exporter
+      version: "0.1.1"
+      namespace: ${namespace.metadata.name}
+      values:
+        existingSecret: ${secret.metadata.name}
+        pulumiOrganizations: ${orgList}
+        collectInterval: ${collect-interval}
+        maxConcurrency: ${max-concurrency}
+        otlp:
+          endpoint: "localhost:4318"
+          protocol: "http/protobuf"
+          insecure: true
+
+outputs:
+  namespace: ${namespace.metadata.name}
+  releaseName: ${release.name}
+  releaseVersion: ${release.version}

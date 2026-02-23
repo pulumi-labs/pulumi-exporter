@@ -1,0 +1,20 @@
+name: pulumi-exporter-yaml
+runtime: yaml
+description: Deploy pulumi-exporter Helm chart from OCI registry
+config:
+  pulumi-access-token:
+    type: string
+    secret: true
+    description: Pulumi Cloud access token
+  organizations:
+    type: string
+    default: ediri
+    description: Comma-separated list of Pulumi organizations to monitor
+  collect-interval:
+    type: string
+    default: "60s"
+    description: Metrics collection interval
+  max-concurrency:
+    type: integer
+    default: 10
+    description: Maximum concurrent stack API calls

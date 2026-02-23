@@ -104,7 +104,11 @@ pulumi-exporter/
 │   └── appinfo/                         # Build-time version info (ldflags)
 ├── dashboards/                          # Grafana dashboard JSON
 ├── charts/pulumi-exporter/              # Helm chart
-├── deploy/docker-compose/               # Prometheus + Grafana + exporter
+├── deploy/
+│   ├── docker-compose/                  # Prometheus + Grafana + exporter
+│   ├── pulumi-yaml/                     # Pulumi YAML deployment
+│   ├── pulumi-typescript/               # Pulumi TypeScript deployment
+│   └── pulumi-python/                   # Pulumi Python deployment
 ├── docs/                                # Documentation
 ├── .github/
 │   ├── configs/                         # ct-lint, cr, lintconf configs
