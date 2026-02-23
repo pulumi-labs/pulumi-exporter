@@ -42,8 +42,8 @@ internal/appinfo/                       → build-time version info (ldflags)
 dashboards/pulumi-exporter.json         → Grafana dashboard JSON (26 panels, 17 metrics)
 deploy/docker-compose/                  → Prometheus + Grafana + exporter stack
 charts/pulumi-exporter/                 → Helm chart (templates, values, ci test values)
-.github/configs/                        → ct-lint, cr, lintconf YAML configs
-.github/workflows/helm-publish.yaml     → Chart publish (chart-releaser + OCI + cosign)
+.github/configs/                        → ct-lint, lintconf YAML configs
+.github/workflows/helm-publish.yaml     → Chart publish (OCI push to GHCR + cosign)
 .github/workflows/lint-and-test.yaml    → CT lint + Trivy + kind install on PRs
 ```
 
@@ -162,9 +162,9 @@ make helm-test-e2e  # kind-create + ct-install + kind-delete
 
 ### CI/CD Workflows
 
-- **`helm-publish.yaml`** — triggers on push to `main` touching `charts/**`. Runs ArtifactHub lint, chart-releaser (GH Pages), pushes OCI to `ghcr.io`, cosign signs.
+- **`helm-publish.yaml`** — triggers on push to `main` touching `charts/**`. Runs ArtifactHub lint, packages chart, pushes OCI to `ghcr.io`, cosign signs.
 - **`lint-and-test.yaml`** — triggers on PRs touching `charts/**`. Runs Trivy IaC scan, ct lint, ArtifactHub lint, kind cluster + ct install.
-- Config files: `.github/configs/cr.yaml`, `ct-lint.yaml`, `lintconf.yaml`
+- Config files: `.github/configs/ct-lint.yaml`, `lintconf.yaml`
 
 ### Secret Management
 
