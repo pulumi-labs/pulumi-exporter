@@ -24,7 +24,7 @@ jobs:
           python-version: "3.13"
 
       - name: Run Trivy vulnerability scanner in IaC mode
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947e7b4b01e007f0be0 # 0.31.0
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518 # 0.34.1
         with:
           scan-type: "config"
           hide-progress: false
