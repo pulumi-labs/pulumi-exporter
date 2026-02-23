@@ -120,7 +120,7 @@ The chart ships with two GitHub Actions workflows:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `helm-publish.yaml` | Push to `main` touching `charts/**` | ArtifactHub lint, chart-releaser (GH Pages), OCI push to GHCR, cosign sign |
+| `helm-publish.yaml` | Push to `main` touching `charts/**` | ArtifactHub lint, OCI push to GHCR, cosign sign |
 | `lint-and-test.yaml` | PR touching `charts/**` | Trivy IaC scan, ct lint, ArtifactHub lint, kind cluster + ct install |
 
-Charts are published both as a GitHub Pages Helm repo and as OCI artifacts to `ghcr.io/pulumi-labs/charts/pulumi-exporter`.
+Charts are published as OCI artifacts to `oci://ghcr.io/pulumi-labs/charts/pulumi-exporter`.
