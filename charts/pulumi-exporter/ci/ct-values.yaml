@@ -2,7 +2,8 @@
 # Uses a dummy token — the pod starts and health probes pass,
 # but metric collection will fail (expected in CI).
 image:
-  pullPolicy: Never
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
 pulumiAccessToken: "pul-dummy-for-ct-install-test"
 pulumiOrganizations:
   - "test-org"

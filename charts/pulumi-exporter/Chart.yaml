@@ -10,13 +10,13 @@ keywords:
   - exporter
   - prometheus
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: 0.1.0
 home: https://github.com/pulumi-labs/pulumi-exporter/
 sources:
   - https://github.com/pulumi-labs/pulumi-exporter/
 maintainers:
-  - email: engin.diri@ediri.de
+  - email: engin@pulumi.com
     name: pulumi-labs
 
 annotations:
@@ -29,4 +29,4 @@ annotations:
   artifacthub.io/license: MIT
   artifacthub.io/maintainers: |
     - name: pulumi-labs
-      email: engin.diri@ediri.de
+      email: engin@pulumi.com
