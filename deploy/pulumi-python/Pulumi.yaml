@@ -1,0 +1,20 @@
+name: pulumi-exporter-python
+runtime: python
+description: Deploy pulumi-exporter Helm chart from OCI registry
+config:
+  collect-interval:
+    type: string
+    description: Metrics collection interval
+    default: 60s
+  max-concurrency:
+    type: integer
+    description: Maximum concurrent stack API calls
+    default: 10
+  organizations:
+    type: string
+    description: Comma-separated list of Pulumi organizations to monitor
+    default: ediri
+  pulumi-access-token:
+    type: string
+    description: Pulumi Cloud access token
+    secret: true

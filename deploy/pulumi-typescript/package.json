@@ -1,0 +1,11 @@
+{
+	"name": "pulumi-exporter-typescript",
+	"devDependencies": {
+		"@types/node": "^18"
+	},
+	"dependencies": {
+		"typescript": "^4.0.0",
+		"@pulumi/pulumi": "^3.0.0",
+		"@pulumi/kubernetes": "4.25.0"
+	}
+}

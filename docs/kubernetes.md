@@ -61,6 +61,26 @@ serviceMonitor:
     release: prometheus
 ```
 
+## Pulumi
+
+Deploy the Helm chart with Pulumi. Example programs are provided in YAML, TypeScript, and Python under `deploy/`.
+
+Each program creates a namespace, a Kubernetes Secret for the access token, and a Helm Release from the OCI chart:
+
+```bash
+cd deploy/pulumi-yaml      # or pulumi-typescript / pulumi-python
+pulumi stack init dev
+pulumi config set --secret pulumi-access-token pul-xxx
+pulumi config set organizations my-org
+pulumi up
+```
+
+| Language | Directory |
+|----------|-----------|
+| YAML | [`deploy/pulumi-yaml/`](../deploy/pulumi-yaml/) |
+| TypeScript | [`deploy/pulumi-typescript/`](../deploy/pulumi-typescript/) |
+| Python | [`deploy/pulumi-python/`](../deploy/pulumi-python/) |
+
 ## Raw Kubernetes Manifests
 
 If you prefer not to use Helm:

@@ -41,6 +41,9 @@ internal/exporter/                      → OTel MeterProvider / OTLP exporter s
 internal/appinfo/                       → build-time version info (ldflags)
 dashboards/pulumi-exporter.json         → Grafana dashboard JSON (26 panels, 17 metrics)
 deploy/docker-compose/                  → Prometheus + Grafana + exporter stack
+deploy/pulumi-yaml/                     → Pulumi YAML program for Helm chart deployment
+deploy/pulumi-typescript/               → Pulumi TypeScript program (converted from YAML)
+deploy/pulumi-python/                   → Pulumi Python program (converted from YAML)
 charts/pulumi-exporter/                 → Helm chart (templates, values, ci test values)
 .github/configs/                        → ct-lint, lintconf YAML configs
 .github/workflows/helm-publish.yaml     → Chart publish (OCI push to GHCR + cosign)

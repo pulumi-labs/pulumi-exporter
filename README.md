@@ -42,6 +42,20 @@ helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter \
 
 See the [chart README](charts/pulumi-exporter/README.md) for all values.
 
+### Pulumi
+
+Deploy the Helm chart using Pulumi in YAML, TypeScript, or Python. Example programs live under `deploy/`:
+
+```bash
+cd deploy/pulumi-yaml      # or pulumi-typescript / pulumi-python
+pulumi stack init dev
+pulumi config set --secret pulumi-access-token pul-xxx
+pulumi config set organizations my-org
+pulumi up
+```
+
+See [deploy/pulumi-yaml/](deploy/pulumi-yaml/), [deploy/pulumi-typescript/](deploy/pulumi-typescript/), and [deploy/pulumi-python/](deploy/pulumi-python/) for the full programs.
+
 ### Docker
 
 ```bash
@@ -144,7 +158,7 @@ Run `make help` to see everything. Here are the ones you'll use most:
 | [Metrics reference](docs/metrics.md) | All 17 metrics with types, labels, histogram buckets |
 | [Grafana dashboard](docs/dashboards.md) | Out-of-the-box dashboard with 26 panels, import guide |
 | [Backend setup](docs/backends.md) | Prometheus, Grafana Alloy, DataDog, NewRelic, Dynatrace |
-| [Kubernetes and Helm](docs/kubernetes.md) | Helm chart, raw manifests, chart CI/CD |
+| [Kubernetes and Helm](docs/kubernetes.md) | Helm chart, Pulumi programs, raw manifests, chart CI/CD |
 | [Development](docs/development.md) | Build, test, project structure, OpenAPI generation, contributing |
 
 ## License
