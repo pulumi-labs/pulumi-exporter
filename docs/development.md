@@ -112,6 +112,7 @@ pulumi-exporter/
 ├── docs/                                # Documentation
 ├── .github/
 │   ├── configs/                         # ct-lint, cr, lintconf configs
+│   ├── dependabot.yaml                  # Automated dependency updates
 │   └── workflows/                       # CI, lint, helm-publish, lint-and-test
 ├── .goreleaser.yaml                     # Multi-arch builds, signing, SBOM
 └── .golangci.yaml                       # Linter configuration
