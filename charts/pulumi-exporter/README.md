@@ -1,7 +1,8 @@
 # Pulumi Cloud Exporter
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.1](https://img.shields.io/badge/AppVersion-0.1.1-informational?style=flat-square)
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/pulumi-exporter&style=for-the-badge)](https://artifacthub.io/packages/search?repo=pulumi-exporter)
 ![Pulumi](https://img.shields.io/badge/Pulumi-8A3391?style=for-the-badge&logo=pulumi&logoColor=white)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-3D348B?style=for-the-badge&logo=opentelemetry&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=Prometheus&logoColor=white)
@@ -21,7 +22,7 @@ Polls the Pulumi API on a configurable interval and pushes metrics over OTLP to 
 To install the chart using the OCI artifact, run:
 
 ```bash
-helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter --version 0.1.0
+helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter --version 0.1.2
 ```
 
 Requires Helm >= 3.8.0.
@@ -36,7 +37,7 @@ helm repo update
 ### Installing the Chart
 
 ```bash
-helm install pulumi-exporter pulumi-exporter/pulumi-exporter --version 0.1.0
+helm install pulumi-exporter pulumi-exporter/pulumi-exporter --version 0.1.2
 ```
 
 ### Example: Minimal Installation

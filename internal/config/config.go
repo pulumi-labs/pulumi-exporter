@@ -11,6 +11,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const protocolHTTPProtobuf = "http/protobuf"
+
 // Config holds the complete application configuration.
 type Config struct {
 	Pulumi    PulumiConfig    `yaml:"pulumi"`
@@ -70,7 +72,7 @@ func RegisterFlags(app *kingpin.Application) *Config {
 		StringVar(&cfg.Exporters.Endpoint)
 
 	app.Flag("otlp.protocol", "OTLP exporter protocol (http/protobuf or grpc).").
-		Default("http/protobuf").
+		Default(protocolHTTPProtobuf).
 		Envar("OTEL_EXPORTER_OTLP_PROTOCOL").
 		StringVar(&cfg.Exporters.Protocol)
 
@@ -147,7 +149,7 @@ func (c *Config) Validate() error {
 	}
 
 	switch c.Exporters.Protocol {
-	case "http/protobuf", "grpc":
+	case protocolHTTPProtobuf, "grpc":
 		// valid
 	default:
 		return fmt.Errorf("unsupported OTLP protocol: %q (must be http/protobuf or grpc)", c.Exporters.Protocol)
