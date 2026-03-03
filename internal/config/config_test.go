@@ -32,7 +32,7 @@ func TestDefaults(t *testing.T) {
 		t.Errorf("expected endpoint %q, got %q", "localhost:4318", cfg.Exporters.Endpoint)
 	}
 
-	if cfg.Exporters.Protocol != "http/protobuf" { //nolint:goconst
+	if cfg.Exporters.Protocol != "http/protobuf" {
 		t.Errorf("expected protocol %q, got %q", "http/protobuf", cfg.Exporters.Protocol)
 	}
 

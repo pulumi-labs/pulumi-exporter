@@ -1,5 +1,7 @@
 # pulumi-exporter
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/pulumi-exporter&style=for-the-badge)](https://artifacthub.io/packages/search?repo=pulumi-exporter)
+
 An OpenTelemetry metrics exporter for [Pulumi Cloud](https://www.pulumi.com/product/pulumi-cloud/). It polls the Pulumi API on a schedule and pushes metrics over OTLP to whatever backend you use.
 
 ```mermaid
