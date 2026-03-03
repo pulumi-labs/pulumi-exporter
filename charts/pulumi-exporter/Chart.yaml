@@ -10,7 +10,7 @@ keywords:
   - exporter
   - prometheus
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: 0.1.0
 home: https://github.com/pulumi-labs/pulumi-exporter/
 sources:
@@ -22,7 +22,7 @@ maintainers:
 annotations:
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/changes: |
-    - initial chart release
+    - fix chart README to remove non-existent Helm repository references (OCI-only)
   artifacthub.io/images: |
     - name: pulumi-exporter
       image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.0

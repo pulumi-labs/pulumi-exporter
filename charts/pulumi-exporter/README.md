@@ -1,6 +1,6 @@
 # Pulumi Cloud Exporter
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 ![Pulumi](https://img.shields.io/badge/Pulumi-8A3391?style=for-the-badge&logo=pulumi&logoColor=white)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-3D348B?style=for-the-badge&logo=opentelemetry&logoColor=white)
@@ -21,28 +21,16 @@ Polls the Pulumi API on a configurable interval and pushes metrics over OTLP to 
 To install the chart using the OCI artifact, run:
 
 ```bash
-helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter --version 0.1.0
+helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter --version 0.1.2
 ```
 
 Requires Helm >= 3.8.0.
 
-## Usage (via Helm Repository)
-
-```bash
-helm repo add pulumi-exporter https://pulumi-labs.github.io/pulumi-exporter
-helm repo update
-```
-
-### Installing the Chart
-
-```bash
-helm install pulumi-exporter pulumi-exporter/pulumi-exporter --version 0.1.0
-```
-
 ### Example: Minimal Installation
 
 ```bash
-helm install pulumi-exporter pulumi-exporter/pulumi-exporter \
+helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter \
+  --version 0.1.2 \
   --set pulumiAccessToken=pul-xxxxxxxxxxxx \
   --set "pulumiOrganizations={my-org}" \
   --set otlp.endpoint=otel-collector:4318 \
@@ -61,7 +49,8 @@ kubectl create secret generic pulumi-credentials \
 Then install with:
 
 ```bash
-helm install pulumi-exporter pulumi-exporter/pulumi-exporter \
+helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter \
+  --version 0.1.2 \
   --set existingSecret=pulumi-credentials \
   --set "pulumiOrganizations={my-org,another-org}" \
   --set otlp.endpoint=otel-collector:4318 \
