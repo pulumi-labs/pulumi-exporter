@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Go 1.24+
+- Go 1.26+
 - [golangci-lint](https://golangci-lint.run/welcome/install/) v2
 - [helm](https://helm.sh/docs/intro/install/) 3.8+
 - [helm-docs](https://github.com/norwoodj/helm-docs)

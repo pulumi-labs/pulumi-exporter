@@ -48,3 +48,7 @@ node_modules/
 __pycache__/
 venv/
 *.pyc
+
+# Claude Code
+.claude/
+.mcp.json

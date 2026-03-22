@@ -8,9 +8,15 @@ Standalone OpenTelemetry metrics exporter for Pulumi Cloud. Polls the Pulumi API
 make build          # CGO_ENABLED=0 go build with ldflags
 make test           # go test ./...
 make test-race      # go test -race ./...
+make test-cover     # go test with coverage report (coverage.html)
 make lint           # golangci-lint run (v2, strict config)
 make fmt            # gofumpt + goimports via golangci-lint
+make vet            # go vet ./...
 make generate       # Download Pulumi OpenAPI spec + regenerate Go client
+make deps           # go mod download + tidy
+make tools          # Install dev tools (oapi-codegen, helm-docs)
+make docker         # Build Docker image locally
+make release-snapshot # GoReleaser dry run (no publish)
 ```
 
 Always run `make lint` and `make test-race` before considering work done. The linter config (`.golangci.yaml`) enforces:
@@ -40,19 +46,25 @@ internal/config/                        → CLI flags + env vars + YAML config
 internal/exporter/                      → OTel MeterProvider / OTLP exporter setup
 internal/appinfo/                       → build-time version info (ldflags)
 dashboards/pulumi-exporter.json         → Grafana dashboard JSON (26 panels, 17 metrics)
+docs/                                   → User-facing docs (configuration, metrics, backends, kubernetes, dashboards, development)
 deploy/docker-compose/                  → Prometheus + Grafana + exporter stack
 deploy/pulumi-yaml/                     → Pulumi YAML program for Helm chart deployment
 deploy/pulumi-typescript/               → Pulumi TypeScript program (converted from YAML)
 deploy/pulumi-python/                   → Pulumi Python program (converted from YAML)
 charts/pulumi-exporter/                 → Helm chart (templates, values, ci test values)
+config.example.yaml                     → Example YAML config file
+.goreleaser.yaml                        → GoReleaser config (multi-platform builds, Docker, cosign)
+artifacthub-repo.yml                    → ArtifactHub repository metadata
 .github/configs/                        → ct-lint, lintconf YAML configs
+.github/workflows/ci.yaml              → Build + test on PRs; GoReleaser release on tags
+.github/workflows/lint.yaml            → golangci-lint on PRs and pushes to main
 .github/workflows/helm-publish.yaml     → Chart publish (OCI push to GHCR + cosign)
 .github/workflows/lint-and-test.yaml    → CT lint + Trivy + kind install on PRs
 ```
 
 ## Go Version and Module
 
-- Go 1.24+, module `github.com/pulumi-labs/pulumi-exporter`
+- Go 1.26+, module `github.com/pulumi-labs/pulumi-exporter`
 - Dependencies: OTel SDK, oapi-codegen runtime, kingpin CLI, golang.org/x/sync
 
 ## Coding Conventions
@@ -165,6 +177,8 @@ make helm-test-e2e  # kind-create + ct-install + kind-delete
 
 ### CI/CD Workflows
 
+- **`ci.yaml`** — triggers on pushes to `main` and PRs: runs tests + build. On `v*` tags: GoReleaser release (multi-platform binaries, Docker images to GHCR, cosign signing, SBOM via Syft).
+- **`lint.yaml`** — triggers on pushes to `main` and PRs: runs golangci-lint.
 - **`helm-publish.yaml`** — triggers on push to `main` touching `charts/**`. Runs ArtifactHub lint, packages chart, pushes OCI to `ghcr.io`, cosign signs.
 - **`lint-and-test.yaml`** — triggers on PRs touching `charts/**`. Runs Trivy IaC scan, ct lint, ArtifactHub lint, kind cluster + ct install.
 - Config files: `.github/configs/ct-lint.yaml`, `lintconf.yaml`
