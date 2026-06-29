@@ -7,7 +7,7 @@ GOLANGCI     := golangci-lint
 GORELEASER   := goreleaser
 
 # OpenAPI code generation
-OAPI_CODEGEN := go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+OAPI_CODEGEN := go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.7.1
 OAPI_SPEC    := https://api.pulumi.com/api/openapi/pulumi-spec.json
 OAPI_CONFIG  := oapi-codegen.yaml
 OAPI_OUTPUT  := internal/pulumiapi/client.gen.go
@@ -146,7 +146,7 @@ deps: ## Download and tidy Go module dependencies
 	$(GO) mod tidy
 
 tools: ## Install development tools
-	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.7.1
 	go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
 	@echo "Installed oapi-codegen and helm-docs"
 
