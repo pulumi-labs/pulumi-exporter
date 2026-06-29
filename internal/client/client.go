@@ -332,9 +332,11 @@ func (c *Client) ListNeoTasks(ctx context.Context, org string) (*ListNeoTasksRes
 
 		for _, t := range resp.JSON200.Tasks {
 			allTasks = append(allTasks, NeoTask{
-				ID:     t.Id,
-				Name:   t.Name,
-				Status: string(t.Status),
+				ID:         t.Id,
+				Name:       t.Name,
+				Status:     string(t.Status),
+				TokensUsed: t.TokensUsed,
+				CreatedAt:  t.CreatedAt,
 			})
 		}
 
@@ -345,6 +347,31 @@ func (c *Client) ListNeoTasks(ctx context.Context, org string) (*ListNeoTasksRes
 	}
 
 	return &ListNeoTasksResponse{Tasks: allTasks}, nil
+}
+
+// GetOrgNeoTokenBudget returns the Pulumi Neo token budget for an organization.
+func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, org string) (*NeoTokenBudgetResponse, error) {
+	resp, err := c.gen.GetOrgNeoTokenBudgetWithResponse(ctx, org)
+	if err != nil {
+		return nil, fmt.Errorf("getting neo token budget: %w", err)
+	}
+	// A 404 means the organization has no Neo token budget (Neo not enabled or
+	// no plan-derived allowance). Treat that as "no data" rather than an error.
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, nil
+	}
+	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+		return nil, fmt.Errorf("getting neo token budget: unexpected status %d", resp.StatusCode())
+	}
+
+	return &NeoTokenBudgetResponse{
+		BaseAllowanceTokens:      resp.JSON200.BaseAllowanceTokens,
+		EffectiveAllowanceTokens: resp.JSON200.EffectiveAllowanceTokens,
+		ConsumedTokens:           resp.JSON200.ConsumedTokens,
+		WindowEnd:                resp.JSON200.WindowEnd,
+		WindowKind:               string(resp.JSON200.WindowKind),
+		Exhausted:                resp.JSON200.Exhausted,
+	}, nil
 }
 
 func derefStr(s *string) string {

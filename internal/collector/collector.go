@@ -27,6 +27,7 @@ type PulumiAPI interface {
 	ListPolicyPacks(ctx context.Context, org string) (*client.ListPolicyPacksResponse, error)
 	ListPolicyViolations(ctx context.Context, org string) (*client.ListPolicyViolationsResponse, error)
 	ListNeoTasks(ctx context.Context, org string) (*client.ListNeoTasksResponse, error)
+	GetOrgNeoTokenBudget(ctx context.Context, org string) (*client.NeoTokenBudgetResponse, error)
 	GetPolicyResultsMetadata(ctx context.Context, org string) (*client.PolicyResultsMetadataResponse, error)
 }
 

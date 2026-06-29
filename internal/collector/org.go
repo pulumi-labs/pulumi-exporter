@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -19,6 +20,7 @@ func (c *Collector) collectOrgMetrics(ctx context.Context, org string) {
 	g.Go(func() error { c.collectPolicyPacks(gCtx, org, orgAttr); return nil })
 	g.Go(func() error { c.collectPolicyViolations(gCtx, org); return nil })
 	g.Go(func() error { c.collectNeoTasks(gCtx, org); return nil })
+	g.Go(func() error { c.collectNeoTokenBudget(gCtx, org, orgAttr); return nil })
 	g.Go(func() error { c.collectPolicyResultsMetadata(gCtx, org, orgAttr); return nil })
 	_ = g.Wait()
 }
@@ -116,10 +118,22 @@ func (c *Collector) collectNeoTasks(ctx context.Context, org string) {
 		return
 	}
 
+	now := time.Now().UTC()
 	statusCounts := make(map[string]int64)
+	var tokensTotal, tokensMonth int64
 	for _, t := range resp.Tasks {
 		statusCounts[t.Status]++
+		tokensTotal += t.TokensUsed
+		// Tasks created in the current calendar month make up the
+		// billing-period usage Pulumi Cloud reports.
+		if created := t.CreatedAt.UTC(); created.Year() == now.Year() && created.Month() == now.Month() {
+			tokensMonth += t.TokensUsed
+		}
 	}
+
+	orgAttr := metric.WithAttributes(attribute.String("org", org))
+	c.instruments.orgNeoTokensUsedMonth.Record(ctx, tokensMonth, orgAttr)
+	c.instruments.orgNeoTokensUsedTotal.Record(ctx, tokensTotal, orgAttr)
 
 	for status, count := range statusCounts {
 		c.instruments.orgNeoTaskCount.Record(ctx, count, metric.WithAttributes(
@@ -127,4 +141,25 @@ func (c *Collector) collectNeoTasks(ctx context.Context, org string) {
 			attribute.String("status", status),
 		))
 	}
+}
+
+func (c *Collector) collectNeoTokenBudget(ctx context.Context, org string, attrs metric.MeasurementOption) {
+	resp, err := c.client.GetOrgNeoTokenBudget(ctx, org)
+	if err != nil {
+		c.logger.Error("failed to get neo token budget", "org", org, "error", err)
+		return
+	}
+	if resp == nil {
+		// Organization has no Neo token budget; nothing to record.
+		return
+	}
+
+	c.instruments.orgNeoTokenBudgetConsumed.Record(ctx, resp.ConsumedTokens, attrs)
+	c.instruments.orgNeoTokenBudgetAllowance.Record(ctx, resp.EffectiveAllowanceTokens, attrs)
+
+	var exhausted int64
+	if resp.Exhausted {
+		exhausted = 1
+	}
+	c.instruments.orgNeoTokenBudgetExhausted.Record(ctx, exhausted, attrs)
 }

@@ -124,12 +124,13 @@ Each org's data is collected in parallel. See [docs/configuration.md](docs/confi
 
 ## Metrics
 
-17 metrics across stacks and organizations:
+22 metrics across stacks and organizations:
 
 | Scope | Metrics |
 |-------|---------|
 | Stack | `resource_count`, `last_update_timestamp`, `update_total`, `update_duration_seconds`, `update_resource_changes`, `deployment_status` |
 | Organization | `member_count`, `team_count`, `environment_count`, `policy_group_count`, `policy_pack_count`, `policy_violations`, `neo_task_count` |
+| Neo tokens | `neo_tokens_used_current_month`, `neo_tokens_used_total`, `neo_token_budget_consumed`, `neo_token_budget_allowance`, `neo_token_budget_exhausted` |
 | Compliance | `policy_total`, `policy_with_issues`, `governed_resources_total`, `governed_resources_with_issues` |
 
 All metric names are prefixed with `pulumi_` (stack-level) or `pulumi_org_` (org-level). Full details with types, labels, and histogram buckets in [docs/metrics.md](docs/metrics.md).
@@ -157,8 +158,8 @@ Run `make help` to see everything. Here are the ones you'll use most:
 | | |
 |---|---|
 | [Configuration](docs/configuration.md) | Flags, env vars, YAML config, multi-org, large orgs |
-| [Metrics reference](docs/metrics.md) | All 17 metrics with types, labels, histogram buckets |
-| [Grafana dashboard](docs/dashboards.md) | Out-of-the-box dashboard with 26 panels, import guide |
+| [Metrics reference](docs/metrics.md) | All 22 metrics with types, labels, histogram buckets |
+| [Grafana dashboard](docs/dashboards.md) | Out-of-the-box dashboard with 31 panels, import guide |
 | [Backend setup](docs/backends.md) | Prometheus, Grafana Alloy, DataDog, NewRelic, Dynatrace |
 | [Kubernetes and Helm](docs/kubernetes.md) | Helm chart, Pulumi programs, raw manifests, chart CI/CD |
 | [Development](docs/development.md) | Build, test, project structure, OpenAPI generation, contributing |

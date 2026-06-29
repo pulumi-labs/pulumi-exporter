@@ -13,13 +13,20 @@ type Instruments struct {
 	deploymentStatus      metric.Int64Gauge
 	stackLastUpdate       metric.Float64Gauge
 
-	orgMemberCount      metric.Int64Gauge
-	orgTeamCount        metric.Int64Gauge
-	orgEnvironmentCount metric.Int64Gauge
-	orgPolicyGroupCount metric.Int64Gauge
-	orgPolicyPackCount  metric.Int64Gauge
-	orgPolicyViolations metric.Int64Gauge
-	orgNeoTaskCount     metric.Int64Gauge
+	orgMemberCount        metric.Int64Gauge
+	orgTeamCount          metric.Int64Gauge
+	orgEnvironmentCount   metric.Int64Gauge
+	orgPolicyGroupCount   metric.Int64Gauge
+	orgPolicyPackCount    metric.Int64Gauge
+	orgPolicyViolations   metric.Int64Gauge
+	orgNeoTaskCount       metric.Int64Gauge
+	orgNeoTokensUsedMonth metric.Int64Gauge
+	orgNeoTokensUsedTotal metric.Int64Gauge
+
+	orgNeoTokenBudgetConsumed  metric.Int64Gauge
+	orgNeoTokenBudgetAllowance metric.Int64Gauge
+	orgNeoTokenBudgetExhausted metric.Int64Gauge
+
 	orgPolicyTotal      metric.Int64Gauge
 	orgPolicyWithIssues metric.Int64Gauge
 	orgResourcesTotal   metric.Int64Gauge
@@ -114,12 +121,6 @@ func newOrgInstruments(meter metric.Meter, ins *Instruments) error {
 		return err
 	}
 
-	if ins.orgNeoTaskCount, err = meter.Int64Gauge("pulumi_org_neo_task_count",
-		metric.WithDescription("Number of Pulumi Neo AI tasks by status"),
-	); err != nil {
-		return err
-	}
-
 	if ins.orgPolicyTotal, err = meter.Int64Gauge("pulumi_org_policy_total",
 		metric.WithDescription("Total number of policies in a Pulumi organization"),
 	); err != nil {
@@ -140,6 +141,54 @@ func newOrgInstruments(meter metric.Meter, ins *Instruments) error {
 
 	if ins.orgResourcesIssues, err = meter.Int64Gauge("pulumi_org_governed_resources_with_issues",
 		metric.WithDescription("Number of governed resources with issues in a Pulumi organization"),
+	); err != nil {
+		return err
+	}
+
+	if err = newOrgNeoInstruments(meter, ins); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// newOrgNeoInstruments registers the Pulumi Neo (AI agent) instruments. It is
+// split out of newOrgInstruments to keep cyclomatic complexity under the limit.
+func newOrgNeoInstruments(meter metric.Meter, ins *Instruments) error {
+	var err error
+
+	if ins.orgNeoTaskCount, err = meter.Int64Gauge("pulumi_org_neo_task_count",
+		metric.WithDescription("Number of Pulumi Neo AI tasks by status"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgNeoTokensUsedMonth, err = meter.Int64Gauge("pulumi_org_neo_tokens_used_current_month",
+		metric.WithDescription("Neo tokens consumed by AI tasks created in the current calendar month (matches the Pulumi Cloud billing-period usage)"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgNeoTokensUsedTotal, err = meter.Int64Gauge("pulumi_org_neo_tokens_used_total",
+		metric.WithDescription("Total Neo tokens consumed across all Pulumi Neo AI tasks (lifetime)"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgNeoTokenBudgetConsumed, err = meter.Int64Gauge("pulumi_org_neo_token_budget_consumed",
+		metric.WithDescription("Neo tokens consumed in the current budget window for a Pulumi organization"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgNeoTokenBudgetAllowance, err = meter.Int64Gauge("pulumi_org_neo_token_budget_allowance",
+		metric.WithDescription("Effective Neo token allowance for the current budget window (base plus any active bonus)"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgNeoTokenBudgetExhausted, err = meter.Int64Gauge("pulumi_org_neo_token_budget_exhausted",
+		metric.WithDescription("Whether the Neo token budget for the current window is exhausted (1) or not (0)"),
 	); err != nil {
 		return err
 	}

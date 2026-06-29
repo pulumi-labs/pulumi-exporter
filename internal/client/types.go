@@ -1,6 +1,8 @@
 //nolint:tagliatelle // JSON field names match Pulumi Cloud API response format
 package client
 
+import "time"
+
 // ListStacksResponse represents the response from GET /api/user/stacks.
 type ListStacksResponse struct {
 	Stacks            []StackSummary `json:"stacks"`
@@ -150,7 +152,19 @@ type ListNeoTasksResponse struct {
 
 // NeoTask represents a Neo AI task.
 type NeoTask struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	Status     string    `json:"status"`
+	TokensUsed int64     `json:"tokens_used"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+// NeoTokenBudgetResponse represents the response from GET /api/orgs/{org}/neo/token-budget.
+type NeoTokenBudgetResponse struct {
+	BaseAllowanceTokens      int64
+	EffectiveAllowanceTokens int64
+	ConsumedTokens           int64
+	WindowEnd                int64
+	WindowKind               string
+	Exhausted                bool
 }

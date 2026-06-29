@@ -95,7 +95,7 @@ pulumi-exporter/
 │   ├── config/                          # CLI flags + env vars + YAML config
 │   ├── collector/                       # Metrics collection logic
 │   │   ├── collector.go                 # PulumiAPI interface, ticker loop
-│   │   ├── instruments.go              # OTel instrument definitions (17 metrics)
+│   │   ├── instruments.go              # OTel instrument definitions (22 metrics)
 │   │   ├── stack.go                     # Per-stack collection
 │   │   ├── deployments.go              # Org deployment collection
 │   │   ├── org.go                       # Org-level collection
