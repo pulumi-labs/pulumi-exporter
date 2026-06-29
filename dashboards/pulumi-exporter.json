@@ -865,6 +865,230 @@
         "graphMode": "area",
         "textMode": "value"
       }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 53 },
+      "id": 31,
+      "title": "Pulumi Neo Token Usage",
+      "type": "row"
+    },
+    {
+      "type": "stat",
+      "id": 32,
+      "title": "Tokens Used (This Month)",
+      "description": "Neo tokens consumed by tasks created in the current calendar month. Matches the Pulumi Cloud Billing & usage \"Neo tokens used\" figure.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 54 },
+      "targets": [
+        { "expr": "sum(pulumi_org_neo_tokens_used_current_month{org=~\"$org\"})", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "purple" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 33,
+      "title": "Est. Cost (This Month)",
+      "description": "Estimated Neo token spend for the current month at $3.00 per million tokens. Edit the query if your rate differs.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 54 },
+      "targets": [
+        { "expr": "sum(pulumi_org_neo_tokens_used_current_month{org=~\"$org\"}) * 3 / 1000000", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 34,
+      "title": "Tokens Used (Lifetime)",
+      "description": "Total Neo tokens consumed across all tasks ever recorded for the organization.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 54 },
+      "targets": [
+        { "expr": "sum(pulumi_org_neo_tokens_used_total{org=~\"$org\"})", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "super-light-blue" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "super-light-blue", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 35,
+      "title": "Avg Tokens / Task",
+      "description": "Average Neo tokens consumed per task (lifetime total divided by task count, guarded against divide-by-zero).",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 54 },
+      "targets": [
+        { "expr": "sum(pulumi_org_neo_tokens_used_total{org=~\"$org\"}) / (sum(pulumi_org_neo_task_count{org=~\"$org\"}) > 0)", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 36,
+      "title": "Budget Consumed (window)",
+      "description": "Neo tokens consumed in the current budget window. Empty for orgs without a Neo token allowance.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 62 },
+      "targets": [
+        { "expr": "sum(pulumi_org_neo_token_budget_consumed{org=~\"$org\"})", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 37,
+      "title": "Budget Allowance (window)",
+      "description": "Effective Neo token allowance for the current budget window (base plus any active bonus). Empty for orgs without an allowance.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 62 },
+      "targets": [
+        { "expr": "sum(pulumi_org_neo_token_budget_allowance{org=~\"$org\"})", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "gauge",
+      "id": 38,
+      "title": "Budget Used %",
+      "description": "Percentage of the current-window Neo token allowance consumed. Denominator guarded with > 0. Empty for orgs without an allowance.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 62 },
+      "targets": [
+        { "expr": "100 * sum(pulumi_org_neo_token_budget_consumed{org=~\"$org\"}) / (sum(pulumi_org_neo_token_budget_allowance{org=~\"$org\"}) > 0)", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "min": 0,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "type": "stat",
+      "id": 39,
+      "title": "Budget Exhausted",
+      "description": "Whether the current-window Neo token budget is exhausted. Empty for orgs without an allowance.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 62 },
+      "targets": [
+        { "expr": "max(pulumi_org_neo_token_budget_exhausted{org=~\"$org\"})", "legendFormat": "", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "No", "index": 0 }, "1": { "text": "Yes", "index": 1 } } }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      }
     }
   ],
   "refresh": "30s",
@@ -878,5 +1102,5 @@
   "timezone": "browser",
   "title": "Pulumi Cloud Exporter",
   "uid": "pulumi-cloud-exporter",
-  "version": 3
+  "version": 4
 }

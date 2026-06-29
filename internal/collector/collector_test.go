@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 
@@ -19,6 +21,7 @@ const (
 	testUpdateKind = "update"
 	testResultOK   = "succeeded"
 	testCreatedAt  = "2024-01-01T00:00:00Z"
+	testStatusRun  = "running"
 )
 
 type mockAPI struct {
@@ -26,6 +29,8 @@ type mockAPI struct {
 	resources   map[string]*client.ResourceCountResponse
 	updates     map[string]*client.ListUpdatesResponse
 	deployments map[string]*client.ListDeploymentsResponse
+	neoTasks    map[string]*client.ListNeoTasksResponse
+	neoBudget   map[string]*client.NeoTokenBudgetResponse
 }
 
 func (m *mockAPI) ListStacks(_ context.Context) (*client.ListStacksResponse, error) {
@@ -70,8 +75,16 @@ func (m *mockAPI) ListPolicyViolations(_ context.Context, _ string) (*client.Lis
 	return &client.ListPolicyViolationsResponse{}, nil
 }
 
-func (m *mockAPI) ListNeoTasks(_ context.Context, _ string) (*client.ListNeoTasksResponse, error) {
+func (m *mockAPI) ListNeoTasks(_ context.Context, org string) (*client.ListNeoTasksResponse, error) {
+	if r := m.neoTasks[org]; r != nil {
+		return r, nil
+	}
 	return &client.ListNeoTasksResponse{}, nil
+}
+
+func (m *mockAPI) GetOrgNeoTokenBudget(_ context.Context, org string) (*client.NeoTokenBudgetResponse, error) {
+	// Returns nil when no budget is configured, mirroring the client's 404 handling.
+	return m.neoBudget[org], nil
 }
 
 func (m *mockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client.PolicyResultsMetadataResponse, error) {
@@ -180,8 +193,8 @@ func TestCollectOrgDeployments(t *testing.T) {
 		deployments: map[string]*client.ListDeploymentsResponse{
 			testOrg: {
 				Deployments: []client.DeploymentInfo{
-					{ID: "1", Status: "running", Created: testCreatedAt},
-					{ID: "2", Status: "running", Created: testCreatedAt},
+					{ID: "1", Status: testStatusRun, Created: testCreatedAt},
+					{ID: "2", Status: testStatusRun, Created: testCreatedAt},
 					{ID: "3", Status: testResultOK, Created: testCreatedAt},
 				},
 			},
@@ -212,6 +225,86 @@ func TestCollectOrgDeployments(t *testing.T) {
 	if !found {
 		t.Error("expected pulumi_deployment_status metric")
 	}
+}
+
+func TestCollectNeoTokens(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now().UTC()
+	past := time.Date(2020, time.January, 15, 0, 0, 0, 0, time.UTC)
+
+	api := &mockAPI{
+		neoTasks: map[string]*client.ListNeoTasksResponse{
+			testOrg: {
+				Tasks: []client.NeoTask{
+					{ID: "1", Name: "a", Status: testResultOK, TokensUsed: 100, CreatedAt: now},
+					{ID: "2", Name: "b", Status: testResultOK, TokensUsed: 50, CreatedAt: now},
+					{ID: "3", Name: "c", Status: testStatusRun, TokensUsed: 25, CreatedAt: past},
+				},
+			},
+		},
+		neoBudget: map[string]*client.NeoTokenBudgetResponse{
+			testOrg: {
+				BaseAllowanceTokens:      1000,
+				EffectiveAllowanceTokens: 1200,
+				ConsumedTokens:           175,
+				WindowKind:               "monthly",
+				Exhausted:                false,
+			},
+		},
+	}
+
+	c, reader := newTestCollector(t, api)
+	ctx := context.Background()
+
+	c.collectNeoTasks(ctx, testOrg)
+	c.collectNeoTokenBudget(ctx, testOrg, metric.WithAttributes(attribute.String("org", testOrg)))
+
+	var rm metricdata.ResourceMetrics
+	if err := reader.Collect(ctx, &rm); err != nil {
+		t.Fatalf("failed to collect metrics: %v", err)
+	}
+
+	// Current-month tokens: only the two tasks created this month (100 + 50).
+	if got := sumInt64Gauge(t, rm, "pulumi_org_neo_tokens_used_current_month"); got != 150 {
+		t.Errorf("pulumi_org_neo_tokens_used_current_month: got %d, want 150", got)
+	}
+	// Lifetime total across all tasks (100 + 50 + 25).
+	if got := sumInt64Gauge(t, rm, "pulumi_org_neo_tokens_used_total"); got != 175 {
+		t.Errorf("pulumi_org_neo_tokens_used_total: got %d, want 175", got)
+	}
+	if got := sumInt64Gauge(t, rm, "pulumi_org_neo_token_budget_consumed"); got != 175 {
+		t.Errorf("pulumi_org_neo_token_budget_consumed: got %d, want 175", got)
+	}
+	if got := sumInt64Gauge(t, rm, "pulumi_org_neo_token_budget_allowance"); got != 1200 {
+		t.Errorf("pulumi_org_neo_token_budget_allowance: got %d, want 1200", got)
+	}
+	if got := sumInt64Gauge(t, rm, "pulumi_org_neo_token_budget_exhausted"); got != 0 {
+		t.Errorf("pulumi_org_neo_token_budget_exhausted: got %d, want 0", got)
+	}
+}
+
+// sumInt64Gauge returns the sum of all data point values for the named int64 gauge.
+func sumInt64Gauge(t *testing.T, rm metricdata.ResourceMetrics, name string) int64 {
+	t.Helper()
+	for _, sm := range rm.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			if m.Name != name {
+				continue
+			}
+			g, ok := m.Data.(metricdata.Gauge[int64])
+			if !ok {
+				t.Fatalf("metric %s is not an int64 gauge", name)
+			}
+			var sum int64
+			for _, dp := range g.DataPoints {
+				sum += dp.Value
+			}
+			return sum
+		}
+	}
+	t.Fatalf("metric %s not found", name)
+	return 0
 }
 
 func TestLastSeenVersionTracking(t *testing.T) {
@@ -394,6 +487,10 @@ func (m *slowMockAPI) ListPolicyViolations(_ context.Context, _ string) (*client
 
 func (m *slowMockAPI) ListNeoTasks(_ context.Context, _ string) (*client.ListNeoTasksResponse, error) {
 	return &client.ListNeoTasksResponse{}, nil
+}
+
+func (m *slowMockAPI) GetOrgNeoTokenBudget(_ context.Context, _ string) (*client.NeoTokenBudgetResponse, error) {
+	return &client.NeoTokenBudgetResponse{}, nil
 }
 
 func (m *slowMockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client.PolicyResultsMetadataResponse, error) {

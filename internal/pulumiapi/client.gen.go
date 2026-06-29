@@ -436,6 +436,24 @@ func (e ListDeploymentSnapshotStatus) Valid() bool {
 	}
 }
 
+// Defines values for OrgNeoTokenBudgetWindowKind.
+const (
+	Individual OrgNeoTokenBudgetWindowKind = "individual"
+	Trial      OrgNeoTokenBudgetWindowKind = "trial"
+)
+
+// Valid indicates whether the value is a known member of the OrgNeoTokenBudgetWindowKind enum.
+func (e OrgNeoTokenBudgetWindowKind) Valid() bool {
+	switch e {
+	case Individual:
+		return true
+	case Trial:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for OrganizationMemberRole.
 const (
 	OrganizationMemberRoleAdmin             OrganizationMemberRole = "admin"
@@ -1535,6 +1553,30 @@ type OrgEnvironment struct {
 	Settings EnvironmentSettings `json:"settings"`
 }
 
+// OrgNeoTokenBudget The current Neo-token allowance and consumption for an organization.
+type OrgNeoTokenBudget struct {
+	// WindowKind Kind of cap window applied to the org.
+	WindowKind OrgNeoTokenBudgetWindowKind `json:"windowKind"`
+
+	// BaseAllowanceTokens Plan-derived base allowance for the current window, in Neo tokens.
+	BaseAllowanceTokens int64 `json:"baseAllowanceTokens"`
+
+	// EffectiveAllowanceTokens Allowance for the current window, in Neo tokens. Includes any active bonus on top of the base allowance.
+	EffectiveAllowanceTokens int64 `json:"effectiveAllowanceTokens"`
+
+	// ConsumedTokens Total Neo tokens consumed in the current window.
+	ConsumedTokens int64 `json:"consumedTokens"`
+
+	// WindowEnd Unix epoch timestamp (seconds) when the current window ends and the consumed counter resets. Zero when the window does not reset.
+	WindowEnd int64 `json:"windowEnd"`
+
+	// Exhausted True when consumedTokens has reached effectiveAllowanceTokens for the current window.
+	Exhausted bool `json:"exhausted"`
+}
+
+// OrgNeoTokenBudgetWindowKind Kind of cap window applied to the org.
+type OrgNeoTokenBudgetWindowKind string
+
 // OrganizationMember OrganizationMember defines a member of an organization.
 type OrganizationMember struct {
 	// Role **Deprecated:** Use `fgaRole` instead. The member's built-in role within the organization. For members assigned a custom role, this is the closest built-in projection (`member`, `admin`, or `billingManager`) and may lose detail; `fgaRole` is authoritative.
@@ -2091,6 +2133,9 @@ type ClientInterface interface {
 	// ListOrganizationMembers request
 	ListOrganizationMembers(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetOrgNeoTokenBudget request
+	GetOrgNeoTokenBudget(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListPolicyGroups request
 	ListPolicyGroups(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2148,6 +2193,18 @@ func (c *Client) ListOrgDeployments(ctx context.Context, orgName string, params 
 
 func (c *Client) ListOrganizationMembers(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListOrganizationMembersRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOrgNeoTokenBudgetRequest(c.Server, orgName)
 	if err != nil {
 		return nil, err
 	}
@@ -2535,6 +2592,40 @@ func NewListOrganizationMembersRequest(server string, orgName string, params *Li
 			rawQueryFragments = append(rawQueryFragments, encoded)
 		}
 		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetOrgNeoTokenBudgetRequest generates requests for GetOrgNeoTokenBudget
+func NewGetOrgNeoTokenBudgetRequest(server string, orgName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "orgName", orgName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/orgs/%s/neo/token-budget", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
@@ -3287,6 +3378,9 @@ type ClientWithResponsesInterface interface {
 	// ListOrganizationMembersWithResponse request
 	ListOrganizationMembersWithResponse(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*ListOrganizationMembersResp, error)
 
+	// GetOrgNeoTokenBudgetWithResponse request
+	GetOrgNeoTokenBudgetWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*GetOrgNeoTokenBudgetResp, error)
+
 	// ListPolicyGroupsWithResponse request
 	ListPolicyGroupsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyGroupsResp, error)
 
@@ -3402,6 +3496,36 @@ func (r ListOrganizationMembersResp) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r ListOrganizationMembersResp) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetOrgNeoTokenBudgetResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OrgNeoTokenBudget
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOrgNeoTokenBudgetResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOrgNeoTokenBudgetResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetOrgNeoTokenBudgetResp) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -3735,6 +3859,15 @@ func (c *ClientWithResponses) ListOrganizationMembersWithResponse(ctx context.Co
 	return ParseListOrganizationMembersResp(rsp)
 }
 
+// GetOrgNeoTokenBudgetWithResponse request returning *GetOrgNeoTokenBudgetResp
+func (c *ClientWithResponses) GetOrgNeoTokenBudgetWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*GetOrgNeoTokenBudgetResp, error) {
+	rsp, err := c.GetOrgNeoTokenBudget(ctx, orgName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOrgNeoTokenBudgetResp(rsp)
+}
+
 // ListPolicyGroupsWithResponse request returning *ListPolicyGroupsResp
 func (c *ClientWithResponses) ListPolicyGroupsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyGroupsResp, error) {
 	rsp, err := c.ListPolicyGroups(ctx, orgName, reqEditors...)
@@ -3893,6 +4026,32 @@ func ParseListOrganizationMembersResp(rsp *http.Response) (*ListOrganizationMemb
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest ListOrganizationMembersResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetOrgNeoTokenBudgetResp parses an HTTP response from a GetOrgNeoTokenBudgetWithResponse call
+func ParseGetOrgNeoTokenBudgetResp(rsp *http.Response) (*GetOrgNeoTokenBudgetResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOrgNeoTokenBudgetResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OrgNeoTokenBudget
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

@@ -45,7 +45,7 @@ internal/collector/collector_test.go    → mock API + OTel ManualReader tests
 internal/config/                        → CLI flags + env vars + YAML config
 internal/exporter/                      → OTel MeterProvider / OTLP exporter setup
 internal/appinfo/                       → build-time version info (ldflags)
-dashboards/pulumi-exporter.json         → Grafana dashboard JSON (26 panels, 17 metrics)
+dashboards/pulumi-exporter.json         → Grafana dashboard JSON (31 panels, 22 metrics)
 docs/                                   → User-facing docs (configuration, metrics, backends, kubernetes, dashboards, development)
 deploy/docker-compose/                  → Prometheus + Grafana + exporter stack
 deploy/pulumi-yaml/                     → Pulumi YAML program for Helm chart deployment

@@ -22,6 +22,11 @@
 | `pulumi_org_policy_pack_count` | Gauge | `org` | Number of policy packs |
 | `pulumi_org_policy_violations` | Gauge | `org`, `level`, `kind` | Policy violations by severity and type |
 | `pulumi_org_neo_task_count` | Gauge | `org`, `status` | Pulumi Neo AI tasks by status |
+| `pulumi_org_neo_tokens_used_current_month` | Gauge | `org` | Neo tokens consumed by tasks created in the current calendar month (matches the Pulumi Cloud billing-period usage) |
+| `pulumi_org_neo_tokens_used_total` | Gauge | `org` | Total Neo tokens consumed across all tasks (lifetime) |
+| `pulumi_org_neo_token_budget_consumed` | Gauge | `org` | Neo tokens consumed in the current budget window |
+| `pulumi_org_neo_token_budget_allowance` | Gauge | `org` | Effective Neo token allowance for the current window (base plus active bonus) |
+| `pulumi_org_neo_token_budget_exhausted` | Gauge | `org` | Whether the Neo token budget for the current window is exhausted (`1`) or not (`0`) |
 
 ## Compliance Metrics
 
