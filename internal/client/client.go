@@ -209,8 +209,8 @@ func (c *Client) ListEnvironments(ctx context.Context, org string) (*ListEnviron
 
 		for _, e := range resp.JSON200.Environments {
 			allEnvs = append(allEnvs, EnvironmentInfo{
-				Name:         derefStr(e.Name),
-				Organization: derefStr(e.Organization),
+				Name:         e.Name,
+				Organization: e.Organization,
 				Project:      derefStr(e.Project),
 			})
 		}
