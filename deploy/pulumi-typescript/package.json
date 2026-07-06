@@ -1,7 +1,7 @@
 {
 	"name": "pulumi-exporter-typescript",
 	"devDependencies": {
-		"@types/node": "^25"
+		"@types/node": "^26"
 	},
 	"dependencies": {
 		"typescript": "^6.0.2",
