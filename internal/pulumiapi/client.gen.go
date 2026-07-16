@@ -132,8 +132,9 @@ func (e AgentTaskRuntimePhase) Valid() bool {
 
 // Defines values for AgentTaskToolExecutionMode.
 const (
-	AgentTaskToolExecutionModeCli   AgentTaskToolExecutionMode = "cli"
-	AgentTaskToolExecutionModeCloud AgentTaskToolExecutionMode = "cloud"
+	AgentTaskToolExecutionModeCli    AgentTaskToolExecutionMode = "cli"
+	AgentTaskToolExecutionModeCloud  AgentTaskToolExecutionMode = "cloud"
+	AgentTaskToolExecutionModeWorker AgentTaskToolExecutionMode = "worker"
 )
 
 // Valid indicates whether the value is a known member of the AgentTaskToolExecutionMode enum.
@@ -142,6 +143,8 @@ func (e AgentTaskToolExecutionMode) Valid() bool {
 	case AgentTaskToolExecutionModeCli:
 		return true
 	case AgentTaskToolExecutionModeCloud:
+		return true
+	case AgentTaskToolExecutionModeWorker:
 		return true
 	default:
 		return false
@@ -776,6 +779,9 @@ type AgentTask struct {
 
 	// PermissionMode The permission scope for the task.
 	PermissionMode *AgentTaskPermissionMode `json:"permissionMode,omitempty"`
+
+	// Role The id of the RBAC role this task assumes. Null when the task runs with the creating user's own permissions (no assumed role).
+	Role *string `json:"role,omitempty"`
 
 	// RuntimePhase The current runtime phase for this task. Null until the runtime checks in.
 	RuntimePhase *AgentTaskRuntimePhase `json:"runtimePhase,omitempty"`
