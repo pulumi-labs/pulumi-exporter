@@ -10,8 +10,8 @@ keywords:
   - exporter
   - prometheus
 type: application
-version: 0.1.5
-appVersion: 0.1.3
+version: 0.1.6
+appVersion: 0.1.4
 home: https://github.com/pulumi-labs/pulumi-exporter/
 sources:
   - https://github.com/pulumi-labs/pulumi-exporter/
@@ -22,11 +22,11 @@ maintainers:
 annotations:
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/changes: |
-    - kind: added
-      description: Pulumi Neo token-usage metrics (current-month, lifetime, and budget) via appVersion 0.1.3
+    - kind: changed
+      description: Regenerate the Pulumi Cloud API client from the latest OpenAPI spec via appVersion 0.1.4
   artifacthub.io/images: |
     - name: pulumi-exporter
-      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.3
+      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.4
   artifacthub.io/license: MIT
   artifacthub.io/maintainers: |
     - name: pulumi-labs
