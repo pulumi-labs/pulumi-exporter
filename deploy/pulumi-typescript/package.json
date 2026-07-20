@@ -4,7 +4,7 @@
 		"@types/node": "^26"
 	},
 	"dependencies": {
-		"typescript": "^6.0.2",
+		"typescript": "^7.0.2",
 		"@pulumi/pulumi": "^3.0.0",
 		"@pulumi/kubernetes": "4.32.0"
 	}
