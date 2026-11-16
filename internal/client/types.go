@@ -168,3 +168,39 @@ type NeoTokenBudgetResponse struct {
 	WindowKind               string
 	Exhausted                bool
 }
+
+// ListAgentsResponse represents the response from GET /api/preview/agents/{org}/definitions.
+type ListAgentsResponse struct {
+	Agents []Agent
+}
+
+// Agent represents a Pulumi Neo Custom Agent definition.
+type Agent struct {
+	ID     string
+	Name   string
+	Paused bool
+	// Runs is nil when the API does not report run counts for the agent.
+	Runs *AgentRunCounts
+}
+
+// AgentRunCounts holds the organization-wide run counts of a Custom Agent.
+type AgentRunCounts struct {
+	Total   int64
+	Running int64
+}
+
+// ListAgentAutomationsResponse represents the response from GET /api/v2/agents/{org}/automations.
+type ListAgentAutomationsResponse struct {
+	Automations []AgentAutomation
+}
+
+// AgentAutomation represents a scheduled or triggered Custom Agent automation.
+type AgentAutomation struct {
+	ID            string
+	Name          string
+	Kind          string
+	Paused        bool
+	LastRunStatus string
+	// NextExecution is the RFC 3339 time of the next scheduled run, empty when none is scheduled.
+	NextExecution string
+}

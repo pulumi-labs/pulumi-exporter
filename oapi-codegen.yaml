@@ -20,3 +20,5 @@ output-options:
     - ListTasks
     - GetOrgNeoTokenBudget
     - GetPolicyResultsMetadata
+    - ListAgentDefinitions
+    - ListAgentAutomationsV2

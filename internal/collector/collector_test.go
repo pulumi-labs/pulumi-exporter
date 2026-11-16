@@ -31,6 +31,8 @@ type mockAPI struct {
 	deployments map[string]*client.ListDeploymentsResponse
 	neoTasks    map[string]*client.ListNeoTasksResponse
 	neoBudget   map[string]*client.NeoTokenBudgetResponse
+	agents      map[string]*client.ListAgentsResponse
+	automations map[string]*client.ListAgentAutomationsResponse
 }
 
 func (m *mockAPI) ListStacks(_ context.Context) (*client.ListStacksResponse, error) {
@@ -89,6 +91,15 @@ func (m *mockAPI) GetOrgNeoTokenBudget(_ context.Context, org string) (*client.N
 
 func (m *mockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client.PolicyResultsMetadataResponse, error) {
 	return &client.PolicyResultsMetadataResponse{}, nil
+}
+
+func (m *mockAPI) ListAgents(_ context.Context, org string) (*client.ListAgentsResponse, error) {
+	// Returns nil when Custom Agents are not enabled, mirroring the client's 404 handling.
+	return m.agents[org], nil
+}
+
+func (m *mockAPI) ListAgentAutomations(_ context.Context, org string) (*client.ListAgentAutomationsResponse, error) {
+	return m.automations[org], nil
 }
 
 func newTestCollector(t *testing.T, api PulumiAPI) (*Collector, *sdkmetric.ManualReader) {
@@ -495,4 +506,12 @@ func (m *slowMockAPI) GetOrgNeoTokenBudget(_ context.Context, _ string) (*client
 
 func (m *slowMockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client.PolicyResultsMetadataResponse, error) {
 	return &client.PolicyResultsMetadataResponse{}, nil
+}
+
+func (m *slowMockAPI) ListAgents(_ context.Context, _ string) (*client.ListAgentsResponse, error) {
+	return &client.ListAgentsResponse{}, nil
+}
+
+func (m *slowMockAPI) ListAgentAutomations(_ context.Context, _ string) (*client.ListAgentAutomationsResponse, error) {
+	return &client.ListAgentAutomationsResponse{}, nil
 }

@@ -16,6 +16,81 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for AgentAutomationV2Kind.
+const (
+	AgentAutomationV2KindScheduled AgentAutomationV2Kind = "scheduled"
+	AgentAutomationV2KindTriggered AgentAutomationV2Kind = "triggered"
+)
+
+// Valid indicates whether the value is a known member of the AgentAutomationV2Kind enum.
+func (e AgentAutomationV2Kind) Valid() bool {
+	switch e {
+	case AgentAutomationV2KindScheduled:
+		return true
+	case AgentAutomationV2KindTriggered:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AgentAutomationV2AsyncTriggerType.
+const (
+	AgentAutomationV2AsyncTriggerTypeExternalSignal AgentAutomationV2AsyncTriggerType = "external_signal"
+	AgentAutomationV2AsyncTriggerTypeScheduled      AgentAutomationV2AsyncTriggerType = "scheduled"
+)
+
+// Valid indicates whether the value is a known member of the AgentAutomationV2AsyncTriggerType enum.
+func (e AgentAutomationV2AsyncTriggerType) Valid() bool {
+	switch e {
+	case AgentAutomationV2AsyncTriggerTypeExternalSignal:
+		return true
+	case AgentAutomationV2AsyncTriggerTypeScheduled:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AgentDefinitionPermissionMode.
+const (
+	AgentDefinitionPermissionModeDefault  AgentDefinitionPermissionMode = "default"
+	AgentDefinitionPermissionModeReadOnly AgentDefinitionPermissionMode = "read-only"
+)
+
+// Valid indicates whether the value is a known member of the AgentDefinitionPermissionMode enum.
+func (e AgentDefinitionPermissionMode) Valid() bool {
+	switch e {
+	case AgentDefinitionPermissionModeDefault:
+		return true
+	case AgentDefinitionPermissionModeReadOnly:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AgentDefinitionApprovalMode.
+const (
+	AgentDefinitionApprovalModeAuto     AgentDefinitionApprovalMode = "auto"
+	AgentDefinitionApprovalModeBalanced AgentDefinitionApprovalMode = "balanced"
+	AgentDefinitionApprovalModeManual   AgentDefinitionApprovalMode = "manual"
+)
+
+// Valid indicates whether the value is a known member of the AgentDefinitionApprovalMode enum.
+func (e AgentDefinitionApprovalMode) Valid() bool {
+	switch e {
+	case AgentDefinitionApprovalModeAuto:
+		return true
+	case AgentDefinitionApprovalModeBalanced:
+		return true
+	case AgentDefinitionApprovalModeManual:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AgentTaskTaskType.
 const (
 	AgentTaskTaskTypeAsync AgentTaskTaskType = "async"
@@ -36,16 +111,16 @@ func (e AgentTaskTaskType) Valid() bool {
 
 // Defines values for AgentTaskAsyncTriggerType.
 const (
-	ExternalSignal AgentTaskAsyncTriggerType = "external_signal"
-	Scheduled      AgentTaskAsyncTriggerType = "scheduled"
+	AgentTaskAsyncTriggerTypeExternalSignal AgentTaskAsyncTriggerType = "external_signal"
+	AgentTaskAsyncTriggerTypeScheduled      AgentTaskAsyncTriggerType = "scheduled"
 )
 
 // Valid indicates whether the value is a known member of the AgentTaskAsyncTriggerType enum.
 func (e AgentTaskAsyncTriggerType) Valid() bool {
 	switch e {
-	case ExternalSignal:
+	case AgentTaskAsyncTriggerTypeExternalSignal:
 		return true
-	case Scheduled:
+	case AgentTaskAsyncTriggerTypeScheduled:
 		return true
 	default:
 		return false
@@ -72,19 +147,19 @@ func (e AgentTaskStatus) Valid() bool {
 
 // Defines values for AgentTaskApprovalMode.
 const (
-	Auto     AgentTaskApprovalMode = "auto"
-	Balanced AgentTaskApprovalMode = "balanced"
-	Manual   AgentTaskApprovalMode = "manual"
+	AgentTaskApprovalModeAuto     AgentTaskApprovalMode = "auto"
+	AgentTaskApprovalModeBalanced AgentTaskApprovalMode = "balanced"
+	AgentTaskApprovalModeManual   AgentTaskApprovalMode = "manual"
 )
 
 // Valid indicates whether the value is a known member of the AgentTaskApprovalMode enum.
 func (e AgentTaskApprovalMode) Valid() bool {
 	switch e {
-	case Auto:
+	case AgentTaskApprovalModeAuto:
 		return true
-	case Balanced:
+	case AgentTaskApprovalModeBalanced:
 		return true
-	case Manual:
+	case AgentTaskApprovalModeManual:
 		return true
 	default:
 		return false
@@ -93,16 +168,16 @@ func (e AgentTaskApprovalMode) Valid() bool {
 
 // Defines values for AgentTaskPermissionMode.
 const (
-	Default  AgentTaskPermissionMode = "default"
-	ReadOnly AgentTaskPermissionMode = "read-only"
+	AgentTaskPermissionModeDefault  AgentTaskPermissionMode = "default"
+	AgentTaskPermissionModeReadOnly AgentTaskPermissionMode = "read-only"
 )
 
 // Valid indicates whether the value is a known member of the AgentTaskPermissionMode enum.
 func (e AgentTaskPermissionMode) Valid() bool {
 	switch e {
-	case Default:
+	case AgentTaskPermissionModeDefault:
 		return true
-	case ReadOnly:
+	case AgentTaskPermissionModeReadOnly:
 		return true
 	default:
 		return false
@@ -247,6 +322,99 @@ func (e AppPolicyGroupSummaryMode) Valid() bool {
 	case AppPolicyGroupSummaryModeAudit:
 		return true
 	case AppPolicyGroupSummaryModePreventative:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateAgentTaskRequestApprovalMode.
+const (
+	Auto     CreateAgentTaskRequestApprovalMode = "auto"
+	Balanced CreateAgentTaskRequestApprovalMode = "balanced"
+	Manual   CreateAgentTaskRequestApprovalMode = "manual"
+)
+
+// Valid indicates whether the value is a known member of the CreateAgentTaskRequestApprovalMode enum.
+func (e CreateAgentTaskRequestApprovalMode) Valid() bool {
+	switch e {
+	case Auto:
+		return true
+	case Balanced:
+		return true
+	case Manual:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateAgentTaskRequestPermissionMode.
+const (
+	Default  CreateAgentTaskRequestPermissionMode = "default"
+	ReadOnly CreateAgentTaskRequestPermissionMode = "read-only"
+)
+
+// Valid indicates whether the value is a known member of the CreateAgentTaskRequestPermissionMode enum.
+func (e CreateAgentTaskRequestPermissionMode) Valid() bool {
+	switch e {
+	case Default:
+		return true
+	case ReadOnly:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateAgentTaskRequestToolExecutionMode.
+const (
+	CreateAgentTaskRequestToolExecutionModeCli    CreateAgentTaskRequestToolExecutionMode = "cli"
+	CreateAgentTaskRequestToolExecutionModeCloud  CreateAgentTaskRequestToolExecutionMode = "cloud"
+	CreateAgentTaskRequestToolExecutionModeWorker CreateAgentTaskRequestToolExecutionMode = "worker"
+)
+
+// Valid indicates whether the value is a known member of the CreateAgentTaskRequestToolExecutionMode enum.
+func (e CreateAgentTaskRequestToolExecutionMode) Valid() bool {
+	switch e {
+	case CreateAgentTaskRequestToolExecutionModeCli:
+		return true
+	case CreateAgentTaskRequestToolExecutionModeCloud:
+		return true
+	case CreateAgentTaskRequestToolExecutionModeWorker:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateAgentTaskRequestSource.
+const (
+	CreateAgentTaskRequestSourceApi        CreateAgentTaskRequestSource = "api"
+	CreateAgentTaskRequestSourceCli        CreateAgentTaskRequestSource = "cli"
+	CreateAgentTaskRequestSourceCodeReview CreateAgentTaskRequestSource = "code-review"
+	CreateAgentTaskRequestSourceConsole    CreateAgentTaskRequestSource = "console"
+	CreateAgentTaskRequestSourceGithub     CreateAgentTaskRequestSource = "github"
+	CreateAgentTaskRequestSourceSchedule   CreateAgentTaskRequestSource = "schedule"
+	CreateAgentTaskRequestSourceSlack      CreateAgentTaskRequestSource = "slack"
+)
+
+// Valid indicates whether the value is a known member of the CreateAgentTaskRequestSource enum.
+func (e CreateAgentTaskRequestSource) Valid() bool {
+	switch e {
+	case CreateAgentTaskRequestSourceApi:
+		return true
+	case CreateAgentTaskRequestSourceCli:
+		return true
+	case CreateAgentTaskRequestSourceCodeReview:
+		return true
+	case CreateAgentTaskRequestSourceConsole:
+		return true
+	case CreateAgentTaskRequestSourceGithub:
+		return true
+	case CreateAgentTaskRequestSourceSchedule:
+		return true
+	case CreateAgentTaskRequestSourceSlack:
 		return true
 	default:
 		return false
@@ -555,19 +723,19 @@ func (e StepRunStatus) Valid() bool {
 
 // Defines values for TeamKind.
 const (
-	TeamKindGithub TeamKind = "github"
-	TeamKindPulumi TeamKind = "pulumi"
-	TeamKindScim   TeamKind = "scim"
+	Github TeamKind = "github"
+	Pulumi TeamKind = "pulumi"
+	Scim   TeamKind = "scim"
 )
 
 // Valid indicates whether the value is a known member of the TeamKind enum.
 func (e TeamKind) Valid() bool {
 	switch e {
-	case TeamKindGithub:
+	case Github:
 		return true
-	case TeamKindPulumi:
+	case Pulumi:
 		return true
-	case TeamKindScim:
+	case Scim:
 		return true
 	default:
 		return false
@@ -759,31 +927,31 @@ func (e ListOrganizationMembersParamsType) Valid() bool {
 
 // Defines values for ListTasksParamsExcludeSources.
 const (
-	Api        ListTasksParamsExcludeSources = "api"
-	Cli        ListTasksParamsExcludeSources = "cli"
-	CodeReview ListTasksParamsExcludeSources = "code-review"
-	Console    ListTasksParamsExcludeSources = "console"
-	Github     ListTasksParamsExcludeSources = "github"
-	Schedule   ListTasksParamsExcludeSources = "schedule"
-	Slack      ListTasksParamsExcludeSources = "slack"
+	ListTasksParamsExcludeSourcesApi        ListTasksParamsExcludeSources = "api"
+	ListTasksParamsExcludeSourcesCli        ListTasksParamsExcludeSources = "cli"
+	ListTasksParamsExcludeSourcesCodeReview ListTasksParamsExcludeSources = "code-review"
+	ListTasksParamsExcludeSourcesConsole    ListTasksParamsExcludeSources = "console"
+	ListTasksParamsExcludeSourcesGithub     ListTasksParamsExcludeSources = "github"
+	ListTasksParamsExcludeSourcesSchedule   ListTasksParamsExcludeSources = "schedule"
+	ListTasksParamsExcludeSourcesSlack      ListTasksParamsExcludeSources = "slack"
 )
 
 // Valid indicates whether the value is a known member of the ListTasksParamsExcludeSources enum.
 func (e ListTasksParamsExcludeSources) Valid() bool {
 	switch e {
-	case Api:
+	case ListTasksParamsExcludeSourcesApi:
 		return true
-	case Cli:
+	case ListTasksParamsExcludeSourcesCli:
 		return true
-	case CodeReview:
+	case ListTasksParamsExcludeSourcesCodeReview:
 		return true
-	case Console:
+	case ListTasksParamsExcludeSourcesConsole:
 		return true
-	case Github:
+	case ListTasksParamsExcludeSourcesGithub:
 		return true
-	case Schedule:
+	case ListTasksParamsExcludeSourcesSchedule:
 		return true
-	case Slack:
+	case ListTasksParamsExcludeSourcesSlack:
 		return true
 	default:
 		return false
@@ -871,9 +1039,171 @@ func (e ListTasksParamsTaskType) Valid() bool {
 	}
 }
 
+// Defines values for ListAgentAutomationsV2ParamsKind.
+const (
+	ListAgentAutomationsV2ParamsKindScheduled ListAgentAutomationsV2ParamsKind = "scheduled"
+	ListAgentAutomationsV2ParamsKindTriggered ListAgentAutomationsV2ParamsKind = "triggered"
+)
+
+// Valid indicates whether the value is a known member of the ListAgentAutomationsV2ParamsKind enum.
+func (e ListAgentAutomationsV2ParamsKind) Valid() bool {
+	switch e {
+	case ListAgentAutomationsV2ParamsKindScheduled:
+		return true
+	case ListAgentAutomationsV2ParamsKindTriggered:
+		return true
+	default:
+		return false
+	}
+}
+
+// AgentAutomationTrigger The event source and shared configuration for a triggered automation.
+type AgentAutomationTrigger struct {
+	// QuietPeriodSeconds The quiet period, in seconds, that bounds how long events remain associated with one task.
+	QuietPeriodSeconds int64  `json:"quietPeriodSeconds"`
+	Type               string `json:"type"`
+}
+
+// AgentAutomationV2 An organization-owned agent automation. The kind field identifies which automation-specific fields are present.
+type AgentAutomationV2 struct {
+	// Kind The automation kind.
+	Kind AgentAutomationV2Kind `json:"kind"`
+
+	// Id The unique identifier for this automation.
+	Id string `json:"id"`
+
+	// Name A human-readable name for this automation.
+	Name string `json:"name"`
+
+	// AsyncTriggerType The async trigger type for this automation.
+	AsyncTriggerType AgentAutomationV2AsyncTriggerType `json:"asyncTriggerType"`
+
+	// Task Create a new task by sending the first event in the conversation.
+	Task CreateAgentTaskRequest `json:"task"`
+
+	// Paused Whether future executions are currently paused.
+	Paused bool `json:"paused"`
+
+	// NotificationTargets The destinations that receive notifications about automation runs.
+	NotificationTargets []NotificationTarget `json:"notificationTargets"`
+
+	// ScheduleCron A standard five-field cron expression in UTC that controls when this automation runs. Present for scheduled automations.
+	ScheduleCron *string `json:"scheduleCron,omitempty"`
+
+	// NextExecution The timestamp of the next scheduled execution. Present for scheduled automations.
+	NextExecution *string `json:"nextExecution,omitempty"`
+
+	// Trigger The event source and shared configuration for a triggered automation.
+	Trigger *AgentAutomationTrigger `json:"trigger,omitempty"`
+
+	// LastExecuted The timestamp when this automation last ran, if any.
+	LastExecuted *time.Time `json:"lastExecuted,omitempty"`
+
+	// LastRunStatus The result of the most recent automation run, if any. Valid values currently include 'succeeded', 'failed', and 'skipped'.
+	LastRunStatus *string `json:"lastRunStatus,omitempty"`
+}
+
+// AgentAutomationV2Kind The automation kind.
+type AgentAutomationV2Kind string
+
+// AgentAutomationV2AsyncTriggerType The async trigger type for this automation.
+type AgentAutomationV2AsyncTriggerType string
+
+// AgentDefinition A Custom Agent definition: a saved, team-owned agent configuration that a task can be run as. Its role, integrations, and instructions are applied to every task run as the agent.
+type AgentDefinition struct {
+	// Id The unique identifier of the agent definition.
+	Id string `json:"id"`
+
+	// Name The agent's name: lower-case letters, digits and hyphens, unique within the organization. This is the stable handle a person writes down -- in an automation, in a CLI invocation -- and it may be changed, because everything that references an agent internally references it by id.
+	Name string `json:"name"`
+
+	// DisplayName The human-readable label shown wherever the agent is displayed. Falls back to the name when the agent has none.
+	DisplayName string `json:"displayName"`
+
+	// RoleId The RBAC role id the agent's tasks assume, identified by role id. Null means no assumed role: tasks run with the invoking user's own permissions.
+	RoleId *string `json:"roleId,omitempty"`
+
+	// PermissionMode Deprecated. Custom Agent authority is controlled by roleId.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	PermissionMode *AgentDefinitionPermissionMode `json:"permissionMode,omitempty"`
+
+	// CustomInstructions Instructions that shape how the agent behaves in the team's environment.
+	CustomInstructions *string `json:"customInstructions,omitempty"`
+
+	// EnabledIntegrations The integrations enabled for the agent's tasks, by id. Omitted or null inherits all organization integrations; an empty list enables none.
+	EnabledIntegrations *[]AgentTaskIntegrationRef `json:"enabledIntegrations,omitempty"`
+
+	// Purpose A one-line description of what this agent is for, shown under its name in the roster.
+	Purpose *string `json:"purpose,omitempty"`
+
+	// Avatar A presentation token the console maps to an icon. Not an uploaded asset.
+	Avatar *string `json:"avatar,omitempty"`
+
+	// ApprovalMode The approval posture the agent's runs inherit. When omitted, runs are auto-approved, matching scheduled automations.
+	ApprovalMode *AgentDefinitionApprovalMode `json:"approvalMode,omitempty"`
+
+	// PausedAt When the agent was paused, or null if it is not paused. A paused agent starts no new runs from any source -- console, schedule, or trigger -- until it is resumed; runs already in flight continue.
+	PausedAt *string `json:"pausedAt,omitempty"`
+
+	// PausedBy Who paused the agent, by user id. Null when the agent is not paused. Recorded by the server from the caller rather than supplied by the client.
+	PausedBy *string `json:"pausedBy,omitempty"`
+
+	// PausedReason Why the agent was paused. Null when it is not paused, or when no reason was given.
+	PausedReason *string `json:"pausedReason,omitempty"`
+
+	// TaskCounts Run counts for a Custom Agent, aggregated across the organization rather than scoped to the caller: a run belongs to the agent, so every member who can see the agent sees the same totals.
+	TaskCounts *AgentDefinitionTaskCounts `json:"taskCounts,omitempty"`
+}
+
+// AgentDefinitionPermissionMode Deprecated. Custom Agent authority is controlled by roleId.
+type AgentDefinitionPermissionMode string
+
+// AgentDefinitionApprovalMode The approval posture the agent's runs inherit. When omitted, runs are auto-approved, matching scheduled automations.
+type AgentDefinitionApprovalMode string
+
+// AgentDefinitionTaskCounts Run counts for a Custom Agent, aggregated across the organization rather than scoped to the caller: a run belongs to the agent, so every member who can see the agent sees the same totals.
+type AgentDefinitionTaskCounts struct {
+	// Total How many runs this agent has started in total.
+	Total int32 `json:"total"`
+
+	// Running How many of this agent's runs are currently running.
+	Running int32 `json:"running"`
+}
+
 // AgentEntity Represents agent entity.
 type AgentEntity struct {
 	Type string `json:"type"`
+}
+
+// AgentEntityDiff Represents agent entity diff.
+type AgentEntityDiff struct {
+	// Add Entities to add to the Agent's context.
+	// Entities must be valid, and will be automatically deleted if they are invalid.
+	Add *[]AgentEntity `json:"add,omitempty"`
+
+	// Remove Entities to remove from the Agent's context.
+	Remove *[]AgentEntity `json:"remove,omitempty"`
+}
+
+// AgentSlashCommand An agent slash command.
+type AgentSlashCommand struct {
+	// Name The slash command name (e.g. '/fix', '/explain'). Used to invoke the command.
+	Name string `json:"name"`
+
+	// Prompt The system prompt text sent to the AI when this command is invoked.
+	Prompt string `json:"prompt"`
+
+	// Description Human-readable description shown to users in the command palette.
+	Description string `json:"description"`
+
+	// BuiltIn Whether this is a built-in system command (true) or user-created (false).
+	BuiltIn bool `json:"builtIn"`
+
+	// ModifiedAt When the command was last modified, in ISO 8601 format.
+	ModifiedAt time.Time `json:"modifiedAt"`
+
+	// Tag Version tag for optimistic concurrency control.
+	Tag string `json:"tag"`
 }
 
 // AgentTask A Pulumi Copilot agent task representing a conversation and its associated context.
@@ -987,6 +1317,44 @@ type AgentTaskSource string
 
 // AgentTaskVcsProvider The version control system this task operates against. Set for tasks that target a specific VCS platform (e.g. code reviews). Null for tasks with no VCS context.
 type AgentTaskVcsProvider string
+
+// AgentTaskIntegrationRef A reference to an integration enabled for an agent task. Structured as an object (rather than a bare string) so additional fields like instance name or scope can be added later without breaking the wire format.
+type AgentTaskIntegrationRef struct {
+	// Id The catalog integration ID (e.g. 'honeycomb', 'datadog').
+	Id string `json:"id"`
+}
+
+// AgentUserEvent Represents an agent user event.
+type AgentUserEvent struct {
+	// EntityDiff Represents agent entity diff.
+	EntityDiff *AgentEntityDiff `json:"entity_diff,omitempty"`
+
+	// PageContext Describes the Pulumi Cloud page the user has the Neo pane open on. Sent on every Neo prompt request (initial creation and follow-ups) so the agent's system prompt can reference the user's current location. The schema is intentionally generic: `path` is the raw URL, `params` carries route path parameters extracted by the client, and `kind` is an optional stable label set by the route definition (in console2 via `data: { pageContextKind: ... }`) for cases where the agent should special-case the page. New pages flow through automatically — only routes that need stable agent treatment must declare a `kind`.
+	PageContext *PageContext `json:"pageContext,omitempty"`
+
+	// Timestamp When the event occurred.
+	Timestamp time.Time `json:"timestamp"`
+	Type      string    `json:"type"`
+}
+
+// AgentUserEventMessage defines model for AgentUserEventMessage.
+type AgentUserEventMessage struct {
+	// Content The exact natural language instruction from the user.
+	Content string `json:"content"`
+
+	// EntityDiff Represents agent entity diff.
+	EntityDiff *AgentEntityDiff `json:"entity_diff,omitempty"`
+
+	// Commands Slash Commands the user selected when creating their message.
+	Commands *map[string]AgentSlashCommand `json:"commands,omitempty"`
+
+	// PageContext Describes the Pulumi Cloud page the user has the Neo pane open on. Sent on every Neo prompt request (initial creation and follow-ups) so the agent's system prompt can reference the user's current location. The schema is intentionally generic: `path` is the raw URL, `params` carries route path parameters extracted by the client, and `kind` is an optional stable label set by the route definition (in console2 via `data: { pageContextKind: ... }`) for cases where the agent should special-case the page. New pages flow through automatically — only routes that need stable agent treatment must declare a `kind`.
+	PageContext *PageContext `json:"pageContext,omitempty"`
+
+	// Timestamp When the event occurred.
+	Timestamp time.Time `json:"timestamp"`
+	Type      string    `json:"type"`
+}
 
 // Aggregation Aggregation collects the top 5 aggregated values for the requested dimension.
 type Aggregation struct {
@@ -1127,6 +1495,59 @@ type AppStackSummary struct {
 	// Links Represents app stack links.
 	Links *AppStackLinks `json:"links,omitempty"`
 }
+
+// CLIIntegrationRef Reference to a CLI integration instance, addressed by (catalogId, name) — the same scheme used by the connect/disconnect endpoints. Structured as an object rather than a bare 'catalogId/name' string so additional fields (e.g. scope) can be added later without a wire break, and so the encoding is unambiguous regardless of characters that may appear in the instance name.
+type CLIIntegrationRef struct {
+	// CatalogId The CLI catalog entry ID (e.g. 'aws').
+	CatalogId string `json:"catalogId"`
+
+	// Name The user-chosen instance name. Unique within the (org, catalogId) pair.
+	Name string `json:"name"`
+}
+
+// CreateAgentTaskRequest Create a new task by sending the first event in the conversation.
+type CreateAgentTaskRequest struct {
+	Message *AgentUserEventMessage `json:"message,omitempty"`
+
+	// ApprovalMode Optional approval mode override for this task. If omitted, org default is used.
+	ApprovalMode *CreateAgentTaskRequestApprovalMode `json:"approvalMode,omitempty"`
+
+	// PlanMode Whether to enable plan mode for this task.
+	PlanMode *bool `json:"planMode,omitempty"`
+
+	// PermissionMode Controls the permission scope for the task. When omitted, defaults to 'default' (the agent uses the creating user's full permissions).
+	PermissionMode *CreateAgentTaskRequestPermissionMode `json:"permissionMode,omitempty"`
+
+	// Role Optional RBAC role the task assumes, identified by role id. When set, the task operates with that role's permissions in place of the creating user's own assignments. You may only assume a role that is assigned to you, directly or through a team; a role you do not hold is rejected with a 403. Omitted/null means no assumed role: the task uses the creating user's full permissions. Orthogonal to permissionMode, which controls the read-only behavior posture independently.
+	Role *string `json:"role,omitempty"`
+
+	// AgentDefinitionId Optional Custom Agent definition id to run this task as. When set, the task's role and enabled integrations are taken from the named agent definition instead of from this request, and the task is attributed to that agent. The agent's instructions and approval mode are not copied at creation: they are read from the definition on every turn, so editing the agent applies to the next turn of every run. A preview capability, gated per organization.
+	AgentDefinitionId *string `json:"agentDefinitionId,omitempty"`
+
+	// ToolExecutionMode Where tools should be executed. Defaults to 'cloud' if omitted.
+	ToolExecutionMode *CreateAgentTaskRequestToolExecutionMode `json:"toolExecutionMode,omitempty"`
+
+	// EnabledIntegrations Optional list of integrations to enable for this task. Semantics: omitted/null → inherit all org-enabled integrations; empty list → explicit opt-out (no integration credentials for this task); populated list → whitelist of specific integrations by ID. Modeled as an object array rather than a bare string array so multi-instance support (instance_name, scope, etc.) can be added later without a wire break.
+	EnabledIntegrations *[]AgentTaskIntegrationRef `json:"enabledIntegrations,omitempty"`
+
+	// Source The origin that triggered this task. Defaults to 'api' if omitted.
+	Source *CreateAgentTaskRequestSource `json:"source,omitempty"`
+
+	// CliIntegrations Optional filter for CLI integrations to enable for this task. Semantics: omitted/null → enable all CLI integrations connected for the org; empty list → explicit opt-out (no CLI integrations for this task); populated list → whitelist by (catalogId, name) of the configured instances to enable. Entries with missing or unknown catalogId, missing name, or referencing a (catalogId, name) pair that is not connected for the organization are rejected with a 400 response. catalogId matching is case-insensitive.
+	CliIntegrations *[]CLIIntegrationRef `json:"cliIntegrations,omitempty"`
+}
+
+// CreateAgentTaskRequestApprovalMode Optional approval mode override for this task. If omitted, org default is used.
+type CreateAgentTaskRequestApprovalMode string
+
+// CreateAgentTaskRequestPermissionMode Controls the permission scope for the task. When omitted, defaults to 'default' (the agent uses the creating user's full permissions).
+type CreateAgentTaskRequestPermissionMode string
+
+// CreateAgentTaskRequestToolExecutionMode Where tools should be executed. Defaults to 'cloud' if omitted.
+type CreateAgentTaskRequestToolExecutionMode string
+
+// CreateAgentTaskRequestSource The origin that triggered this task. Defaults to 'api' if omitted.
+type CreateAgentTaskRequestSource string
 
 // DeploymentJob DeploymentJob represents a deployment job with its status, timing, and step information.
 type DeploymentJob struct {
@@ -1526,6 +1947,21 @@ type InsightsResourceWithVersion struct {
 	PolicyState *string `json:"policyState,omitempty"`
 }
 
+// ListAgentAutomationsV2Response A list of organization-owned agent automations in an organization.
+type ListAgentAutomationsV2Response struct {
+	// Automations The automations visible to the caller.
+	Automations []AgentAutomationV2 `json:"automations"`
+
+	// ContinuationToken Token for retrieving the next page of results.
+	ContinuationToken *string `json:"continuationToken,omitempty"`
+}
+
+// ListAgentDefinitionsResponse The list of Custom Agent definitions for an organization.
+type ListAgentDefinitionsResponse struct {
+	// Definitions The organization's Custom Agent definitions, ordered by name.
+	Definitions []AgentDefinition `json:"definitions"`
+}
+
 // ListAgentTasksResponse Response containing a paginated list of agent tasks.
 type ListAgentTasksResponse struct {
 	// Tasks Tasks contains the list of tasks for this page.
@@ -1673,6 +2109,11 @@ type MemberLinks struct {
 	Self *string `json:"self,omitempty"`
 }
 
+// NotificationTarget A destination that receives notifications about automation runs.
+type NotificationTarget struct {
+	Type string `json:"type"`
+}
+
 // OrgEnvironment OrgEnvironment represents an environment within an organization.
 type OrgEnvironment struct {
 	// Id The unique identifier of the environment.
@@ -1788,6 +2229,18 @@ type OrganizationMember struct {
 
 // OrganizationMemberRole **Deprecated:** Use `fgaRole` instead. The member's built-in role within the organization. For members assigned a custom role, this is the closest built-in projection (`member`, `admin`, or `billingManager`) and may lose detail; `fgaRole` is authoritative.
 type OrganizationMemberRole string
+
+// PageContext Describes the Pulumi Cloud page the user has the Neo pane open on. Sent on every Neo prompt request (initial creation and follow-ups) so the agent's system prompt can reference the user's current location. The schema is intentionally generic: `path` is the raw URL, `params` carries route path parameters extracted by the client, and `kind` is an optional stable label set by the route definition (in console2 via `data: { pageContextKind: ... }`) for cases where the agent should special-case the page. New pages flow through automatically — only routes that need stable agent treatment must declare a `kind`.
+type PageContext struct {
+	// Kind Optional stable label declared by the route, used by the agent to phrase the user's location in its system prompt or branch on well-known pages. Examples: 'stack-update', 'environment', 'neo-task'. Routes without a declared kind leave this null; the agent falls back to the path and params.
+	Kind *string `json:"kind,omitempty"`
+
+	// Path Raw URL path of the page the user is viewing (e.g. '/myorg/myapp/prod/updates/47'). Always populated.
+	Path *string `json:"path,omitempty"`
+
+	// Params Route path parameters extracted from the matched Angular route, keyed by parameter name (e.g. {'organization': 'myorg', 'project': 'myapp', 'stack': 'prod', 'version': '47'}). Empty for routes with no path parameters.
+	Params *map[string]string `json:"params,omitempty"`
+}
 
 // PolicyResultsMetadata PolicyResultsMetadata returns high level policy compliance statistics for an organization.
 type PolicyResultsMetadata struct {
@@ -2276,6 +2729,24 @@ type ListUserStacksParams struct {
 	TagValue *string `form:"tagValue,omitempty" json:"tagValue,omitempty"`
 }
 
+// ListAgentAutomationsV2Params defines parameters for ListAgentAutomationsV2.
+type ListAgentAutomationsV2Params struct {
+	// ContinuationToken Token for retrieving the next page of results
+	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
+
+	// Filter A value to filter automations by name
+	Filter *string `form:"filter,omitempty" json:"filter,omitempty"`
+
+	// Kind An optional automation kind filter
+	Kind *ListAgentAutomationsV2ParamsKind `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// PageSize Number of results per page
+	PageSize *int64 `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+}
+
+// ListAgentAutomationsV2ParamsKind defines parameters for ListAgentAutomationsV2.
+type ListAgentAutomationsV2ParamsKind string
+
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
 
@@ -2376,6 +2847,9 @@ type ClientInterface interface {
 	// ListTeams request
 	ListTeams(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListAgentDefinitions request
+	ListAgentDefinitions(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListTasks request
 	ListTasks(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2390,6 +2864,9 @@ type ClientInterface interface {
 
 	// ListUserStacks request
 	ListUserStacks(ctx context.Context, params *ListUserStacksParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListAgentAutomationsV2 request
+	ListAgentAutomationsV2(ctx context.Context, orgName string, params *ListAgentAutomationsV2Params, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListOrgEnvironmentsEsc(ctx context.Context, orgName string, params *ListOrgEnvironmentsEscParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2500,6 +2977,18 @@ func (c *Client) ListTeams(ctx context.Context, orgName string, reqEditors ...Re
 	return c.Client.Do(req)
 }
 
+func (c *Client) ListAgentDefinitions(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAgentDefinitionsRequest(c.Server, orgName)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListTasks(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListTasksRequest(c.Server, orgName, params)
 	if err != nil {
@@ -2550,6 +3039,18 @@ func (c *Client) GetStackUpdates(ctx context.Context, orgName string, projectNam
 
 func (c *Client) ListUserStacks(ctx context.Context, params *ListUserStacksParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListUserStacksRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListAgentAutomationsV2(ctx context.Context, orgName string, params *ListAgentAutomationsV2Params, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListAgentAutomationsV2Request(c.Server, orgName, params)
 	if err != nil {
 		return nil, err
 	}
@@ -3080,6 +3581,40 @@ func NewListTeamsRequest(server string, orgName string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/api/orgs/%s/teams", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListAgentDefinitionsRequest generates requests for ListAgentDefinitions
+func NewListAgentDefinitionsRequest(server string, orgName string) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "orgName", orgName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/preview/agents/%s/definitions", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -3650,6 +4185,103 @@ func NewListUserStacksRequest(server string, params *ListUserStacksParams) (*htt
 	return req, nil
 }
 
+// NewListAgentAutomationsV2Request generates requests for ListAgentAutomationsV2
+func NewListAgentAutomationsV2Request(server string, orgName string, params *ListAgentAutomationsV2Params) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "orgName", orgName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/agents/%s/automations", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ContinuationToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "continuationToken", *params.ContinuationToken, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Filter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "filter", *params.Filter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Kind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "kind", *params.Kind, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.PageSize != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "pageSize", *params.PageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -3720,6 +4352,9 @@ type ClientWithResponsesInterface interface {
 	// ListTeamsWithResponse request
 	ListTeamsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListTeamsResp, error)
 
+	// ListAgentDefinitionsWithResponse request
+	ListAgentDefinitionsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListAgentDefinitionsResp, error)
+
 	// ListTasksWithResponse request
 	ListTasksWithResponse(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*ListTasksResp, error)
 
@@ -3734,6 +4369,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListUserStacksWithResponse request
 	ListUserStacksWithResponse(ctx context.Context, params *ListUserStacksParams, reqEditors ...RequestEditorFn) (*ListUserStacksResp, error)
+
+	// ListAgentAutomationsV2WithResponse request
+	ListAgentAutomationsV2WithResponse(ctx context.Context, orgName string, params *ListAgentAutomationsV2Params, reqEditors ...RequestEditorFn) (*ListAgentAutomationsV2Resp, error)
 }
 
 type ListOrgEnvironmentsEscResp struct {
@@ -4006,6 +4644,36 @@ func (r ListTeamsResp) ContentType() string {
 	return ""
 }
 
+type ListAgentDefinitionsResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ListAgentDefinitionsResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAgentDefinitionsResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAgentDefinitionsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListAgentDefinitionsResp) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListTasksResp struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4156,6 +4824,36 @@ func (r ListUserStacksResp) ContentType() string {
 	return ""
 }
 
+type ListAgentAutomationsV2Resp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ListAgentAutomationsV2Response
+}
+
+// Status returns HTTPResponse.Status
+func (r ListAgentAutomationsV2Resp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListAgentAutomationsV2Resp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListAgentAutomationsV2Resp) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 // ListOrgEnvironmentsEscWithResponse request returning *ListOrgEnvironmentsEscResp
 func (c *ClientWithResponses) ListOrgEnvironmentsEscWithResponse(ctx context.Context, orgName string, params *ListOrgEnvironmentsEscParams, reqEditors ...RequestEditorFn) (*ListOrgEnvironmentsEscResp, error) {
 	rsp, err := c.ListOrgEnvironmentsEsc(ctx, orgName, params, reqEditors...)
@@ -4237,6 +4935,15 @@ func (c *ClientWithResponses) ListTeamsWithResponse(ctx context.Context, orgName
 	return ParseListTeamsResp(rsp)
 }
 
+// ListAgentDefinitionsWithResponse request returning *ListAgentDefinitionsResp
+func (c *ClientWithResponses) ListAgentDefinitionsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListAgentDefinitionsResp, error) {
+	rsp, err := c.ListAgentDefinitions(ctx, orgName, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAgentDefinitionsResp(rsp)
+}
+
 // ListTasksWithResponse request returning *ListTasksResp
 func (c *ClientWithResponses) ListTasksWithResponse(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*ListTasksResp, error) {
 	rsp, err := c.ListTasks(ctx, orgName, params, reqEditors...)
@@ -4280,6 +4987,15 @@ func (c *ClientWithResponses) ListUserStacksWithResponse(ctx context.Context, pa
 		return nil, err
 	}
 	return ParseListUserStacksResp(rsp)
+}
+
+// ListAgentAutomationsV2WithResponse request returning *ListAgentAutomationsV2Resp
+func (c *ClientWithResponses) ListAgentAutomationsV2WithResponse(ctx context.Context, orgName string, params *ListAgentAutomationsV2Params, reqEditors ...RequestEditorFn) (*ListAgentAutomationsV2Resp, error) {
+	rsp, err := c.ListAgentAutomationsV2(ctx, orgName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAgentAutomationsV2Resp(rsp)
 }
 
 // ParseListOrgEnvironmentsEscResp parses an HTTP response from a ListOrgEnvironmentsEscWithResponse call
@@ -4516,6 +5232,32 @@ func ParseListTeamsResp(rsp *http.Response) (*ListTeamsResp, error) {
 	return response, nil
 }
 
+// ParseListAgentDefinitionsResp parses an HTTP response from a ListAgentDefinitionsWithResponse call
+func ParseListAgentDefinitionsResp(rsp *http.Response) (*ListAgentDefinitionsResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAgentDefinitionsResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListAgentDefinitionsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListTasksResp parses an HTTP response from a ListTasksWithResponse call
 func ParseListTasksResp(rsp *http.Response) (*ListTasksResp, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -4636,6 +5378,32 @@ func ParseListUserStacksResp(rsp *http.Response) (*ListUserStacksResp, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest AppListStacksResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListAgentAutomationsV2Resp parses an HTTP response from a ListAgentAutomationsV2WithResponse call
+func ParseListAgentAutomationsV2Resp(rsp *http.Response) (*ListAgentAutomationsV2Resp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListAgentAutomationsV2Resp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListAgentAutomationsV2Response
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
