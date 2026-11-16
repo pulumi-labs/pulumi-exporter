@@ -28,6 +28,8 @@
 | `pulumi_org_neo_token_budget_allowance` | Gauge | `org` | Effective Neo token allowance for the current window (base plus active bonus) |
 | `pulumi_org_neo_token_budget_exhausted` | Gauge | `org` | Whether the Neo token budget for the current window is exhausted (`1`) or not (`0`) |
 
+The `neo_token_budget_*` metrics report the effective budget for the identity behind the access token. When an org-level cap and a per-member cap both apply, Pulumi Cloud returns whichever is closer to exhaustion. Organizations without a Neo allowance return no budget, so these series are absent.
+
 ## Compliance Metrics
 
 | Metric | Type | Labels | Description |
@@ -44,7 +46,7 @@
 | `kind` (updates) | `update`, `preview`, `destroy`, `refresh`, `import` |
 | `result` | `succeeded`, `failed`, `in-progress` |
 | `operation` | `create`, `update`, `delete`, `same`, `replace` |
-| `status` (deployments) | `running`, `succeeded`, `failed`, `not-started`, `accepted` |
+| `status` (deployments) | `running`, `succeeded`, `failed`, `not-started`, `accepted`, `skipped` |
 | `status` (Neo tasks) | `idle`, `running` |
 | `level` (violations) | `advisory`, `mandatory`, `disabled` |
 | `kind` (violations) | `preventative`, `audit` |

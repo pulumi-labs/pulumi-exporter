@@ -351,7 +351,8 @@ func (c *Client) ListNeoTasks(ctx context.Context, org string) (*ListNeoTasksRes
 
 // GetOrgNeoTokenBudget returns the Pulumi Neo token budget for an organization.
 func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, org string) (*NeoTokenBudgetResponse, error) {
-	resp, err := c.gen.GetOrgNeoTokenBudgetWithResponse(ctx, org)
+	// No taskId: report the effective budget for the token's own identity.
+	resp, err := c.gen.GetOrgNeoTokenBudgetWithResponse(ctx, org, nil)
 	if err != nil {
 		return nil, fmt.Errorf("getting neo token budget: %w", err)
 	}
