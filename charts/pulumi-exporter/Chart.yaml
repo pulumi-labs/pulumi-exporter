@@ -10,8 +10,8 @@ keywords:
   - exporter
   - prometheus
 type: application
-version: 0.1.6
-appVersion: 0.1.4
+version: 0.1.7
+appVersion: 0.1.5
 home: https://github.com/pulumi-labs/pulumi-exporter/
 sources:
   - https://github.com/pulumi-labs/pulumi-exporter/
@@ -20,13 +20,15 @@ maintainers:
     name: pulumi-labs
 
 annotations:
-  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/changes: |
+    - kind: security
+      description: Fix image CVEs (rebuilt base image, Go 1.27.4, updated x/net, x/text, grpc and OpenTelemetry) via appVersion 0.1.5
     - kind: changed
-      description: Regenerate the Pulumi Cloud API client from the latest OpenAPI spec via appVersion 0.1.4
+      description: Regenerate the Pulumi Cloud API client from the latest OpenAPI spec via appVersion 0.1.5
   artifacthub.io/images: |
     - name: pulumi-exporter
-      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.4
+      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.5
   artifacthub.io/license: MIT
   artifacthub.io/maintainers: |
     - name: pulumi-labs
