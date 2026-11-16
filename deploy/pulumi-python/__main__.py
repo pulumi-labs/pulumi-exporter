@@ -21,7 +21,7 @@ secret_resource = kubernetes.core.v1.Secret("secret",
     })
 release = kubernetes.helm.v3.Release("release",
     chart="oci://ghcr.io/pulumi-labs/charts/pulumi-exporter",
-    version="0.1.7",
+    version="0.1.8",
     namespace=namespace_resource.metadata.name,
     values={
         "existingSecret": secret_resource.metadata.name,
