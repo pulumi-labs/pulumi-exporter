@@ -10,8 +10,8 @@ keywords:
   - exporter
   - prometheus
 type: application
-version: 0.1.8
-appVersion: 0.1.6
+version: 0.1.9
+appVersion: 0.1.7
 home: https://github.com/pulumi-labs/pulumi-exporter/
 sources:
   - https://github.com/pulumi-labs/pulumi-exporter/
@@ -23,10 +23,12 @@ annotations:
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/changes: |
     - kind: added
-      description: Pulumi Neo Custom Agent and agent automation metrics via appVersion 0.1.6
+      description: Pulumi Agents and agent automation metrics via appVersion 0.1.6
+    - kind: changed
+      description: Use the Pulumi Agents name in metric descriptions via appVersion 0.1.7
   artifacthub.io/images: |
     - name: pulumi-exporter
-      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.6
+      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.7
   artifacthub.io/license: MIT
   artifacthub.io/maintainers: |
     - name: pulumi-labs
