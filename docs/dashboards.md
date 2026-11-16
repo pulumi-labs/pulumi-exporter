@@ -1,10 +1,10 @@
 # Grafana dashboard
 
-The repo ships with a ready-to-use Grafana dashboard at [`dashboards/pulumi-exporter.json`](../dashboards/pulumi-exporter.json). It covers all 22 metrics across 31 panels.
+The repo ships with a ready-to-use Grafana dashboard at [`dashboards/pulumi-exporter.json`](../dashboards/pulumi-exporter.json). It covers all 27 metrics across 40 panels.
 
 ## What's on it
 
-The dashboard is organized into seven rows:
+The dashboard is organized into eight rows:
 
 **Organization overview** — stat panels for members, teams, ESC environments, and policy packs across your orgs.
 
@@ -17,6 +17,8 @@ The dashboard is organized into seven rows:
 **Pulumi Neo AI tasks** — tasks by status and total task count.
 
 **Pulumi Neo token usage** — tokens used this month (matching the Pulumi Cloud billing-period figure), estimated cost, lifetime tokens, average tokens per task, and the current-window budget (consumed, allowance, used %, exhausted) for orgs with a Neo allowance.
+
+**Pulumi Neo Custom Agents** — agent count, paused agents, lifetime and currently running runs, runs per agent, new runs per hour, automations by last run status and by kind, and a table with the time until each scheduled automation runs next (red when overdue).
 
 The dashboard includes a multi-select Organization dropdown at the top. Pick one org, several, or all.
 
@@ -59,3 +61,4 @@ The dashboard version field in the JSON controls Grafana's reload behavior. Bump
 | Neo AI tasks | Tasks by Status, Total Tasks | `pulumi_org_neo_task_count` |
 | Neo token usage | Tokens Used (This Month), Est. Cost, Tokens Used (Lifetime), Avg Tokens/Task, Budget Consumed, Budget Allowance, Budget Used %, Budget Exhausted | `pulumi_org_neo_tokens_used_current_month`, `neo_tokens_used_total`, `neo_token_budget_consumed`, `neo_token_budget_allowance`, `neo_token_budget_exhausted` |
 | Deployments | Deployment Status, Deployments Over Time | `pulumi_deployment_status` |
+| Neo Custom Agents | Custom Agents, Paused Agents, Agent Runs (Lifetime), Agent Runs Running, Runs by Agent, Agent Runs Started per Hour, Automations by Last Run Status, Automations by Kind, Next Scheduled Run | `pulumi_org_agent_count`, `agent_runs_started`, `agent_runs_running`, `agent_automation_count`, `agent_automation_next_run_timestamp` |

@@ -41,11 +41,12 @@ internal/collector/instruments.go       → all OTel metric instrument definitio
 internal/collector/stack.go             → per-stack metric collection
 internal/collector/deployments.go       → org deployment collection
 internal/collector/org.go               → org-level collection (members, teams, policies, etc.)
+internal/collector/agents.go            → Pulumi Neo Custom Agent and automation collection
 internal/collector/collector_test.go    → mock API + OTel ManualReader tests
 internal/config/                        → CLI flags + env vars + YAML config
 internal/exporter/                      → OTel MeterProvider / OTLP exporter setup
 internal/appinfo/                       → build-time version info (ldflags)
-dashboards/pulumi-exporter.json         → Grafana dashboard JSON (31 panels, 22 metrics)
+dashboards/pulumi-exporter.json         → Grafana dashboard JSON (40 panels, 27 metrics)
 docs/                                   → User-facing docs (configuration, metrics, backends, kubernetes, dashboards, development)
 deploy/docker-compose/                  → Prometheus + Grafana + exporter stack
 deploy/pulumi-yaml/                     → Pulumi YAML program for Helm chart deployment
@@ -105,7 +106,7 @@ artifacthub-repo.yml                    → ArtifactHub repository metadata
 ## Adding a New Metric
 
 1. Add the OTel instrument to `internal/collector/instruments.go` (in the appropriate init function — `NewInstruments` for stack-level, `newOrgInstruments` for org-level)
-2. Record values in the relevant collector file (`stack.go`, `deployments.go`, or `org.go`)
+2. Record values in the relevant collector file (`stack.go`, `deployments.go`, `org.go`, or `agents.go`)
 3. If the metric needs a new API endpoint:
    - Add the operationId to `oapi-codegen.yaml`
    - Run `make generate` to regenerate `internal/pulumiapi/client.gen.go`

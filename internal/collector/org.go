@@ -22,6 +22,8 @@ func (c *Collector) collectOrgMetrics(ctx context.Context, org string) {
 	g.Go(func() error { c.collectNeoTasks(gCtx, org); return nil })
 	g.Go(func() error { c.collectNeoTokenBudget(gCtx, org, orgAttr); return nil })
 	g.Go(func() error { c.collectPolicyResultsMetadata(gCtx, org, orgAttr); return nil })
+	g.Go(func() error { c.collectAgents(gCtx, org); return nil })
+	g.Go(func() error { c.collectAgentAutomations(gCtx, org); return nil })
 	_ = g.Wait()
 }
 

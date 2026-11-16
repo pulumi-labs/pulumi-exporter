@@ -39,6 +39,18 @@ The `neo_token_budget_*` metrics report the effective budget for the identity be
 | `pulumi_org_governed_resources_total` | Gauge | `org` | Total governed resources |
 | `pulumi_org_governed_resources_with_issues` | Gauge | `org` | Governed resources with issues |
 
+## Custom Agent Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `pulumi_org_agent_count` | Gauge | `org`, `paused` | Number of Pulumi Neo Custom Agents by paused state |
+| `pulumi_org_agent_runs_started` | Gauge | `org`, `agent` | Total runs a Custom Agent has started (lifetime, organization-wide) |
+| `pulumi_org_agent_runs_running` | Gauge | `org`, `agent` | Runs of a Custom Agent that are currently running |
+| `pulumi_org_agent_automation_count` | Gauge | `org`, `kind`, `paused`, `last_run_status` | Number of Custom Agent automations |
+| `pulumi_org_agent_automation_next_run_timestamp` | Gauge | `org`, `automation` | Unix timestamp of the next scheduled run of an automation |
+
+Run counts are aggregated across the organization, not scoped to the identity behind the access token. `pulumi_org_agent_runs_started` only grows, so `increase(pulumi_org_agent_runs_started[1h])` gives the runs started per hour. Automations without a scheduled next run, such as triggered ones, have no `next_run_timestamp` series. Organizations without Custom Agents enabled record none of these metrics.
+
 ## Label Values
 
 | Label | Values |
@@ -50,6 +62,11 @@ The `neo_token_budget_*` metrics report the effective budget for the identity be
 | `status` (Neo tasks) | `idle`, `running` |
 | `level` (violations) | `advisory`, `mandatory`, `disabled` |
 | `kind` (violations) | `preventative`, `audit` |
+| `paused` (agents, automations) | `true`, `false` |
+| `kind` (automations) | `scheduled`, `triggered` |
+| `last_run_status` (automations) | the API's last run status (for example `succeeded`, `failed`), or `none` if it has not run yet |
+| `agent` | Custom Agent name |
+| `automation` | Automation name |
 
 ## Histogram Buckets
 

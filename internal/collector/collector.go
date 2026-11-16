@@ -29,6 +29,8 @@ type PulumiAPI interface {
 	ListNeoTasks(ctx context.Context, org string) (*client.ListNeoTasksResponse, error)
 	GetOrgNeoTokenBudget(ctx context.Context, org string) (*client.NeoTokenBudgetResponse, error)
 	GetPolicyResultsMetadata(ctx context.Context, org string) (*client.PolicyResultsMetadataResponse, error)
+	ListAgents(ctx context.Context, org string) (*client.ListAgentsResponse, error)
+	ListAgentAutomations(ctx context.Context, org string) (*client.ListAgentAutomationsResponse, error)
 }
 
 // Collector periodically collects metrics from the Pulumi Cloud API.

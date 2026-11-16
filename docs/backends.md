@@ -4,7 +4,7 @@ The exporter pushes metrics over OTLP. Point it at any OTLP-compatible receiver.
 
 ## Docker Compose (Prometheus + Grafana)
 
-The included stack provides a ready-to-use setup with a pre-built Grafana dashboard (31 panels, 22 metrics).
+The included stack provides a ready-to-use setup with a pre-built Grafana dashboard (40 panels, 27 metrics).
 
 ```bash
 cd deploy/docker-compose

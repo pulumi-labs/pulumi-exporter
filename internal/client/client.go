@@ -375,6 +375,82 @@ func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, org string) (*NeoToke
 	}, nil
 }
 
+// ListAgents returns the Pulumi Neo Custom Agents defined in an organization.
+// It returns nil when the organization does not have Custom Agents enabled.
+func (c *Client) ListAgents(ctx context.Context, org string) (*ListAgentsResponse, error) {
+	resp, err := c.gen.ListAgentDefinitionsWithResponse(ctx, org)
+	if err != nil {
+		return nil, fmt.Errorf("listing agents: %w", err)
+	}
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, nil
+	}
+	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+		return nil, fmt.Errorf("listing agents: unexpected status %d", resp.StatusCode())
+	}
+
+	agents := make([]Agent, 0, len(resp.JSON200.Definitions))
+	for _, d := range resp.JSON200.Definitions {
+		a := Agent{
+			ID:     d.Id,
+			Name:   d.Name,
+			Paused: derefStr(d.PausedAt) != "",
+		}
+		if d.TaskCounts != nil {
+			a.Runs = &AgentRunCounts{
+				Total:   int64(d.TaskCounts.Total),
+				Running: int64(d.TaskCounts.Running),
+			}
+		}
+		agents = append(agents, a)
+	}
+
+	return &ListAgentsResponse{Agents: agents}, nil
+}
+
+// ListAgentAutomations returns all Custom Agent automations for an organization,
+// handling pagination. It returns nil when the organization does not have
+// Custom Agents enabled.
+func (c *Client) ListAgentAutomations(ctx context.Context, org string) (*ListAgentAutomationsResponse, error) {
+	var all []AgentAutomation
+	var contToken *string
+	pageSize := int64(100)
+
+	for {
+		resp, err := c.gen.ListAgentAutomationsV2WithResponse(ctx, org, &pulumiapi.ListAgentAutomationsV2Params{
+			PageSize:          &pageSize,
+			ContinuationToken: contToken,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("listing agent automations: %w", err)
+		}
+		if resp.StatusCode() == http.StatusNotFound {
+			return nil, nil
+		}
+		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+			return nil, fmt.Errorf("listing agent automations: unexpected status %d", resp.StatusCode())
+		}
+
+		for _, a := range resp.JSON200.Automations {
+			all = append(all, AgentAutomation{
+				ID:            a.Id,
+				Name:          a.Name,
+				Kind:          string(a.Kind),
+				Paused:        a.Paused,
+				LastRunStatus: derefStr(a.LastRunStatus),
+				NextExecution: derefStr(a.NextExecution),
+			})
+		}
+
+		if resp.JSON200.ContinuationToken == nil || *resp.JSON200.ContinuationToken == "" {
+			break
+		}
+		contToken = resp.JSON200.ContinuationToken
+	}
+
+	return &ListAgentAutomationsResponse{Automations: all}, nil
+}
+
 func derefStr(s *string) string {
 	if s == nil {
 		return ""

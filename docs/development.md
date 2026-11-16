@@ -95,10 +95,11 @@ pulumi-exporter/
 │   ├── config/                          # CLI flags + env vars + YAML config
 │   ├── collector/                       # Metrics collection logic
 │   │   ├── collector.go                 # PulumiAPI interface, ticker loop
-│   │   ├── instruments.go              # OTel instrument definitions (22 metrics)
+│   │   ├── instruments.go              # OTel instrument definitions (27 metrics)
 │   │   ├── stack.go                     # Per-stack collection
 │   │   ├── deployments.go              # Org deployment collection
 │   │   ├── org.go                       # Org-level collection
+│   │   ├── agents.go                    # Custom Agent and automation collection
 │   │   └── collector_test.go
 │   ├── exporter/                        # OTel MeterProvider setup
 │   └── appinfo/                         # Build-time version info (ldflags)
@@ -165,7 +166,7 @@ Generation is scoped to the 13 operations the exporter uses (configured in `oapi
 ### Adding a New Metric
 
 1. Add the instrument to `internal/collector/instruments.go`
-2. Record values in the appropriate collector file (`stack.go`, `deployments.go`, or `org.go`)
+2. Record values in the appropriate collector file (`stack.go`, `deployments.go`, `org.go`, or `agents.go`)
 3. If the metric needs a new API endpoint:
    - Add the operationId to `oapi-codegen.yaml` and run `make generate`
    - Add a wrapper method to `internal/client/client.go`
