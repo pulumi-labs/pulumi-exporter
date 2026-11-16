@@ -94,7 +94,7 @@ func (m *mockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client
 }
 
 func (m *mockAPI) ListAgents(_ context.Context, org string) (*client.ListAgentsResponse, error) {
-	// Returns nil when Custom Agents are not enabled, mirroring the client's 404 handling.
+	// Returns nil when Pulumi Agents are not enabled, mirroring the client's 404 handling.
 	return m.agents[org], nil
 }
 

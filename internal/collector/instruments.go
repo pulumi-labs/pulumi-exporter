@@ -206,37 +206,37 @@ func newOrgNeoInstruments(meter metric.Meter, ins *Instruments) error {
 	return nil
 }
 
-// newOrgAgentInstruments registers the Pulumi Neo Custom Agent and agent
+// newOrgAgentInstruments registers the Pulumi Agent and agent
 // automation instruments.
 func newOrgAgentInstruments(meter metric.Meter, ins *Instruments) error {
 	var err error
 
 	if ins.orgAgentCount, err = meter.Int64Gauge("pulumi_org_agent_count",
-		metric.WithDescription("Number of Pulumi Neo Custom Agents in an organization by paused state"),
+		metric.WithDescription("Number of Pulumi Agents in an organization by paused state"),
 	); err != nil {
 		return err
 	}
 
 	if ins.orgAgentRunsStarted, err = meter.Int64Gauge("pulumi_org_agent_runs_started",
-		metric.WithDescription("Total number of runs a Pulumi Neo Custom Agent has started (lifetime, organization-wide)"),
+		metric.WithDescription("Total number of runs a Pulumi Agent has started (lifetime, organization-wide)"),
 	); err != nil {
 		return err
 	}
 
 	if ins.orgAgentRunsRunning, err = meter.Int64Gauge("pulumi_org_agent_runs_running",
-		metric.WithDescription("Number of runs of a Pulumi Neo Custom Agent that are currently running"),
+		metric.WithDescription("Number of runs of a Pulumi Agent that are currently running"),
 	); err != nil {
 		return err
 	}
 
 	if ins.orgAgentAutomationCount, err = meter.Int64Gauge("pulumi_org_agent_automation_count",
-		metric.WithDescription("Number of Custom Agent automations by kind, paused state, and last run status"),
+		metric.WithDescription("Number of Pulumi Agent automations by kind, paused state, and last run status"),
 	); err != nil {
 		return err
 	}
 
 	if ins.orgAgentAutomationNextRun, err = meter.Float64Gauge("pulumi_org_agent_automation_next_run_timestamp",
-		metric.WithDescription("Unix timestamp of the next scheduled run of a Custom Agent automation"),
+		metric.WithDescription("Unix timestamp of the next scheduled run of a Pulumi Agent automation"),
 	); err != nil {
 		return err
 	}

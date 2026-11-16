@@ -41,7 +41,7 @@ internal/collector/instruments.go       → all OTel metric instrument definitio
 internal/collector/stack.go             → per-stack metric collection
 internal/collector/deployments.go       → org deployment collection
 internal/collector/org.go               → org-level collection (members, teams, policies, etc.)
-internal/collector/agents.go            → Pulumi Neo Custom Agent and automation collection
+internal/collector/agents.go            → Pulumi Agent and automation collection
 internal/collector/collector_test.go    → mock API + OTel ManualReader tests
 internal/config/                        → CLI flags + env vars + YAML config
 internal/exporter/                      → OTel MeterProvider / OTLP exporter setup

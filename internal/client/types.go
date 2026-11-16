@@ -174,7 +174,7 @@ type ListAgentsResponse struct {
 	Agents []Agent
 }
 
-// Agent represents a Pulumi Neo Custom Agent definition.
+// Agent represents a Pulumi Agent definition.
 type Agent struct {
 	ID     string
 	Name   string
@@ -183,7 +183,7 @@ type Agent struct {
 	Runs *AgentRunCounts
 }
 
-// AgentRunCounts holds the organization-wide run counts of a Custom Agent.
+// AgentRunCounts holds the organization-wide run counts of a Pulumi Agent.
 type AgentRunCounts struct {
 	Total   int64
 	Running int64
@@ -194,7 +194,7 @@ type ListAgentAutomationsResponse struct {
 	Automations []AgentAutomation
 }
 
-// AgentAutomation represents a scheduled or triggered Custom Agent automation.
+// AgentAutomation represents a scheduled or triggered Pulumi Agent automation.
 type AgentAutomation struct {
 	ID            string
 	Name          string

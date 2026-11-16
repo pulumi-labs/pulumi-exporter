@@ -68,7 +68,7 @@ func TestCollectAgents(t *testing.T) {
 			},
 		},
 		{
-			name:   "custom agents not enabled",
+			name:   "pulumi agents not enabled",
 			agents: nil,
 		},
 	}
@@ -131,7 +131,7 @@ func TestCollectAgentAutomations(t *testing.T) {
 			},
 		},
 		{
-			name:        "custom agents not enabled",
+			name:        "pulumi agents not enabled",
 			automations: nil,
 		},
 	}
