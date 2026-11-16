@@ -192,6 +192,7 @@ const (
 	AgentTaskVcsProviderGithub           AgentTaskVcsProvider = "github"
 	AgentTaskVcsProviderGithubEnterprise AgentTaskVcsProvider = "github_enterprise"
 	AgentTaskVcsProviderGitlab           AgentTaskVcsProvider = "gitlab"
+	AgentTaskVcsProviderOrigin           AgentTaskVcsProvider = "origin"
 )
 
 // Valid indicates whether the value is a known member of the AgentTaskVcsProvider enum.
@@ -208,6 +209,8 @@ func (e AgentTaskVcsProvider) Valid() bool {
 	case AgentTaskVcsProviderGithubEnterprise:
 		return true
 	case AgentTaskVcsProviderGitlab:
+		return true
+	case AgentTaskVcsProviderOrigin:
 		return true
 	default:
 		return false
@@ -306,17 +309,18 @@ func (e DeploymentNestedUpdateResult) Valid() bool {
 
 // Defines values for DeploymentNestedUpdateKind.
 const (
-	DeploymentNestedUpdateKindDestroy  DeploymentNestedUpdateKind = "destroy"
-	DeploymentNestedUpdateKindImport   DeploymentNestedUpdateKind = "import"
-	DeploymentNestedUpdateKindPdestroy DeploymentNestedUpdateKind = "Pdestroy"
-	DeploymentNestedUpdateKindPimport  DeploymentNestedUpdateKind = "Pimport"
-	DeploymentNestedUpdateKindPrefresh DeploymentNestedUpdateKind = "Prefresh"
-	DeploymentNestedUpdateKindPrename  DeploymentNestedUpdateKind = "Prename"
-	DeploymentNestedUpdateKindPreview  DeploymentNestedUpdateKind = "preview"
-	DeploymentNestedUpdateKindPupdate  DeploymentNestedUpdateKind = "Pupdate"
-	DeploymentNestedUpdateKindRefresh  DeploymentNestedUpdateKind = "refresh"
-	DeploymentNestedUpdateKindRename   DeploymentNestedUpdateKind = "rename"
-	DeploymentNestedUpdateKindUpdate   DeploymentNestedUpdateKind = "update"
+	DeploymentNestedUpdateKindDestroy        DeploymentNestedUpdateKind = "destroy"
+	DeploymentNestedUpdateKindImport         DeploymentNestedUpdateKind = "import"
+	DeploymentNestedUpdateKindPdestroy       DeploymentNestedUpdateKind = "Pdestroy"
+	DeploymentNestedUpdateKindPimport        DeploymentNestedUpdateKind = "Pimport"
+	DeploymentNestedUpdateKindPrefresh       DeploymentNestedUpdateKind = "Prefresh"
+	DeploymentNestedUpdateKindPrename        DeploymentNestedUpdateKind = "Prename"
+	DeploymentNestedUpdateKindPreview        DeploymentNestedUpdateKind = "preview"
+	DeploymentNestedUpdateKindPupdate        DeploymentNestedUpdateKind = "Pupdate"
+	DeploymentNestedUpdateKindRefresh        DeploymentNestedUpdateKind = "refresh"
+	DeploymentNestedUpdateKindRename         DeploymentNestedUpdateKind = "rename"
+	DeploymentNestedUpdateKindResourceImport DeploymentNestedUpdateKind = "resource-import"
+	DeploymentNestedUpdateKindUpdate         DeploymentNestedUpdateKind = "update"
 )
 
 // Valid indicates whether the value is a known member of the DeploymentNestedUpdateKind enum.
@@ -341,6 +345,8 @@ func (e DeploymentNestedUpdateKind) Valid() bool {
 	case DeploymentNestedUpdateKindRefresh:
 		return true
 	case DeploymentNestedUpdateKindRename:
+		return true
+	case DeploymentNestedUpdateKindResourceImport:
 		return true
 	case DeploymentNestedUpdateKindUpdate:
 		return true
@@ -441,14 +447,23 @@ func (e ListDeploymentSnapshotStatus) Valid() bool {
 
 // Defines values for OrgNeoTokenBudgetWindowKind.
 const (
-	Individual OrgNeoTokenBudgetWindowKind = "individual"
-	Trial      OrgNeoTokenBudgetWindowKind = "trial"
+	Free         OrgNeoTokenBudgetWindowKind = "free"
+	Individual   OrgNeoTokenBudgetWindowKind = "individual"
+	MemberDollar OrgNeoTokenBudgetWindowKind = "member-dollar"
+	OrgDollar    OrgNeoTokenBudgetWindowKind = "org-dollar"
+	Trial        OrgNeoTokenBudgetWindowKind = "trial"
 )
 
 // Valid indicates whether the value is a known member of the OrgNeoTokenBudgetWindowKind enum.
 func (e OrgNeoTokenBudgetWindowKind) Valid() bool {
 	switch e {
+	case Free:
+		return true
 	case Individual:
+		return true
+	case MemberDollar:
+		return true
+	case OrgDollar:
 		return true
 	case Trial:
 		return true
@@ -461,9 +476,12 @@ func (e OrgNeoTokenBudgetWindowKind) Valid() bool {
 const (
 	OrganizationMemberRoleAdmin             OrganizationMemberRole = "admin"
 	OrganizationMemberRoleBillingManager    OrganizationMemberRole = "billing-manager"
+	OrganizationMemberRoleBuilder           OrganizationMemberRole = "builder"
+	OrganizationMemberRoleMaintainer        OrganizationMemberRole = "maintainer"
 	OrganizationMemberRoleMember            OrganizationMemberRole = "member"
 	OrganizationMemberRoleNone              OrganizationMemberRole = "none"
 	OrganizationMemberRolePotentialMember   OrganizationMemberRole = "potential-member"
+	OrganizationMemberRoleReader            OrganizationMemberRole = "reader"
 	OrganizationMemberRoleStackCollaborator OrganizationMemberRole = "stack-collaborator"
 )
 
@@ -474,11 +492,17 @@ func (e OrganizationMemberRole) Valid() bool {
 		return true
 	case OrganizationMemberRoleBillingManager:
 		return true
+	case OrganizationMemberRoleBuilder:
+		return true
+	case OrganizationMemberRoleMaintainer:
+		return true
 	case OrganizationMemberRoleMember:
 		return true
 	case OrganizationMemberRoleNone:
 		return true
 	case OrganizationMemberRolePotentialMember:
+		return true
+	case OrganizationMemberRoleReader:
 		return true
 	case OrganizationMemberRoleStackCollaborator:
 		return true
@@ -507,22 +531,22 @@ func (e PolicyViolationV2Kind) Valid() bool {
 
 // Defines values for StepRunStatus.
 const (
-	Failed     StepRunStatus = "failed"
-	NotStarted StepRunStatus = "not-started"
-	Running    StepRunStatus = "running"
-	Succeeded  StepRunStatus = "succeeded"
+	StepRunStatusFailed     StepRunStatus = "failed"
+	StepRunStatusNotStarted StepRunStatus = "not-started"
+	StepRunStatusRunning    StepRunStatus = "running"
+	StepRunStatusSucceeded  StepRunStatus = "succeeded"
 )
 
 // Valid indicates whether the value is a known member of the StepRunStatus enum.
 func (e StepRunStatus) Valid() bool {
 	switch e {
-	case Failed:
+	case StepRunStatusFailed:
 		return true
-	case NotStarted:
+	case StepRunStatusNotStarted:
 		return true
-	case Running:
+	case StepRunStatusRunning:
 		return true
-	case Succeeded:
+	case StepRunStatusSucceeded:
 		return true
 	default:
 		return false
@@ -643,6 +667,27 @@ func (e TeamMemberInfoRole) Valid() bool {
 	}
 }
 
+// Defines values for TeamMemberInfoServicePrincipalKind.
+const (
+	TeamMemberInfoServicePrincipalKindCustomAgentDefinition TeamMemberInfoServicePrincipalKind = "custom-agent-definition"
+	TeamMemberInfoServicePrincipalKindTeam                  TeamMemberInfoServicePrincipalKind = "team"
+	TeamMemberInfoServicePrincipalKindUserDefined           TeamMemberInfoServicePrincipalKind = "user-defined"
+)
+
+// Valid indicates whether the value is a known member of the TeamMemberInfoServicePrincipalKind enum.
+func (e TeamMemberInfoServicePrincipalKind) Valid() bool {
+	switch e {
+	case TeamMemberInfoServicePrincipalKindCustomAgentDefinition:
+		return true
+	case TeamMemberInfoServicePrincipalKindTeam:
+		return true
+	case TeamMemberInfoServicePrincipalKindUserDefined:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for TeamStackPermissionPermission.
 const (
 	TeamStackPermissionPermissionN0   TeamStackPermissionPermission = 0
@@ -664,6 +709,81 @@ func (e TeamStackPermissionPermission) Valid() bool {
 	case TeamStackPermissionPermissionN103:
 		return true
 	case TeamStackPermissionPermissionN104:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UserInfoServicePrincipalKind.
+const (
+	UserInfoServicePrincipalKindCustomAgentDefinition UserInfoServicePrincipalKind = "custom-agent-definition"
+	UserInfoServicePrincipalKindTeam                  UserInfoServicePrincipalKind = "team"
+	UserInfoServicePrincipalKindUserDefined           UserInfoServicePrincipalKind = "user-defined"
+)
+
+// Valid indicates whether the value is a known member of the UserInfoServicePrincipalKind enum.
+func (e UserInfoServicePrincipalKind) Valid() bool {
+	switch e {
+	case UserInfoServicePrincipalKindCustomAgentDefinition:
+		return true
+	case UserInfoServicePrincipalKindTeam:
+		return true
+	case UserInfoServicePrincipalKindUserDefined:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListOrganizationMembersParamsType.
+const (
+	Backend          ListOrganizationMembersParamsType = "backend"
+	Frontend         ListOrganizationMembersParamsType = "frontend"
+	ServicePrincipal ListOrganizationMembersParamsType = "service-principal"
+)
+
+// Valid indicates whether the value is a known member of the ListOrganizationMembersParamsType enum.
+func (e ListOrganizationMembersParamsType) Valid() bool {
+	switch e {
+	case Backend:
+		return true
+	case Frontend:
+		return true
+	case ServicePrincipal:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListTasksParamsExcludeSources.
+const (
+	Api        ListTasksParamsExcludeSources = "api"
+	Cli        ListTasksParamsExcludeSources = "cli"
+	CodeReview ListTasksParamsExcludeSources = "code-review"
+	Console    ListTasksParamsExcludeSources = "console"
+	Github     ListTasksParamsExcludeSources = "github"
+	Schedule   ListTasksParamsExcludeSources = "schedule"
+	Slack      ListTasksParamsExcludeSources = "slack"
+)
+
+// Valid indicates whether the value is a known member of the ListTasksParamsExcludeSources enum.
+func (e ListTasksParamsExcludeSources) Valid() bool {
+	switch e {
+	case Api:
+		return true
+	case Cli:
+		return true
+	case CodeReview:
+		return true
+	case Console:
+		return true
+	case Github:
+		return true
+	case Schedule:
+		return true
+	case Slack:
 		return true
 	default:
 		return false
@@ -709,6 +829,24 @@ func (e ListTasksParamsSortDirection) Valid() bool {
 	case Asc:
 		return true
 	case Desc:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListTasksParamsStatus.
+const (
+	ListTasksParamsStatusIdle    ListTasksParamsStatus = "idle"
+	ListTasksParamsStatusRunning ListTasksParamsStatus = "running"
+)
+
+// Valid indicates whether the value is a known member of the ListTasksParamsStatus enum.
+func (e ListTasksParamsStatus) Valid() bool {
+	switch e {
+	case ListTasksParamsStatusIdle:
+		return true
+	case ListTasksParamsStatusRunning:
 		return true
 	default:
 		return false
@@ -783,6 +921,9 @@ type AgentTask struct {
 	// Role The id of the RBAC role this task assumes. Null when the task runs with the creating user's own permissions (no assumed role).
 	Role *string `json:"role,omitempty"`
 
+	// RoleName The display name of the RBAC role this task assumes. Null when the task has no assumed role or the role no longer exists.
+	RoleName *string `json:"roleName,omitempty"`
+
 	// RuntimePhase The current runtime phase for this task. Null until the runtime checks in.
 	RuntimePhase *AgentTaskRuntimePhase `json:"runtimePhase,omitempty"`
 
@@ -806,6 +947,12 @@ type AgentTask struct {
 
 	// SourceAutomationID The automation that spawned this task, if the task was created by an automation run.
 	SourceAutomationID *string `json:"sourceAutomationID,omitempty"`
+
+	// AgentDefinitionId The Custom Agent definition this task was run as, if any. Null for tasks run by a user directly rather than as a saved agent.
+	AgentDefinitionId *string `json:"agentDefinitionId,omitempty"`
+
+	// PendingInputCount The number of pending inputs waiting behind this task. Present for tasks that can receive asynchronous inputs.
+	PendingInputCount *int32 `json:"pendingInputCount,omitempty"`
 
 	// Source The origin that triggered this task. Valid values: 'console', 'cli', 'slack', 'schedule', 'api', 'github', 'code-review'.
 	Source *AgentTaskSource `json:"source,omitempty"`
@@ -910,7 +1057,7 @@ type AppPolicyGroupSummary struct {
 	// Name The unique name of the policy group.
 	Name string `json:"name"`
 
-	// IsOrgDefault Whether this is the organization's default policy group, applied to all stacks not in another group.
+	// IsOrgDefault Whether this is one of the organization's default policy groups. The default stacks group applies to every stack not in another group; the default accounts group applies to every Insights account not in another group.
 	IsOrgDefault bool `json:"isOrgDefault"`
 
 	// NumStacks Number of stacks assigned to this policy group.
@@ -919,7 +1066,8 @@ type AppPolicyGroupSummary struct {
 	// NumAccounts Number of cloud accounts assigned to this policy group.
 	NumAccounts *int64 `json:"numAccounts,omitempty"`
 
-	// EntityType The type of entity this policy group targets (e.g. stacks, accounts).
+	// EntityType Deprecated: a legacy label set when the policy group was created. It does not restrict which entities the group holds; `mode` does.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	EntityType AppPolicyGroupSummaryEntityType `json:"entityType"`
 
 	// Mode The enforcement mode of the policy group.
@@ -929,7 +1077,7 @@ type AppPolicyGroupSummary struct {
 	NumEnabledPolicyPacks int64 `json:"numEnabledPolicyPacks"`
 }
 
-// AppPolicyGroupSummaryEntityType The type of entity this policy group targets (e.g. stacks, accounts).
+// AppPolicyGroupSummaryEntityType Deprecated: a legacy label set when the policy group was created. It does not restrict which entities the group holds; `mode` does.
 type AppPolicyGroupSummaryEntityType string
 
 // AppPolicyGroupSummaryMode The enforcement mode of the policy group.
@@ -982,7 +1130,7 @@ type AppStackSummary struct {
 
 // DeploymentJob DeploymentJob represents a deployment job with its status, timing, and step information.
 type DeploymentJob struct {
-	// Status The current status of the deployment job.
+	// Status The current execution status of this job. A deployment reports the status of its job, so this is normally the same value as the deployment's own `status`.
 	Status DeploymentJobStatus `json:"status"`
 
 	// Started The timestamp when the job started.
@@ -995,7 +1143,7 @@ type DeploymentJob struct {
 	Steps []StepRun `json:"steps"`
 }
 
-// DeploymentJobStatus The current status of the deployment job.
+// DeploymentJobStatus The current execution status of this job. A deployment reports the status of its job, so this is normally the same value as the deployment's own `status`.
 type DeploymentJobStatus string
 
 // DeploymentNestedUpdate DeploymentNestedUpdate represents an update that is nested within a deployment, including its status and metadata.
@@ -1015,7 +1163,7 @@ type DeploymentNestedUpdate struct {
 	// EndTime The Unix timestamp when the update ended.
 	EndTime int64 `json:"endTime"`
 
-	// Result The result of the update operation.
+	// Result The outcome of this individual Pulumi update. This reports the result of one update rather than the status of the deployment as a whole, and it uses a different set of values from the deployment's `status`.
 	Result DeploymentNestedUpdateResult `json:"result"`
 
 	// Kind The kind of update operation.
@@ -1028,7 +1176,7 @@ type DeploymentNestedUpdate struct {
 	Environment map[string]string `json:"environment"`
 }
 
-// DeploymentNestedUpdateResult The result of the update operation.
+// DeploymentNestedUpdateResult The outcome of this individual Pulumi update. This reports the result of one update rather than the status of the deployment as a whole, and it uses a different set of values from the deployment's `status`.
 type DeploymentNestedUpdateResult string
 
 // DeploymentNestedUpdateKind The kind of update operation.
@@ -1171,7 +1319,7 @@ type EscPropertyAccessor struct {
 // EscRange A Range defines a range within an environment definition.
 type EscRange struct {
 	// Environment The name of the environment.
-	Environment *string `json:"environment,omitempty"`
+	Environment string `json:"environment"`
 
 	// Begin A Pos defines a position within an environment definition.
 	Begin EscPos `json:"begin"`
@@ -1182,11 +1330,17 @@ type EscRange struct {
 
 // EscSchemaSchema EscSchemaSchema represents a JSON Schema used to describe the shape of environment values.
 type EscSchemaSchema struct {
-	// UnderscoreDefs Schema definitions that can be referenced by $ref.
-	UnderscoreDefs *map[string]EscSchemaSchema `json:"_defs,omitempty"`
+	// Always Set when the schema is 'true'.
+	Always *bool `json:"always,omitempty"`
 
-	// UnderscoreRef A JSON reference to a schema definition.
-	UnderscoreRef *string `json:"_ref,omitempty"`
+	// Never Set when the schema is 'false'.
+	Never *bool `json:"never,omitempty"`
+
+	// Defs Schema definitions that can be referenced by $ref.
+	Defs *map[string]EscSchemaSchema `json:"$defs,omitempty"`
+
+	// Ref A JSON reference to a schema definition.
+	Ref *string `json:"$ref,omitempty"`
 
 	// AnyOf A list of schemas, any of which the value must match.
 	AnyOf *[]EscSchemaSchema `json:"anyOf,omitempty"`
@@ -1207,7 +1361,7 @@ type EscSchemaSchema struct {
 	Properties *map[string]EscSchemaSchema `json:"properties,omitempty"`
 
 	// Type The type of the schema (e.g. string, number, object, array, boolean).
-	Type string `json:"type"`
+	Type *string `json:"type,omitempty"`
 
 	// Const A constant value the instance must equal.
 	Const *map[string]interface{} `json:"const,omitempty"`
@@ -1295,7 +1449,7 @@ type EscTrace struct {
 type EscValue struct {
 	// Value Value holds the concrete representation of the value. May be nil, bool, json.Number, string, []Value, or
 	// map[string]Value.
-	Value *map[string]interface{} `json:"value,omitempty"`
+	Value map[string]interface{} `json:"value"`
 
 	// Secret Secret is true if this value is secret.
 	Secret *bool `json:"secret,omitempty"`
@@ -1393,7 +1547,7 @@ type ListDeploymentResponse struct {
 	// Modified Created defines when the corresponding WorkflowRun was modified.
 	Modified string `json:"modified"`
 
-	// Status Status is the current status of the workflow runID.
+	// Status The current execution status of the deployment. `not-started` means the deployment is waiting in the queue. The Pulumi Cloud console shows it as `Queued`, or as `Paused` when deployments are paused for the stack or the organization. `accepted` means the deployment has been taken off the queue for execution but has not started running yet. The console shows it alongside `running`. Webhook payloads report both `not-started` and `accepted` as `queued`. `running` means at least one step has started and no step has failed. `failed` covers, for example, a failed step, a timeout, or a cancellation, whether the deployment was queued or running. `skipped` means the deployment was removed from the queue without running, either because `operationContext.options.skipIntermediateDeployments` is enabled for it and a newer deployment of the same operation is queued right behind it for the same stack, or because it was still queued seven days after it was created. Once the deployment's job has started, this matches the job's status.
 	Status ListDeploymentResponseStatus `json:"status"`
 
 	// Version Version is the ordinal ID for the stack
@@ -1404,7 +1558,7 @@ type ListDeploymentResponse struct {
 	RequestedBy UserInfo `json:"requestedBy"`
 }
 
-// ListDeploymentResponseStatus Status is the current status of the workflow runID.
+// ListDeploymentResponseStatus The current execution status of the deployment. `not-started` means the deployment is waiting in the queue. The Pulumi Cloud console shows it as `Queued`, or as `Paused` when deployments are paused for the stack or the organization. `accepted` means the deployment has been taken off the queue for execution but has not started running yet. The console shows it alongside `running`. Webhook payloads report both `not-started` and `accepted` as `queued`. `running` means at least one step has started and no step has failed. `failed` covers, for example, a failed step, a timeout, or a cancellation, whether the deployment was queued or running. `skipped` means the deployment was removed from the queue without running, either because `operationContext.options.skipIntermediateDeployments` is enabled for it and a newer deployment of the same operation is queued right behind it for the same stack, or because it was still queued seven days after it was created. Once the deployment's job has started, this matches the job's status.
 type ListDeploymentResponseStatus string
 
 // ListDeploymentResponseV2 Response containing a paginated list of deployment snapshots (v2).
@@ -1442,7 +1596,7 @@ type ListDeploymentSnapshot struct {
 	// PulumiOperation PulumiOperation is the operation that was performed.
 	PulumiOperation ListDeploymentSnapshotPulumiOperation `json:"pulumiOperation"`
 
-	// Status Status is the current status of the workflow runID.
+	// Status The current execution status of the deployment. `not-started` means the deployment is waiting in the queue. The Pulumi Cloud console shows it as `Queued`, or as `Paused` when deployments are paused for the stack or the organization. `accepted` means the deployment has been taken off the queue for execution but has not started running yet. The console shows it alongside `running`. Webhook payloads report both `not-started` and `accepted` as `queued`. `running` means at least one step has started and no step has failed. `failed` covers, for example, a failed step, a timeout, or a cancellation, whether the deployment was queued or running. `skipped` means the deployment was removed from the queue without running, either because `operationContext.options.skipIntermediateDeployments` is enabled for it and a newer deployment of the same operation is queued right behind it for the same stack, or because it was still queued seven days after it was created. Once the deployment's job has started, this matches the job's status.
 	Status ListDeploymentSnapshotStatus `json:"status"`
 
 	// Updates Updates
@@ -1468,7 +1622,7 @@ type ListDeploymentSnapshot struct {
 // ListDeploymentSnapshotPulumiOperation PulumiOperation is the operation that was performed.
 type ListDeploymentSnapshotPulumiOperation string
 
-// ListDeploymentSnapshotStatus Status is the current status of the workflow runID.
+// ListDeploymentSnapshotStatus The current execution status of the deployment. `not-started` means the deployment is waiting in the queue. The Pulumi Cloud console shows it as `Queued`, or as `Paused` when deployments are paused for the stack or the organization. `accepted` means the deployment has been taken off the queue for execution but has not started running yet. The console shows it alongside `running`. Webhook payloads report both `not-started` and `accepted` as `queued`. `running` means at least one step has started and no step has failed. `failed` covers, for example, a failed step, a timeout, or a cancellation, whether the deployment was queued or running. `skipped` means the deployment was removed from the queue without running, either because `operationContext.options.skipIntermediateDeployments` is enabled for it and a newer deployment of the same operation is queued right behind it for the same stack, or because it was still queued seven days after it was created. Once the deployment's job has started, this matches the job's status.
 type ListDeploymentSnapshotStatus string
 
 // ListDeploymentSnapshotAgentPool Agent pool information associated with a deployment snapshot.
@@ -1559,7 +1713,7 @@ type OrgEnvironment struct {
 	Settings EnvironmentSettings `json:"settings"`
 }
 
-// OrgNeoTokenBudget The current Neo-token allowance and consumption for an organization.
+// OrgNeoTokenBudget The effective Neo-token budget for a context: the caller by default, or the owner of the task identified by taskId when that query parameter is supplied. When more than one Neo-token limit is in force (an org-level cap and a per-member cap), this reflects whichever is closest to exhaustion.
 type OrgNeoTokenBudget struct {
 	// WindowKind Kind of cap window applied to the org.
 	WindowKind OrgNeoTokenBudgetWindowKind `json:"windowKind"`
@@ -1578,6 +1732,15 @@ type OrgNeoTokenBudget struct {
 
 	// Exhausted True when consumedTokens has reached effectiveAllowanceTokens for the current window.
 	Exhausted bool `json:"exhausted"`
+
+	// BaseAllowanceCents Plan-derived base allowance for the current window, in cents. Present only for dollar-denominated window kinds (org-dollar, member-dollar); null otherwise.
+	BaseAllowanceCents *int64 `json:"baseAllowanceCents,omitempty"`
+
+	// EffectiveAllowanceCents Allowance for the current window, in cents. Present only for dollar-denominated window kinds (org-dollar, member-dollar); null otherwise.
+	EffectiveAllowanceCents *int64 `json:"effectiveAllowanceCents,omitempty"`
+
+	// ConsumedCents Total consumed in the current window, in cents. Present only for dollar-denominated window kinds (org-dollar, member-dollar); null otherwise.
+	ConsumedCents *int64 `json:"consumedCents,omitempty"`
 }
 
 // OrgNeoTokenBudgetWindowKind Kind of cap window applied to the org.
@@ -1612,6 +1775,15 @@ type OrganizationMember struct {
 	// Teams Deprecated. Use GetOrganizationMemberTeams to list teams.
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	Teams *[]string `json:"teams,omitempty"`
+
+	// Suspended Suspended indicates that the membership is suspended: the member keeps their
+	// place in the organization but has no access until an administrator restores them.
+	// Suspended members are only included in responses when explicitly requested.
+	Suspended *bool `json:"suspended,omitempty"`
+
+	// FollowsDefaultRole FollowsDefaultRole is true when the member has no role of their own and gets the
+	// organization's default role. A member assigned the default role directly is false.
+	FollowsDefaultRole *bool `json:"followsDefaultRole,omitempty"`
 }
 
 // OrganizationMemberRole **Deprecated:** Use `fgaRole` instead. The member's built-in role within the organization. For members assigned a custom role, this is the closest built-in projection (`member`, `admin`, or `billingManager`) and may lose detail; `fgaRole` is authoritative.
@@ -1765,7 +1937,7 @@ type ResourceResult struct {
 	// Dependents URNs of resources that depend on this resource.
 	Dependents *[]string `json:"dependents,omitempty"`
 
-	// Managed Whether this resource is managed by Pulumi IaC stacks or discovered by Insights scanning. One of 'managed' or 'discovered'.
+	// Managed What manages this resource's lifecycle: 'Pulumi' for a resource in a Pulumi IaC stack, 'Terraform' / 'CloudFormation' / 'ARM' for one discovered under another IaC tool, and 'Other' for one Insights scanning found under no known tool.
 	Managed *string `json:"managed,omitempty"`
 
 	// Fingerprint A fingerprint uniquely identifying this resource's state.
@@ -1780,7 +1952,7 @@ type StepRun struct {
 	// Name The name of the step.
 	Name string `json:"name"`
 
-	// Status The current status of the step.
+	// Status The current execution status of this step. Steps in a job run in order.
 	Status StepRunStatus `json:"status"`
 
 	// Started The timestamp when the step started.
@@ -1790,7 +1962,7 @@ type StepRun struct {
 	LastUpdated *time.Time `json:"lastUpdated,omitempty"`
 }
 
-// StepRunStatus The current status of the step.
+// StepRunStatus The current execution status of this step. Steps in a job run in order.
 type StepRunStatus string
 
 // Team Team describes a Pulumi team. A Pulumi team may have its organization
@@ -1863,6 +2035,7 @@ type TeamEnvironmentSettings struct {
 	EnvName string `json:"envName"`
 
 	// Permission The permission level the team has on this environment.
+	// On editEnvironmentPermission, set to "none" to remove the environment from the team. addEnvironmentPermission ignores "none" and stores nothing: adding is how a grant is created, and removeEnvironment is how one is revoked.
 	Permission TeamEnvironmentSettingsPermission `json:"permission"`
 
 	// MaxOpenDuration The maximum duration an environment session can remain open, as a Go duration string (e.g. "1h30m").
@@ -1873,6 +2046,7 @@ type TeamEnvironmentSettings struct {
 }
 
 // TeamEnvironmentSettingsPermission The permission level the team has on this environment.
+// On editEnvironmentPermission, set to "none" to remove the environment from the team. addEnvironmentPermission ignores "none" and stores nothing: adding is how a grant is created, and removeEnvironment is how one is revoked.
 type TeamEnvironmentSettingsPermission string
 
 // TeamMemberInfo defines model for TeamMemberInfo.
@@ -1889,14 +2063,19 @@ type TeamMemberInfo struct {
 	// AvatarUrl The URL of the user's avatar image.
 	AvatarUrl string `json:"avatarUrl"`
 
-	// Email IMPORTANT: The email address of the user is only included on a few admin-only APIs.
-	// For nearly all APIs that return a UserInfo object, this will not be provided.
-	// considered sensitive information.
+	// Email The user's email address. It is only populated on selected endpoints and is
+	// omitted from most responses. Treat it as sensitive information.
 	Email *string `json:"email,omitempty"`
+
+	// ServicePrincipalKind The type of service principal the user is. Set only where service principals are listed next to people, such as an organization's members and the access granted on an entity.
+	ServicePrincipalKind *TeamMemberInfoServicePrincipalKind `json:"servicePrincipalKind,omitempty"`
 }
 
 // TeamMemberInfoRole The member's role within the team.
 type TeamMemberInfoRole string
+
+// TeamMemberInfoServicePrincipalKind The type of service principal the user is. Set only where service principals are listed next to people, such as an organization's members and the access granted on an entity.
+type TeamMemberInfoServicePrincipalKind string
 
 // TeamStackPermission TeamStackPermission is the permission team membership grants to a stack.
 type TeamStackPermission struct {
@@ -1907,6 +2086,7 @@ type TeamStackPermission struct {
 	StackName string `json:"stackName"`
 
 	// Permission The permission level the team has on this stack (e.g., read, write, admin).
+	// On editStackPermission, set to "none" to remove the stack from the team. addStackPermission ignores "none" — including an omitted permission, which reads as "none" — and stores nothing: adding is how a grant is created, and removeStack is how one is revoked.
 	Permission TeamStackPermissionPermission `json:"permission"`
 
 	// PermissionSetName Display name of the permission set for this stack, when available. Enables read-only entity access UI without requiring RoleRead.
@@ -1914,6 +2094,7 @@ type TeamStackPermission struct {
 }
 
 // TeamStackPermissionPermission The permission level the team has on this stack (e.g., read, write, admin).
+// On editStackPermission, set to "none" to remove the stack from the team. addStackPermission ignores "none" — including an omitted permission, which reads as "none" — and stores nothing: adding is how a grant is created, and removeStack is how one is revoked.
 type TeamStackPermissionPermission int64
 
 // UserInfo UserInfo contains just the display information for a user.  This information may be returned from public APIs,
@@ -1928,11 +2109,16 @@ type UserInfo struct {
 	// AvatarUrl The URL of the user's avatar image.
 	AvatarUrl string `json:"avatarUrl"`
 
-	// Email IMPORTANT: The email address of the user is only included on a few admin-only APIs.
-	// For nearly all APIs that return a UserInfo object, this will not be provided.
-	// considered sensitive information.
+	// Email The user's email address. It is only populated on selected endpoints and is
+	// omitted from most responses. Treat it as sensitive information.
 	Email *string `json:"email,omitempty"`
+
+	// ServicePrincipalKind The type of service principal the user is. Set only where service principals are listed next to people, such as an organization's members and the access granted on an entity.
+	ServicePrincipalKind *UserInfoServicePrincipalKind `json:"servicePrincipalKind,omitempty"`
 }
+
+// UserInfoServicePrincipalKind The type of service principal the user is. Set only where service principals are listed next to people, such as an organization's members and the access granted on an entity.
+type UserInfoServicePrincipalKind string
 
 // ListOrgEnvironmentsEscParams defines parameters for ListOrgEnvironmentsEsc.
 type ListOrgEnvironmentsEscParams struct {
@@ -1969,8 +2155,20 @@ type ListOrganizationMembersParams struct {
 	// ContinuationToken Token for paginated result retrieval
 	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
 
-	// Type Member type to list: 'frontend' for Pulumi Service members or 'backend' for organization backend members
-	Type *string `form:"type,omitempty" json:"type,omitempty"`
+	// IncludeSuspended When true and the caller has org admin privileges, suspended members are included in the result with their 'Suspended' field set. Ignored for non-admin callers.
+	IncludeSuspended *bool `form:"includeSuspended,omitempty" json:"includeSuspended,omitempty"`
+
+	// Type The kind of member list to retrieve. Defaults to 'frontend' when omitted.
+	Type *ListOrganizationMembersParamsType `form:"type,omitempty" json:"type,omitempty"`
+}
+
+// ListOrganizationMembersParamsType defines parameters for ListOrganizationMembers.
+type ListOrganizationMembersParamsType string
+
+// GetOrgNeoTokenBudgetParams defines parameters for GetOrgNeoTokenBudget.
+type GetOrgNeoTokenBudgetParams struct {
+	// TaskId When supplied, returns the budget for this task's owner instead of the caller. Must resolve to a task within orgName.
+	TaskId *string `form:"taskId,omitempty" json:"taskId,omitempty"`
 }
 
 // ListPolicyPacksOrgsParams defines parameters for ListPolicyPacksOrgs.
@@ -1981,11 +2179,23 @@ type ListPolicyPacksOrgsParams struct {
 
 // ListTasksParams defines parameters for ListTasks.
 type ListTasksParams struct {
+	// AgentDefinitionId Agent definition ID to filter by. Use 'neo' for tasks without a custom agent. Omit to include all agents.
+	AgentDefinitionId *string `form:"agentDefinitionId,omitempty" json:"agentDefinitionId,omitempty"`
+
 	// ContinuationToken Token for retrieving the next page of results
 	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
 
+	// ExcludeSources Task origins to exclude from the results.
+	ExcludeSources *[]ListTasksParamsExcludeSources `form:"excludeSources,omitempty" json:"excludeSources,omitempty"`
+
 	// PageSize Number of results per page
 	PageSize *int64 `form:"pageSize,omitempty" json:"pageSize,omitempty"`
+
+	// PolicyIssueId Policy issue ID to filter by. Returns only tasks linked to that issue, such as tasks launched to remediate it.
+	PolicyIssueId *string `form:"policyIssueId,omitempty" json:"policyIssueId,omitempty"`
+
+	// Query Case-insensitive text to match in the task name.
+	Query *string `form:"query,omitempty" json:"query,omitempty"`
 
 	// SortBy Field to sort the results by. Defaults to lastEvent.
 	SortBy *ListTasksParamsSortBy `form:"sortBy,omitempty" json:"sortBy,omitempty"`
@@ -1993,15 +2203,24 @@ type ListTasksParams struct {
 	// SortDirection Direction to sort the results in. Defaults to desc.
 	SortDirection *ListTasksParamsSortDirection `form:"sortDirection,omitempty" json:"sortDirection,omitempty"`
 
-	// TaskType Task type to filter by
+	// Status Execution status to filter by.
+	Status *ListTasksParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// TaskType Task type to filter by. Omit to include both interactive and background tasks.
 	TaskType *ListTasksParamsTaskType `form:"taskType,omitempty" json:"taskType,omitempty"`
 }
+
+// ListTasksParamsExcludeSources defines parameters for ListTasks.
+type ListTasksParamsExcludeSources string
 
 // ListTasksParamsSortBy defines parameters for ListTasks.
 type ListTasksParamsSortBy string
 
 // ListTasksParamsSortDirection defines parameters for ListTasks.
 type ListTasksParamsSortDirection string
+
+// ListTasksParamsStatus defines parameters for ListTasks.
+type ListTasksParamsStatus string
 
 // ListTasksParamsTaskType defines parameters for ListTasks.
 type ListTasksParamsTaskType string
@@ -2140,7 +2359,7 @@ type ClientInterface interface {
 	ListOrganizationMembers(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetOrgNeoTokenBudget request
-	GetOrgNeoTokenBudget(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
+	GetOrgNeoTokenBudget(ctx context.Context, orgName string, params *GetOrgNeoTokenBudgetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListPolicyGroups request
 	ListPolicyGroups(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2209,8 +2428,8 @@ func (c *Client) ListOrganizationMembers(ctx context.Context, orgName string, pa
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOrgNeoTokenBudgetRequest(c.Server, orgName)
+func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, orgName string, params *GetOrgNeoTokenBudgetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOrgNeoTokenBudgetRequest(c.Server, orgName, params)
 	if err != nil {
 		return nil, err
 	}
@@ -2582,6 +2801,18 @@ func NewListOrganizationMembersRequest(server string, orgName string, params *Li
 
 		}
 
+		if params.IncludeSuspended != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "includeSuspended", *params.IncludeSuspended, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
 		if params.Type != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", *params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
@@ -2609,7 +2840,7 @@ func NewListOrganizationMembersRequest(server string, orgName string, params *Li
 }
 
 // NewGetOrgNeoTokenBudgetRequest generates requests for GetOrgNeoTokenBudget
-func NewGetOrgNeoTokenBudgetRequest(server string, orgName string) (*http.Request, error) {
+func NewGetOrgNeoTokenBudgetRequest(server string, orgName string, params *GetOrgNeoTokenBudgetParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -2632,6 +2863,33 @@ func NewGetOrgNeoTokenBudgetRequest(server string, orgName string) (*http.Reques
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.TaskId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "taskId", *params.TaskId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
 	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
@@ -2874,6 +3132,18 @@ func NewListTasksRequest(server string, orgName string, params *ListTasksParams)
 		// per the OpenAPI spec (e.g. "color=blue,black,brown").
 		var rawQueryFragments []string
 
+		if params.AgentDefinitionId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "agentDefinitionId", *params.AgentDefinitionId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
 		if params.ContinuationToken != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "continuationToken", *params.ContinuationToken, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
@@ -2886,9 +3156,45 @@ func NewListTasksRequest(server string, orgName string, params *ListTasksParams)
 
 		}
 
+		if params.ExcludeSources != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "excludeSources", *params.ExcludeSources, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "array", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
 		if params.PageSize != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "pageSize", *params.PageSize, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.PolicyIssueId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "policyIssueId", *params.PolicyIssueId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Query != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "query", *params.Query, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -2913,6 +3219,18 @@ func NewListTasksRequest(server string, orgName string, params *ListTasksParams)
 		if params.SortDirection != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "sortDirection", *params.SortDirection, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "status", *params.Status, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -3385,7 +3703,7 @@ type ClientWithResponsesInterface interface {
 	ListOrganizationMembersWithResponse(ctx context.Context, orgName string, params *ListOrganizationMembersParams, reqEditors ...RequestEditorFn) (*ListOrganizationMembersResp, error)
 
 	// GetOrgNeoTokenBudgetWithResponse request
-	GetOrgNeoTokenBudgetWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*GetOrgNeoTokenBudgetResp, error)
+	GetOrgNeoTokenBudgetWithResponse(ctx context.Context, orgName string, params *GetOrgNeoTokenBudgetParams, reqEditors ...RequestEditorFn) (*GetOrgNeoTokenBudgetResp, error)
 
 	// ListPolicyGroupsWithResponse request
 	ListPolicyGroupsWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*ListPolicyGroupsResp, error)
@@ -3866,8 +4184,8 @@ func (c *ClientWithResponses) ListOrganizationMembersWithResponse(ctx context.Co
 }
 
 // GetOrgNeoTokenBudgetWithResponse request returning *GetOrgNeoTokenBudgetResp
-func (c *ClientWithResponses) GetOrgNeoTokenBudgetWithResponse(ctx context.Context, orgName string, reqEditors ...RequestEditorFn) (*GetOrgNeoTokenBudgetResp, error) {
-	rsp, err := c.GetOrgNeoTokenBudget(ctx, orgName, reqEditors...)
+func (c *ClientWithResponses) GetOrgNeoTokenBudgetWithResponse(ctx context.Context, orgName string, params *GetOrgNeoTokenBudgetParams, reqEditors ...RequestEditorFn) (*GetOrgNeoTokenBudgetResp, error) {
+	rsp, err := c.GetOrgNeoTokenBudget(ctx, orgName, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
