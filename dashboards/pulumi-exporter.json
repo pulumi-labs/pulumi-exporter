@@ -1099,14 +1099,14 @@
         "y": 70
       },
       "id": 40,
-      "title": "Pulumi Neo Custom Agents",
+      "title": "Pulumi Agents",
       "type": "row"
     },
     {
       "type": "stat",
       "id": 41,
-      "title": "Custom Agents",
-      "description": "Number of Pulumi Neo Custom Agents defined in the organization.",
+      "title": "Agents",
+      "description": "Number of Pulumi Agents defined in the organization.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1158,7 +1158,7 @@
       "type": "stat",
       "id": 42,
       "title": "Paused Agents",
-      "description": "Custom Agents that are currently paused and will not start new runs.",
+      "description": "Pulumi Agents that are currently paused and will not start new runs.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1213,7 +1213,7 @@
       "type": "stat",
       "id": 43,
       "title": "Agent Runs (Lifetime)",
-      "description": "Total runs started by all Custom Agents, aggregated organization-wide.",
+      "description": "Total runs started by all Pulumi Agents, aggregated organization-wide.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1265,7 +1265,7 @@
       "type": "stat",
       "id": 44,
       "title": "Agent Runs Running",
-      "description": "Custom Agent runs that are running right now.",
+      "description": "Pulumi Agent runs that are running right now.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1317,7 +1317,7 @@
       "type": "bargauge",
       "id": 45,
       "title": "Runs by Agent",
-      "description": "Lifetime runs started per Custom Agent.",
+      "description": "Lifetime runs started per Pulumi Agent.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1364,7 +1364,7 @@
       "type": "timeseries",
       "id": 46,
       "title": "Agent Runs Started per Hour",
-      "description": "New runs per Custom Agent, derived from the increase of the lifetime run count.",
+      "description": "New runs per Pulumi Agent, derived from the increase of the lifetime run count.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -1433,7 +1433,7 @@
       "type": "piechart",
       "id": 47,
       "title": "Automations by Last Run Status",
-      "description": "Custom Agent automations grouped by the status of their last run. \"none\" means the automation has not run yet.",
+      "description": "Pulumi Agent automations grouped by the status of their last run. \"none\" means the automation has not run yet.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"

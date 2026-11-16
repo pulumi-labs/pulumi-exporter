@@ -99,7 +99,7 @@ pulumi-exporter/
 │   │   ├── stack.go                     # Per-stack collection
 │   │   ├── deployments.go              # Org deployment collection
 │   │   ├── org.go                       # Org-level collection
-│   │   ├── agents.go                    # Custom Agent and automation collection
+│   │   ├── agents.go                    # Pulumi Agent and automation collection
 │   │   └── collector_test.go
 │   ├── exporter/                        # OTel MeterProvider setup
 │   └── appinfo/                         # Build-time version info (ldflags)

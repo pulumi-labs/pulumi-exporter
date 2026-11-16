@@ -19,7 +19,7 @@ func (c *Collector) collectAgents(ctx context.Context, org string) {
 		return
 	}
 	if resp == nil {
-		// Custom Agents are not enabled for the organization; nothing to record.
+		// Pulumi Agents are not enabled for the organization; nothing to record.
 		return
 	}
 
@@ -53,7 +53,7 @@ func (c *Collector) collectAgentAutomations(ctx context.Context, org string) {
 		return
 	}
 	if resp == nil {
-		// Custom Agents are not enabled for the organization; nothing to record.
+		// Pulumi Agents are not enabled for the organization; nothing to record.
 		return
 	}
 

@@ -375,8 +375,8 @@ func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, org string) (*NeoToke
 	}, nil
 }
 
-// ListAgents returns the Pulumi Neo Custom Agents defined in an organization.
-// It returns nil when the organization does not have Custom Agents enabled.
+// ListAgents returns the Pulumi Agents defined in an organization.
+// It returns nil when the organization does not have Pulumi Agents enabled.
 func (c *Client) ListAgents(ctx context.Context, org string) (*ListAgentsResponse, error) {
 	resp, err := c.gen.ListAgentDefinitionsWithResponse(ctx, org)
 	if err != nil {
@@ -408,9 +408,9 @@ func (c *Client) ListAgents(ctx context.Context, org string) (*ListAgentsRespons
 	return &ListAgentsResponse{Agents: agents}, nil
 }
 
-// ListAgentAutomations returns all Custom Agent automations for an organization,
+// ListAgentAutomations returns all Pulumi Agent automations for an organization,
 // handling pagination. It returns nil when the organization does not have
-// Custom Agents enabled.
+// Pulumi Agents enabled.
 func (c *Client) ListAgentAutomations(ctx context.Context, org string) (*ListAgentAutomationsResponse, error) {
 	var all []AgentAutomation
 	var contToken *string
