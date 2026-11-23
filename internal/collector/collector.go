@@ -31,6 +31,8 @@ type PulumiAPI interface {
 	GetPolicyResultsMetadata(ctx context.Context, org string) (*client.PolicyResultsMetadataResponse, error)
 	ListAgents(ctx context.Context, org string) (*client.ListAgentsResponse, error)
 	ListAgentAutomations(ctx context.Context, org string) (*client.ListAgentAutomationsResponse, error)
+	ListDeliveryPrograms(ctx context.Context, org string) (*client.ListDeliveryProgramsResponse, error)
+	ListPendingDeliveryApprovals(ctx context.Context, org string) (*client.ListDeliveryApprovalsResponse, error)
 }
 
 // Collector periodically collects metrics from the Pulumi Cloud API.

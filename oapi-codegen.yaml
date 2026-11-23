@@ -22,3 +22,5 @@ output-options:
     - GetPolicyResultsMetadata
     - ListAgentDefinitions
     - ListAgentAutomationsV2
+    - ListDeliveryPrograms
+    - ListDeliveryApprovals

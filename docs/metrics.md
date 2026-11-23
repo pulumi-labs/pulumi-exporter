@@ -51,6 +51,22 @@ The `neo_token_budget_*` metrics report the effective budget for the identity be
 
 Run counts are aggregated across the organization, not scoped to the identity behind the access token. `pulumi_org_agent_runs_started` only grows, so `increase(pulumi_org_agent_runs_started[1h])` gives the runs started per hour. Automations without a scheduled next run, such as triggered ones, have no `next_run_timestamp` series. Organizations without Pulumi Agents enabled record none of these metrics.
 
+## Pulumi Delivery Metrics
+
+| Metric | Type | Labels | Description |
+|--------|------|--------|-------------|
+| `pulumi_org_delivery_program_count` | Gauge | `org`, `registered` | Number of Delivery programs by registration state |
+| `pulumi_org_delivery_programs_by_last_run_status` | Gauge | `org`, `status` | Number of Delivery programs by the status of their latest run |
+| `pulumi_org_delivery_stages_by_status` | Gauge | `org`, `status` | Number of Delivery stages by their status in the latest run |
+| `pulumi_org_delivery_stages_waiting` | Gauge | `org`, `wait_kind` | Number of waiting Delivery stages by what they wait for |
+| `pulumi_org_delivery_oldest_pending_approval_age_seconds` | Gauge | `org` | Age of the oldest pending Delivery approval (`0` when none is pending) |
+| `pulumi_delivery_program_pending_approvals` | Gauge | `org`, `project`, `stack` | Approvals a Delivery program is waiting for |
+| `pulumi_delivery_program_last_run_timestamp` | Gauge | `org`, `project`, `stack` | Unix timestamp of when the latest run was created |
+| `pulumi_delivery_program_last_run_duration_seconds` | Gauge | `org`, `project`, `stack` | Duration of the latest finished run |
+| `pulumi_delivery_stage_deployed_release` | Gauge | `org`, `project`, `stack`, `stage` | Number of the release deployed at a stage |
+
+A Delivery program belongs to a stack, so per-program metrics carry the stack's `project` and `stack`. The org-level counts record every documented `status` and `wait_kind`, including zeros, so dashboards show `0` instead of no data. A program that has not run yet counts under `status="none"`, and a run that has not finished keeps the duration of the previous finished run. Stages with no release deployed have no `deployed_release` series. Organizations without Delivery enabled record none of these metrics. The Delivery API is still in preview (`/api/preview/delivery`).
+
 ## Label Values
 
 | Label | Values |
@@ -67,6 +83,10 @@ Run counts are aggregated across the organization, not scoped to the identity be
 | `last_run_status` (automations) | the API's last run status (for example `succeeded`, `failed`), or `none` if it has not run yet |
 | `agent` | Pulumi Agent name |
 | `automation` | Automation name |
+| `registered` (Delivery programs) | `true`, `false` |
+| `status` (Delivery) | `in_progress`, `waiting`, `running`, `pending`, `blocked`, `succeeded`, `failed`, `canceled`, `superseded`, `skipped`, `closed`, `unchanged`, and `none` for programs that have not run (last run status only) |
+| `wait_kind` (Delivery) | `approval`, `decision`, `manual`, `queue`, `stage`, `dependency`, `target`, `inputs`, `scope`, `pass_retry`, `paused` |
+| `stage` | Delivery stage name |
 
 ## Histogram Buckets
 

@@ -204,3 +204,51 @@ type AgentAutomation struct {
 	// NextExecution is the RFC 3339 time of the next scheduled run, empty when none is scheduled.
 	NextExecution string
 }
+
+// ListDeliveryProgramsResponse represents the response from GET /api/preview/delivery/{org}/programs.
+type ListDeliveryProgramsResponse struct {
+	Programs []DeliveryProgram
+}
+
+// DeliveryProgram represents the Pulumi Delivery program of a stack.
+type DeliveryProgram struct {
+	Project          string
+	Stack            string
+	Registered       bool
+	PendingApprovals int64
+	// LastRun is nil when the program has not run yet.
+	LastRun *DeliveryRun
+	Stages  []DeliveryStage
+}
+
+// DeliveryRun summarizes a Pulumi Delivery run.
+type DeliveryRun struct {
+	Number    int64
+	Status    string
+	WaitKind  string
+	CreatedAt time.Time
+	// FinishedAt is zero while the run has not ended.
+	FinishedAt time.Time
+}
+
+// DeliveryStage represents a stage of a Delivery program as of its latest run.
+type DeliveryStage struct {
+	Name     string
+	Status   string
+	WaitKind string
+	// DeployedRelease is 0 when no release is deployed at the stage.
+	DeployedRelease int64
+}
+
+// ListDeliveryApprovalsResponse represents the response from GET /api/preview/delivery/{org}/approvals.
+type ListDeliveryApprovalsResponse struct {
+	Approvals []DeliveryApproval
+}
+
+// DeliveryApproval represents an approval requested by a Delivery gate.
+type DeliveryApproval struct {
+	Project     string
+	Stack       string
+	Stage       string
+	RequestedAt time.Time
+}

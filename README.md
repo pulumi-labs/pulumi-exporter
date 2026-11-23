@@ -124,7 +124,7 @@ Each org's data is collected in parallel. See [docs/configuration.md](docs/confi
 
 ## Metrics
 
-27 metrics across stacks and organizations:
+36 metrics across stacks and organizations:
 
 | Scope | Metrics |
 |-------|---------|
@@ -133,6 +133,7 @@ Each org's data is collected in parallel. See [docs/configuration.md](docs/confi
 | Neo tokens | `neo_tokens_used_current_month`, `neo_tokens_used_total`, `neo_token_budget_consumed`, `neo_token_budget_allowance`, `neo_token_budget_exhausted` |
 | Compliance | `policy_total`, `policy_with_issues`, `governed_resources_total`, `governed_resources_with_issues` |
 | Pulumi Agents | `agent_count`, `agent_runs_started`, `agent_runs_running`, `agent_automation_count`, `agent_automation_next_run_timestamp` |
+| Pulumi Delivery | `delivery_program_count`, `delivery_programs_by_last_run_status`, `delivery_stages_by_status`, `delivery_stages_waiting`, `delivery_oldest_pending_approval_age_seconds`, `delivery_program_pending_approvals`, `delivery_program_last_run_timestamp`, `delivery_program_last_run_duration_seconds`, `delivery_stage_deployed_release` |
 
 All metric names are prefixed with `pulumi_` (stack-level) or `pulumi_org_` (org-level). Full details with types, labels, and histogram buckets in [docs/metrics.md](docs/metrics.md).
 
@@ -159,8 +160,8 @@ Run `make help` to see everything. Here are the ones you'll use most:
 | | |
 |---|---|
 | [Configuration](docs/configuration.md) | Flags, env vars, YAML config, multi-org, large orgs |
-| [Metrics reference](docs/metrics.md) | All 27 metrics with types, labels, histogram buckets |
-| [Grafana dashboard](docs/dashboards.md) | Out-of-the-box dashboard with 40 panels, import guide |
+| [Metrics reference](docs/metrics.md) | All 36 metrics with types, labels, histogram buckets |
+| [Grafana dashboard](docs/dashboards.md) | Out-of-the-box dashboard with 50 panels, import guide |
 | [Backend setup](docs/backends.md) | Prometheus, Grafana Alloy, DataDog, NewRelic, Dynatrace |
 | [Kubernetes and Helm](docs/kubernetes.md) | Helm chart, Pulumi programs, raw manifests, chart CI/CD |
 | [Development](docs/development.md) | Build, test, project structure, OpenAPI generation, contributing |
