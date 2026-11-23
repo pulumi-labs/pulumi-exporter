@@ -37,6 +37,16 @@ type Instruments struct {
 	orgAgentRunsRunning       metric.Int64Gauge
 	orgAgentAutomationCount   metric.Int64Gauge
 	orgAgentAutomationNextRun metric.Float64Gauge
+
+	orgDeliveryProgramCount         metric.Int64Gauge
+	orgDeliveryProgramsByLastRun    metric.Int64Gauge
+	orgDeliveryStagesByStatus       metric.Int64Gauge
+	orgDeliveryStagesWaiting        metric.Int64Gauge
+	orgDeliveryOldestApprovalAge    metric.Float64Gauge
+	deliveryProgramPendingApprovals metric.Int64Gauge
+	deliveryProgramLastRunTimestamp metric.Float64Gauge
+	deliveryProgramLastRunDuration  metric.Float64Gauge
+	deliveryStageDeployedRelease    metric.Int64Gauge
 }
 
 // NewInstruments creates all OTel metric instruments.
@@ -86,6 +96,10 @@ func NewInstruments(meter metric.Meter) (*Instruments, error) {
 	}
 
 	if err = newOrgAgentInstruments(meter, &ins); err != nil {
+		return nil, err
+	}
+
+	if err = newDeliveryInstruments(meter, &ins); err != nil {
 		return nil, err
 	}
 
@@ -237,6 +251,76 @@ func newOrgAgentInstruments(meter metric.Meter, ins *Instruments) error {
 
 	if ins.orgAgentAutomationNextRun, err = meter.Float64Gauge("pulumi_org_agent_automation_next_run_timestamp",
 		metric.WithDescription("Unix timestamp of the next scheduled run of a Pulumi Agent automation"),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// newDeliveryInstruments registers the Pulumi Delivery instruments.
+func newDeliveryInstruments(meter metric.Meter, ins *Instruments) error {
+	var err error
+
+	if ins.orgDeliveryProgramCount, err = meter.Int64Gauge("pulumi_org_delivery_program_count",
+		metric.WithDescription("Number of Pulumi Delivery programs in an organization by registration state"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgDeliveryProgramsByLastRun, err = meter.Int64Gauge("pulumi_org_delivery_programs_by_last_run_status",
+		metric.WithDescription("Number of Pulumi Delivery programs by the status of their latest run"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgDeliveryStagesByStatus, err = meter.Int64Gauge("pulumi_org_delivery_stages_by_status",
+		metric.WithDescription("Number of Pulumi Delivery stages by their status in the latest run"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgDeliveryStagesWaiting, err = meter.Int64Gauge("pulumi_org_delivery_stages_waiting",
+		metric.WithDescription("Number of waiting Pulumi Delivery stages by what they wait for"),
+	); err != nil {
+		return err
+	}
+
+	if ins.orgDeliveryOldestApprovalAge, err = meter.Float64Gauge("pulumi_org_delivery_oldest_pending_approval_age_seconds",
+		metric.WithDescription("Age in seconds of the oldest pending Pulumi Delivery approval (0 when none is pending)"),
+	); err != nil {
+		return err
+	}
+
+	return newDeliveryProgramInstruments(meter, ins)
+}
+
+// newDeliveryProgramInstruments registers the per-program Pulumi Delivery
+// instruments. It is split out of newDeliveryInstruments to keep cyclomatic
+// complexity under the limit.
+func newDeliveryProgramInstruments(meter metric.Meter, ins *Instruments) error {
+	var err error
+
+	if ins.deliveryProgramPendingApprovals, err = meter.Int64Gauge("pulumi_delivery_program_pending_approvals",
+		metric.WithDescription("Number of approvals a Pulumi Delivery program is waiting for"),
+	); err != nil {
+		return err
+	}
+
+	if ins.deliveryProgramLastRunTimestamp, err = meter.Float64Gauge("pulumi_delivery_program_last_run_timestamp",
+		metric.WithDescription("Unix timestamp of when the latest run of a Pulumi Delivery program was created"),
+	); err != nil {
+		return err
+	}
+
+	if ins.deliveryProgramLastRunDuration, err = meter.Float64Gauge("pulumi_delivery_program_last_run_duration_seconds",
+		metric.WithDescription("Duration in seconds of the latest finished run of a Pulumi Delivery program"),
+	); err != nil {
+		return err
+	}
+
+	if ins.deliveryStageDeployedRelease, err = meter.Int64Gauge("pulumi_delivery_stage_deployed_release",
+		metric.WithDescription("Number of the release deployed at a Pulumi Delivery stage"),
 	); err != nil {
 		return err
 	}

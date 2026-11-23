@@ -166,6 +166,24 @@ func (e AgentTaskApprovalMode) Valid() bool {
 	}
 }
 
+// Defines values for AgentTaskInteractionMode.
+const (
+	AgentTaskInteractionModeInteractive AgentTaskInteractionMode = "interactive"
+	AgentTaskInteractionModeReadOnly    AgentTaskInteractionMode = "read-only"
+)
+
+// Valid indicates whether the value is a known member of the AgentTaskInteractionMode enum.
+func (e AgentTaskInteractionMode) Valid() bool {
+	switch e {
+	case AgentTaskInteractionModeInteractive:
+		return true
+	case AgentTaskInteractionModeReadOnly:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AgentTaskPermissionMode.
 const (
 	AgentTaskPermissionModeDefault  AgentTaskPermissionMode = "default"
@@ -264,6 +282,7 @@ const (
 	AgentTaskVcsProviderAzureDevops      AgentTaskVcsProvider = "azure_devops"
 	AgentTaskVcsProviderBitbucket        AgentTaskVcsProvider = "bitbucket"
 	AgentTaskVcsProviderCustom           AgentTaskVcsProvider = "custom"
+	AgentTaskVcsProviderEntire           AgentTaskVcsProvider = "entire"
 	AgentTaskVcsProviderGithub           AgentTaskVcsProvider = "github"
 	AgentTaskVcsProviderGithubEnterprise AgentTaskVcsProvider = "github_enterprise"
 	AgentTaskVcsProviderGitlab           AgentTaskVcsProvider = "gitlab"
@@ -278,6 +297,8 @@ func (e AgentTaskVcsProvider) Valid() bool {
 	case AgentTaskVcsProviderBitbucket:
 		return true
 	case AgentTaskVcsProviderCustom:
+		return true
+	case AgentTaskVcsProviderEntire:
 		return true
 	case AgentTaskVcsProviderGithub:
 		return true
@@ -330,19 +351,19 @@ func (e AppPolicyGroupSummaryMode) Valid() bool {
 
 // Defines values for CreateAgentTaskRequestApprovalMode.
 const (
-	Auto     CreateAgentTaskRequestApprovalMode = "auto"
-	Balanced CreateAgentTaskRequestApprovalMode = "balanced"
-	Manual   CreateAgentTaskRequestApprovalMode = "manual"
+	CreateAgentTaskRequestApprovalModeAuto     CreateAgentTaskRequestApprovalMode = "auto"
+	CreateAgentTaskRequestApprovalModeBalanced CreateAgentTaskRequestApprovalMode = "balanced"
+	CreateAgentTaskRequestApprovalModeManual   CreateAgentTaskRequestApprovalMode = "manual"
 )
 
 // Valid indicates whether the value is a known member of the CreateAgentTaskRequestApprovalMode enum.
 func (e CreateAgentTaskRequestApprovalMode) Valid() bool {
 	switch e {
-	case Auto:
+	case CreateAgentTaskRequestApprovalModeAuto:
 		return true
-	case Balanced:
+	case CreateAgentTaskRequestApprovalModeBalanced:
 		return true
-	case Manual:
+	case CreateAgentTaskRequestApprovalModeManual:
 		return true
 	default:
 		return false
@@ -351,16 +372,16 @@ func (e CreateAgentTaskRequestApprovalMode) Valid() bool {
 
 // Defines values for CreateAgentTaskRequestPermissionMode.
 const (
-	Default  CreateAgentTaskRequestPermissionMode = "default"
-	ReadOnly CreateAgentTaskRequestPermissionMode = "read-only"
+	CreateAgentTaskRequestPermissionModeDefault  CreateAgentTaskRequestPermissionMode = "default"
+	CreateAgentTaskRequestPermissionModeReadOnly CreateAgentTaskRequestPermissionMode = "read-only"
 )
 
 // Valid indicates whether the value is a known member of the CreateAgentTaskRequestPermissionMode enum.
 func (e CreateAgentTaskRequestPermissionMode) Valid() bool {
 	switch e {
-	case Default:
+	case CreateAgentTaskRequestPermissionModeDefault:
 		return true
-	case ReadOnly:
+	case CreateAgentTaskRequestPermissionModeReadOnly:
 		return true
 	default:
 		return false
@@ -415,6 +436,225 @@ func (e CreateAgentTaskRequestSource) Valid() bool {
 	case CreateAgentTaskRequestSourceSchedule:
 		return true
 	case CreateAgentTaskRequestSourceSlack:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeliveryApprovalConditionState.
+const (
+	DeliveryApprovalConditionStatePending   DeliveryApprovalConditionState = "pending"
+	DeliveryApprovalConditionStateRejected  DeliveryApprovalConditionState = "rejected"
+	DeliveryApprovalConditionStateSatisfied DeliveryApprovalConditionState = "satisfied"
+)
+
+// Valid indicates whether the value is a known member of the DeliveryApprovalConditionState enum.
+func (e DeliveryApprovalConditionState) Valid() bool {
+	switch e {
+	case DeliveryApprovalConditionStatePending:
+		return true
+	case DeliveryApprovalConditionStateRejected:
+		return true
+	case DeliveryApprovalConditionStateSatisfied:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeliveryRuleNodeKind.
+const (
+	DeliveryRuleNodeKindAll      DeliveryRuleNodeKind = "all"
+	DeliveryRuleNodeKindAny      DeliveryRuleNodeKind = "any"
+	DeliveryRuleNodeKindApproval DeliveryRuleNodeKind = "approval"
+	DeliveryRuleNodeKindDecision DeliveryRuleNodeKind = "decision"
+	DeliveryRuleNodeKindManual   DeliveryRuleNodeKind = "manual"
+)
+
+// Valid indicates whether the value is a known member of the DeliveryRuleNodeKind enum.
+func (e DeliveryRuleNodeKind) Valid() bool {
+	switch e {
+	case DeliveryRuleNodeKindAll:
+		return true
+	case DeliveryRuleNodeKindAny:
+		return true
+	case DeliveryRuleNodeKindApproval:
+		return true
+	case DeliveryRuleNodeKindDecision:
+		return true
+	case DeliveryRuleNodeKindManual:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeliveryRunSummaryKind.
+const (
+	ForcePromote DeliveryRunSummaryKind = "force_promote"
+	Normal       DeliveryRunSummaryKind = "normal"
+	Redeploy     DeliveryRunSummaryKind = "redeploy"
+	Rollback     DeliveryRunSummaryKind = "rollback"
+)
+
+// Valid indicates whether the value is a known member of the DeliveryRunSummaryKind enum.
+func (e DeliveryRunSummaryKind) Valid() bool {
+	switch e {
+	case ForcePromote:
+		return true
+	case Normal:
+		return true
+	case Redeploy:
+		return true
+	case Rollback:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeliveryRunSummaryTriggerKind.
+const (
+	Dispatch       DeliveryRunSummaryTriggerKind = "dispatch"
+	Local          DeliveryRunSummaryTriggerKind = "local"
+	Operator       DeliveryRunSummaryTriggerKind = "operator"
+	Push           DeliveryRunSummaryTriggerKind = "push"
+	Registration   DeliveryRunSummaryTriggerKind = "registration"
+	StageConverged DeliveryRunSummaryTriggerKind = "stage_converged"
+)
+
+// Valid indicates whether the value is a known member of the DeliveryRunSummaryTriggerKind enum.
+func (e DeliveryRunSummaryTriggerKind) Valid() bool {
+	switch e {
+	case Dispatch:
+		return true
+	case Local:
+		return true
+	case Operator:
+		return true
+	case Push:
+		return true
+	case Registration:
+		return true
+	case StageConverged:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeliveryRunSummaryActorKind.
+const (
+	System  DeliveryRunSummaryActorKind = "system"
+	Trigger DeliveryRunSummaryActorKind = "trigger"
+	User    DeliveryRunSummaryActorKind = "user"
+	Webhook DeliveryRunSummaryActorKind = "webhook"
+)
+
+// Valid indicates whether the value is a known member of the DeliveryRunSummaryActorKind enum.
+func (e DeliveryRunSummaryActorKind) Valid() bool {
+	switch e {
+	case System:
+		return true
+	case Trigger:
+		return true
+	case User:
+		return true
+	case Webhook:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeliveryStatusStatus.
+const (
+	DeliveryStatusStatusBlocked    DeliveryStatusStatus = "blocked"
+	DeliveryStatusStatusCanceled   DeliveryStatusStatus = "canceled"
+	DeliveryStatusStatusClosed     DeliveryStatusStatus = "closed"
+	DeliveryStatusStatusFailed     DeliveryStatusStatus = "failed"
+	DeliveryStatusStatusInProgress DeliveryStatusStatus = "in_progress"
+	DeliveryStatusStatusPending    DeliveryStatusStatus = "pending"
+	DeliveryStatusStatusRunning    DeliveryStatusStatus = "running"
+	DeliveryStatusStatusSkipped    DeliveryStatusStatus = "skipped"
+	DeliveryStatusStatusSucceeded  DeliveryStatusStatus = "succeeded"
+	DeliveryStatusStatusSuperseded DeliveryStatusStatus = "superseded"
+	DeliveryStatusStatusUnchanged  DeliveryStatusStatus = "unchanged"
+	DeliveryStatusStatusWaiting    DeliveryStatusStatus = "waiting"
+)
+
+// Valid indicates whether the value is a known member of the DeliveryStatusStatus enum.
+func (e DeliveryStatusStatus) Valid() bool {
+	switch e {
+	case DeliveryStatusStatusBlocked:
+		return true
+	case DeliveryStatusStatusCanceled:
+		return true
+	case DeliveryStatusStatusClosed:
+		return true
+	case DeliveryStatusStatusFailed:
+		return true
+	case DeliveryStatusStatusInProgress:
+		return true
+	case DeliveryStatusStatusPending:
+		return true
+	case DeliveryStatusStatusRunning:
+		return true
+	case DeliveryStatusStatusSkipped:
+		return true
+	case DeliveryStatusStatusSucceeded:
+		return true
+	case DeliveryStatusStatusSuperseded:
+		return true
+	case DeliveryStatusStatusUnchanged:
+		return true
+	case DeliveryStatusStatusWaiting:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeliveryStatusWaitKind.
+const (
+	DeliveryStatusWaitKindApproval   DeliveryStatusWaitKind = "approval"
+	DeliveryStatusWaitKindDecision   DeliveryStatusWaitKind = "decision"
+	DeliveryStatusWaitKindDependency DeliveryStatusWaitKind = "dependency"
+	DeliveryStatusWaitKindInputs     DeliveryStatusWaitKind = "inputs"
+	DeliveryStatusWaitKindManual     DeliveryStatusWaitKind = "manual"
+	DeliveryStatusWaitKindPassRetry  DeliveryStatusWaitKind = "pass_retry"
+	DeliveryStatusWaitKindPaused     DeliveryStatusWaitKind = "paused"
+	DeliveryStatusWaitKindQueue      DeliveryStatusWaitKind = "queue"
+	DeliveryStatusWaitKindScope      DeliveryStatusWaitKind = "scope"
+	DeliveryStatusWaitKindStage      DeliveryStatusWaitKind = "stage"
+	DeliveryStatusWaitKindTarget     DeliveryStatusWaitKind = "target"
+)
+
+// Valid indicates whether the value is a known member of the DeliveryStatusWaitKind enum.
+func (e DeliveryStatusWaitKind) Valid() bool {
+	switch e {
+	case DeliveryStatusWaitKindApproval:
+		return true
+	case DeliveryStatusWaitKindDecision:
+		return true
+	case DeliveryStatusWaitKindDependency:
+		return true
+	case DeliveryStatusWaitKindInputs:
+		return true
+	case DeliveryStatusWaitKindManual:
+		return true
+	case DeliveryStatusWaitKindPassRetry:
+		return true
+	case DeliveryStatusWaitKindPaused:
+		return true
+	case DeliveryStatusWaitKindQueue:
+		return true
+	case DeliveryStatusWaitKindScope:
+		return true
+	case DeliveryStatusWaitKindStage:
+		return true
+	case DeliveryStatusWaitKindTarget:
 		return true
 	default:
 		return false
@@ -838,6 +1078,7 @@ func (e TeamMemberInfoRole) Valid() bool {
 // Defines values for TeamMemberInfoServicePrincipalKind.
 const (
 	TeamMemberInfoServicePrincipalKindCustomAgentDefinition TeamMemberInfoServicePrincipalKind = "custom-agent-definition"
+	TeamMemberInfoServicePrincipalKindDelivery              TeamMemberInfoServicePrincipalKind = "delivery"
 	TeamMemberInfoServicePrincipalKindTeam                  TeamMemberInfoServicePrincipalKind = "team"
 	TeamMemberInfoServicePrincipalKindUserDefined           TeamMemberInfoServicePrincipalKind = "user-defined"
 )
@@ -846,6 +1087,8 @@ const (
 func (e TeamMemberInfoServicePrincipalKind) Valid() bool {
 	switch e {
 	case TeamMemberInfoServicePrincipalKindCustomAgentDefinition:
+		return true
+	case TeamMemberInfoServicePrincipalKindDelivery:
 		return true
 	case TeamMemberInfoServicePrincipalKindTeam:
 		return true
@@ -886,6 +1129,7 @@ func (e TeamStackPermissionPermission) Valid() bool {
 // Defines values for UserInfoServicePrincipalKind.
 const (
 	UserInfoServicePrincipalKindCustomAgentDefinition UserInfoServicePrincipalKind = "custom-agent-definition"
+	UserInfoServicePrincipalKindDelivery              UserInfoServicePrincipalKind = "delivery"
 	UserInfoServicePrincipalKindTeam                  UserInfoServicePrincipalKind = "team"
 	UserInfoServicePrincipalKindUserDefined           UserInfoServicePrincipalKind = "user-defined"
 )
@@ -894,6 +1138,8 @@ const (
 func (e UserInfoServicePrincipalKind) Valid() bool {
 	switch e {
 	case UserInfoServicePrincipalKindCustomAgentDefinition:
+		return true
+	case UserInfoServicePrincipalKindDelivery:
 		return true
 	case UserInfoServicePrincipalKindTeam:
 		return true
@@ -1039,6 +1285,84 @@ func (e ListTasksParamsTaskType) Valid() bool {
 	}
 }
 
+// Defines values for ListDeliveryApprovalsParamsStatus.
+const (
+	All     ListDeliveryApprovalsParamsStatus = "all"
+	Closed  ListDeliveryApprovalsParamsStatus = "closed"
+	Pending ListDeliveryApprovalsParamsStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the ListDeliveryApprovalsParamsStatus enum.
+func (e ListDeliveryApprovalsParamsStatus) Valid() bool {
+	switch e {
+	case All:
+		return true
+	case Closed:
+		return true
+	case Pending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListDeliveryProgramsParamsKind.
+const (
+	Pipeline ListDeliveryProgramsParamsKind = "pipeline"
+)
+
+// Valid indicates whether the value is a known member of the ListDeliveryProgramsParamsKind enum.
+func (e ListDeliveryProgramsParamsKind) Valid() bool {
+	switch e {
+	case Pipeline:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListDeliveryProgramsParamsStatus.
+const (
+	Canceled   ListDeliveryProgramsParamsStatus = "canceled"
+	Failed     ListDeliveryProgramsParamsStatus = "failed"
+	InProgress ListDeliveryProgramsParamsStatus = "in_progress"
+	Succeeded  ListDeliveryProgramsParamsStatus = "succeeded"
+	Superseded ListDeliveryProgramsParamsStatus = "superseded"
+)
+
+// Valid indicates whether the value is a known member of the ListDeliveryProgramsParamsStatus enum.
+func (e ListDeliveryProgramsParamsStatus) Valid() bool {
+	switch e {
+	case Canceled:
+		return true
+	case Failed:
+		return true
+	case InProgress:
+		return true
+	case Succeeded:
+		return true
+	case Superseded:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListDeliveryProgramsParamsWaitKind.
+const (
+	ListDeliveryProgramsParamsWaitKindApproval ListDeliveryProgramsParamsWaitKind = "approval"
+)
+
+// Valid indicates whether the value is a known member of the ListDeliveryProgramsParamsWaitKind enum.
+func (e ListDeliveryProgramsParamsWaitKind) Valid() bool {
+	switch e {
+	case ListDeliveryProgramsParamsWaitKindApproval:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListAgentAutomationsV2ParamsKind.
 const (
 	ListAgentAutomationsV2ParamsKindScheduled ListAgentAutomationsV2ParamsKind = "scheduled"
@@ -1142,6 +1466,12 @@ type AgentDefinition struct {
 	// ApprovalMode The approval posture the agent's runs inherit. When omitted, runs are auto-approved, matching scheduled automations.
 	ApprovalMode *AgentDefinitionApprovalMode `json:"approvalMode,omitempty"`
 
+	// ModelProvider The model provider the agent's tasks run on: a provider name, or 'pulumi' for Pulumi's built-in models. Omitted or null uses the organization's default provider.
+	ModelProvider *string `json:"modelProvider,omitempty"`
+
+	// ReasoningEffort Effort the agent's models reason or think at: 'low', 'medium', or 'high', for this agent only. On an 'openai-responses' provider it overrides the provider's reasoning effort; on an 'anthropic-messages' provider it sets the thinking effort of models that support adaptive thinking. With no provider it applies to whichever of these the organization's default is. Refused for 'pulumi' and a named 'openai-chat' provider, and ignored on a run whose provider cannot reason. Omitted or null uses the provider's.
+	ReasoningEffort *string `json:"reasoningEffort,omitempty"`
+
 	// PausedAt When the agent was paused, or null if it is not paused. A paused agent starts no new runs from any source -- console, schedule, or trigger -- until it is resumed; runs already in flight continue.
 	PausedAt *string `json:"pausedAt,omitempty"`
 
@@ -1238,6 +1568,9 @@ type AgentTask struct {
 	// IsShared Whether this task is shared with other org members.
 	IsShared bool `json:"isShared"`
 
+	// InteractionMode Whether the task accepts user interaction. Read-only tasks do not accept follow-up input.
+	InteractionMode *AgentTaskInteractionMode `json:"interactionMode,omitempty"`
+
 	// SharedAt When the task was first shared. Null if never shared.
 	SharedAt *time.Time `json:"sharedAt,omitempty"`
 
@@ -1289,6 +1622,15 @@ type AgentTask struct {
 
 	// VcsProvider The version control system this task operates against. Set for tasks that target a specific VCS platform (e.g. code reviews). Null for tasks with no VCS context.
 	VcsProvider *AgentTaskVcsProvider `json:"vcsProvider,omitempty"`
+
+	// ModelProvider The model provider the task's turns run on, pinned at its first turn: 'pulumi' for Pulumi's built-in models, or the name of one of the organization's model providers. Null until the first turn.
+	ModelProvider *string `json:"modelProvider,omitempty"`
+
+	// Model The model the task's main loop last ran on, as its provider reported it. Null until the task has used a model.
+	Model *string `json:"model,omitempty"`
+
+	// ArchivedAt When the task was archived. Null while the task remains active.
+	ArchivedAt *time.Time `json:"archivedAt,omitempty"`
 }
 
 // AgentTaskTaskType Whether the task was started synchronously by a user or asynchronously by background automation.
@@ -1302,6 +1644,9 @@ type AgentTaskStatus string
 
 // AgentTaskApprovalMode Approval mode for this task. Valid values: 'manual', 'auto', 'balanced'.
 type AgentTaskApprovalMode string
+
+// AgentTaskInteractionMode Whether the task accepts user interaction. Read-only tasks do not accept follow-up input.
+type AgentTaskInteractionMode string
 
 // AgentTaskPermissionMode The permission scope for the task.
 type AgentTaskPermissionMode string
@@ -1548,6 +1893,237 @@ type CreateAgentTaskRequestToolExecutionMode string
 
 // CreateAgentTaskRequestSource The origin that triggered this task. Defaults to 'api' if omitted.
 type CreateAgentTaskRequestSource string
+
+// DeliveryApproval A row of the list of approvals.
+type DeliveryApproval struct {
+	// Project The project name of the pipeline stack.
+	Project string `json:"project"`
+
+	// Stack The stack name of the pipeline stack.
+	Stack string `json:"stack"`
+
+	// RunNumber The number of the run.
+	RunNumber int64 `json:"runNumber"`
+
+	// GateId The ID of the gate.
+	GateId string `json:"gateId"`
+
+	// ConditionId The ID of the condition.
+	ConditionId string `json:"conditionId"`
+
+	// ConditionName The name of the condition.
+	ConditionName string `json:"conditionName"`
+
+	// StageName The name of the stage.
+	StageName *string `json:"stageName,omitempty"`
+
+	// ReleaseNumber The number of the release.
+	ReleaseNumber *int64 `json:"releaseNumber,omitempty"`
+
+	// RequestedAt When the approval was requested.
+	RequestedAt time.Time `json:"requestedAt"`
+
+	// Actor The login of the user who started the run.
+	Actor *string `json:"actor,omitempty"`
+
+	// ChangeRequestStatus The status of the change request of the approval.
+	ChangeRequestStatus *string `json:"changeRequestStatus,omitempty"`
+
+	// ConditionState The state of the condition: `pending`, `satisfied` or `rejected`.
+	ConditionState *DeliveryApprovalConditionState `json:"conditionState,omitempty"`
+
+	// RequiredApprovals The number of approvals that are needed.
+	RequiredApprovals *int64 `json:"requiredApprovals,omitempty"`
+
+	// Approvals The number of approvals that count now.
+	Approvals *int64 `json:"approvals,omitempty"`
+}
+
+// DeliveryApprovalConditionState The state of the condition: `pending`, `satisfied` or `rejected`.
+type DeliveryApprovalConditionState string
+
+// DeliveryApprovalList A page of approvals.
+type DeliveryApprovalList struct {
+	// Approvals The approvals of the page, newest first.
+	Approvals *[]DeliveryApproval `json:"approvals,omitempty"`
+
+	// ContinuationToken The token of the next page. Not set on the last page.
+	ContinuationToken *string `json:"continuationToken,omitempty"`
+}
+
+// DeliveryCommit A commit that Delivery recorded for a source.
+type DeliveryCommit struct {
+	// Commit The commit SHA.
+	Commit string `json:"commit"`
+
+	// AuthorName The name of the commit author, if known.
+	AuthorName *string `json:"authorName,omitempty"`
+
+	// AuthorLogin The login of the commit author on the forge, if known.
+	AuthorLogin *string `json:"authorLogin,omitempty"`
+
+	// Message The first line of the commit message, if known.
+	Message *string `json:"message,omitempty"`
+}
+
+// DeliveryProgramList A page of Delivery programs.
+type DeliveryProgramList struct {
+	// Programs The programs of the page, in stack order.
+	Programs *[]DeliveryProgramRow `json:"programs,omitempty"`
+
+	// ContinuationToken The token of the next page. Not set on the last page.
+	ContinuationToken *string `json:"continuationToken,omitempty"`
+}
+
+// DeliveryProgramRow A row of the list of programs.
+type DeliveryProgramRow struct {
+	// Project The project name.
+	Project string `json:"project"`
+
+	// Stack The stack name.
+	Stack string `json:"stack"`
+
+	// Registered Whether the program has an active registration. A stack with local runs only has none.
+	Registered bool `json:"registered"`
+
+	// LastRun A row of the runs table of a Delivery program.
+	LastRun *DeliveryRunSummary `json:"lastRun,omitempty"`
+
+	// Stages The stages in order.
+	Stages *[]DeliveryProgramRowStage `json:"stages,omitempty"`
+
+	// PendingApprovals The number of approvals that wait now.
+	PendingApprovals int64 `json:"pendingApprovals"`
+}
+
+// DeliveryProgramRowStage The state of a stage in the list of programs.
+type DeliveryProgramRowStage struct {
+	// Name The name of the stage.
+	Name string `json:"name"`
+
+	// Status The structured status of a Delivery run, stage, member, gate or release.
+	Status DeliveryStatus `json:"status"`
+
+	// DeployedReleaseNumber The release deployed at the stage.
+	DeployedReleaseNumber *int64 `json:"deployedReleaseNumber,omitempty"`
+}
+
+// DeliveryRuleNode A node of the rule of a gate, with its satisfaction computed by the service.
+type DeliveryRuleNode struct {
+	// Kind The kind of the node.
+	Kind DeliveryRuleNodeKind `json:"kind"`
+
+	// Name The name of the condition. Set for a condition, not for `all` and `any`.
+	Name *string `json:"name,omitempty"`
+
+	// Satisfied Whether the node is satisfied.
+	Satisfied bool `json:"satisfied"`
+
+	// Children The children of an `all` or `any` node.
+	Children *[]DeliveryRuleNode `json:"children,omitempty"`
+}
+
+// DeliveryRuleNodeKind The kind of the node.
+type DeliveryRuleNodeKind string
+
+// DeliveryRunStageSummary A stage of a run, as the summary of the run shows it.
+type DeliveryRunStageSummary struct {
+	// Name The name of the stage.
+	Name string `json:"name"`
+
+	// Status The structured status of a Delivery run, stage, member, gate or release.
+	Status DeliveryStatus `json:"status"`
+
+	// From The names of the stages that must converge first.
+	From *[]string `json:"from,omitempty"`
+
+	// AdmittedAt When the stage got its lock.
+	AdmittedAt *time.Time `json:"admittedAt,omitempty"`
+
+	// ConvergedAt When the stage converged.
+	ConvergedAt *time.Time `json:"convergedAt,omitempty"`
+}
+
+// DeliveryRunSummary A row of the runs table of a Delivery program.
+type DeliveryRunSummary struct {
+	// Number The number of the run.
+	Number int64 `json:"number"`
+
+	// Kind The kind of the run.
+	Kind DeliveryRunSummaryKind `json:"kind"`
+
+	// Status The structured status of a Delivery run, stage, member, gate or release.
+	Status DeliveryStatus `json:"status"`
+
+	// TriggerKind What started the run.
+	TriggerKind DeliveryRunSummaryTriggerKind `json:"triggerKind"`
+
+	// ActorKind Who started the run: `user`, `webhook`, `trigger` or `system`.
+	ActorKind DeliveryRunSummaryActorKind `json:"actorKind"`
+
+	// Actor The login of the user who started the run, if a user did.
+	Actor *string `json:"actor,omitempty"`
+
+	// TargetStage The stage that an operator run deploys.
+	TargetStage *string `json:"targetStage,omitempty"`
+
+	// ReleaseNumber The number of the release of the run.
+	ReleaseNumber *int64 `json:"releaseNumber,omitempty"`
+
+	// ProgramCommit A commit that Delivery recorded for a source.
+	ProgramCommit *DeliveryCommit `json:"programCommit,omitempty"`
+
+	// ProgramRef The ref (branch, tag or commit SHA) that a person started the run at. Absent for a run at the head of the program branch.
+	ProgramRef *string `json:"programRef,omitempty"`
+
+	// OriginRunNumber The number of the run that an operator run repeats.
+	OriginRunNumber *int64 `json:"originRunNumber,omitempty"`
+
+	// Stages One entry for each stage of the run, in the order of the stages.
+	Stages *[]DeliveryRunStageSummary `json:"stages,omitempty"`
+
+	// CreatedAt When the run was created.
+	CreatedAt time.Time `json:"createdAt"`
+
+	// FinishedAt When the run ended.
+	FinishedAt *time.Time `json:"finishedAt,omitempty"`
+
+	// Local Whether the run is a local run, started with `pulumi up`. Set only when it is.
+	Local *bool `json:"local,omitempty"`
+}
+
+// DeliveryRunSummaryKind The kind of the run.
+type DeliveryRunSummaryKind string
+
+// DeliveryRunSummaryTriggerKind What started the run.
+type DeliveryRunSummaryTriggerKind string
+
+// DeliveryRunSummaryActorKind Who started the run: `user`, `webhook`, `trigger` or `system`.
+type DeliveryRunSummaryActorKind string
+
+// DeliveryStatus The structured status of a Delivery run, stage, member, gate or release.
+type DeliveryStatus struct {
+	// Status The status.
+	Status DeliveryStatusStatus `json:"status"`
+
+	// WaitKind What a waiting item waits for. A pending approval is a wait, not a failure.
+	WaitKind *DeliveryStatusWaitKind `json:"waitKind,omitempty"`
+
+	// StageName The name of the stage that the status refers to, for example the stage at which a run waits, failed or was superseded.
+	StageName *string `json:"stageName,omitempty"`
+
+	// ReleaseNumber The number of the release that the status refers to, for example the release that superseded a run.
+	ReleaseNumber *int64 `json:"releaseNumber,omitempty"`
+
+	// Reason The reason in text for people, for example why an item failed.
+	Reason *string `json:"reason,omitempty"`
+}
+
+// DeliveryStatusStatus The status.
+type DeliveryStatusStatus string
+
+// DeliveryStatusWaitKind What a waiting item waits for. A pending approval is a wait, not a failure.
+type DeliveryStatusWaitKind string
 
 // DeploymentJob DeploymentJob represents a deployment job with its status, timing, and step information.
 type DeploymentJob struct {
@@ -2456,6 +3032,10 @@ type Team struct {
 	// RoleIds RoleIDs are the IDs of the FGA roles assigned to the team, if any.
 	// Currently only one role per team is supported.
 	RoleIds *[]string `json:"roleIds,omitempty"`
+
+	// Everyone Whether this is the Everyone team: every admin and member of the organization is in it, but
+	// no billing manager. Pulumi manages it, so its name, description, members and roles cannot change.
+	Everyone *bool `json:"everyone,omitempty"`
 }
 
 // TeamKind The kind of team (e.g., pulumi or GitHub-backed).
@@ -2678,6 +3258,57 @@ type ListTasksParamsStatus string
 // ListTasksParamsTaskType defines parameters for ListTasks.
 type ListTasksParamsTaskType string
 
+// ListDeliveryApprovalsParams defines parameters for ListDeliveryApprovals.
+type ListDeliveryApprovalsParams struct {
+	// ContinuationToken Continuation token from a previous page
+	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
+
+	// MaxResults The number of results per page. The default is 50. A value below 1 or above 100 returns a 400 error.
+	MaxResults *int64 `form:"maxResults,omitempty" json:"maxResults,omitempty"`
+
+	// Project Only approvals of the pipeline with this project name. Use it with `stack`.
+	Project *string `form:"project,omitempty" json:"project,omitempty"`
+
+	// Stack Only approvals of the pipeline with this stack name. Use it with `project`.
+	Stack *string `form:"stack,omitempty" json:"stack,omitempty"`
+
+	// Status `pending`, `closed` or `all`. The default is `pending`. Any other value that is not empty returns a 400 error.
+	Status *ListDeliveryApprovalsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// ListDeliveryApprovalsParamsStatus defines parameters for ListDeliveryApprovals.
+type ListDeliveryApprovalsParamsStatus string
+
+// ListDeliveryProgramsParams defines parameters for ListDeliveryPrograms.
+type ListDeliveryProgramsParams struct {
+	// ContinuationToken Continuation token from a previous page
+	ContinuationToken *string `form:"continuationToken,omitempty" json:"continuationToken,omitempty"`
+
+	// Kind Only programs of this kind. The only kind is `pipeline`. Any other value that is not empty returns a 400 error.
+	Kind *ListDeliveryProgramsParamsKind `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// MaxResults The number of results per page. The default is 50. A value below 1 or above 100 returns a 400 error.
+	MaxResults *int64 `form:"maxResults,omitempty" json:"maxResults,omitempty"`
+
+	// Query Only programs whose project or stack name contains this text
+	Query *string `form:"query,omitempty" json:"query,omitempty"`
+
+	// Status Only programs whose latest run has this status: `in_progress`, `succeeded`, `failed`, `canceled` or `superseded`. Any other value that is not empty returns a 400 error.
+	Status *ListDeliveryProgramsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// WaitKind Only programs that have a run in progress that waits for this kind of condition. The only kind is `approval`. Any other value that is not empty returns a 400 error.
+	WaitKind *ListDeliveryProgramsParamsWaitKind `form:"waitKind,omitempty" json:"waitKind,omitempty"`
+}
+
+// ListDeliveryProgramsParamsKind defines parameters for ListDeliveryPrograms.
+type ListDeliveryProgramsParamsKind string
+
+// ListDeliveryProgramsParamsStatus defines parameters for ListDeliveryPrograms.
+type ListDeliveryProgramsParamsStatus string
+
+// ListDeliveryProgramsParamsWaitKind defines parameters for ListDeliveryPrograms.
+type ListDeliveryProgramsParamsWaitKind string
+
 // ListStackDeploymentsHandlerV2Params defines parameters for ListStackDeploymentsHandlerV2.
 type ListStackDeploymentsHandlerV2Params struct {
 	// Asc Sort in ascending order when true (default false)
@@ -2853,6 +3484,12 @@ type ClientInterface interface {
 	// ListTasks request
 	ListTasks(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// ListDeliveryApprovals request
+	ListDeliveryApprovals(ctx context.Context, orgName string, params *ListDeliveryApprovalsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListDeliveryPrograms request
+	ListDeliveryPrograms(ctx context.Context, orgName string, params *ListDeliveryProgramsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListStackDeploymentsHandlerV2 request
 	ListStackDeploymentsHandlerV2(ctx context.Context, orgName string, projectName string, stackName string, params *ListStackDeploymentsHandlerV2Params, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2991,6 +3628,30 @@ func (c *Client) ListAgentDefinitions(ctx context.Context, orgName string, reqEd
 
 func (c *Client) ListTasks(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListTasksRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDeliveryApprovals(ctx context.Context, orgName string, params *ListDeliveryApprovalsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDeliveryApprovalsRequest(c.Server, orgName, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ListDeliveryPrograms(ctx context.Context, orgName string, params *ListDeliveryProgramsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListDeliveryProgramsRequest(c.Server, orgName, params)
 	if err != nil {
 		return nil, err
 	}
@@ -3801,6 +4462,236 @@ func NewListTasksRequest(server string, orgName string, params *ListTasksParams)
 	return req, nil
 }
 
+// NewListDeliveryApprovalsRequest generates requests for ListDeliveryApprovals
+func NewListDeliveryApprovalsRequest(server string, orgName string, params *ListDeliveryApprovalsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "orgName", orgName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/preview/delivery/%s/approvals", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ContinuationToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "continuationToken", *params.ContinuationToken, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.MaxResults != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "maxResults", *params.MaxResults, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Project != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "project", *params.Project, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Stack != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "stack", *params.Stack, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "status", *params.Status, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewListDeliveryProgramsRequest generates requests for ListDeliveryPrograms
+func NewListDeliveryProgramsRequest(server string, orgName string, params *ListDeliveryProgramsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "orgName", orgName, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/preview/delivery/%s/programs", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.ContinuationToken != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "continuationToken", *params.ContinuationToken, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Kind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "kind", *params.Kind, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.MaxResults != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "maxResults", *params.MaxResults, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Query != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "query", *params.Query, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "status", *params.Status, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.WaitKind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "waitKind", *params.WaitKind, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListStackDeploymentsHandlerV2Request generates requests for ListStackDeploymentsHandlerV2
 func NewListStackDeploymentsHandlerV2Request(server string, orgName string, projectName string, stackName string, params *ListStackDeploymentsHandlerV2Params) (*http.Request, error) {
 	var err error
@@ -4358,6 +5249,12 @@ type ClientWithResponsesInterface interface {
 	// ListTasksWithResponse request
 	ListTasksWithResponse(ctx context.Context, orgName string, params *ListTasksParams, reqEditors ...RequestEditorFn) (*ListTasksResp, error)
 
+	// ListDeliveryApprovalsWithResponse request
+	ListDeliveryApprovalsWithResponse(ctx context.Context, orgName string, params *ListDeliveryApprovalsParams, reqEditors ...RequestEditorFn) (*ListDeliveryApprovalsResp, error)
+
+	// ListDeliveryProgramsWithResponse request
+	ListDeliveryProgramsWithResponse(ctx context.Context, orgName string, params *ListDeliveryProgramsParams, reqEditors ...RequestEditorFn) (*ListDeliveryProgramsResp, error)
+
 	// ListStackDeploymentsHandlerV2WithResponse request
 	ListStackDeploymentsHandlerV2WithResponse(ctx context.Context, orgName string, projectName string, stackName string, params *ListStackDeploymentsHandlerV2Params, reqEditors ...RequestEditorFn) (*ListStackDeploymentsHandlerV2Resp, error)
 
@@ -4704,6 +5601,66 @@ func (r ListTasksResp) ContentType() string {
 	return ""
 }
 
+type ListDeliveryApprovalsResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DeliveryApprovalList
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDeliveryApprovalsResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDeliveryApprovalsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListDeliveryApprovalsResp) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ListDeliveryProgramsResp struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *DeliveryProgramList
+}
+
+// Status returns HTTPResponse.Status
+func (r ListDeliveryProgramsResp) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListDeliveryProgramsResp) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListDeliveryProgramsResp) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListStackDeploymentsHandlerV2Resp struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4951,6 +5908,24 @@ func (c *ClientWithResponses) ListTasksWithResponse(ctx context.Context, orgName
 		return nil, err
 	}
 	return ParseListTasksResp(rsp)
+}
+
+// ListDeliveryApprovalsWithResponse request returning *ListDeliveryApprovalsResp
+func (c *ClientWithResponses) ListDeliveryApprovalsWithResponse(ctx context.Context, orgName string, params *ListDeliveryApprovalsParams, reqEditors ...RequestEditorFn) (*ListDeliveryApprovalsResp, error) {
+	rsp, err := c.ListDeliveryApprovals(ctx, orgName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDeliveryApprovalsResp(rsp)
+}
+
+// ListDeliveryProgramsWithResponse request returning *ListDeliveryProgramsResp
+func (c *ClientWithResponses) ListDeliveryProgramsWithResponse(ctx context.Context, orgName string, params *ListDeliveryProgramsParams, reqEditors ...RequestEditorFn) (*ListDeliveryProgramsResp, error) {
+	rsp, err := c.ListDeliveryPrograms(ctx, orgName, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListDeliveryProgramsResp(rsp)
 }
 
 // ListStackDeploymentsHandlerV2WithResponse request returning *ListStackDeploymentsHandlerV2Resp
@@ -5274,6 +6249,58 @@ func ParseListTasksResp(rsp *http.Response) (*ListTasksResp, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest ListAgentTasksResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListDeliveryApprovalsResp parses an HTTP response from a ListDeliveryApprovalsWithResponse call
+func ParseListDeliveryApprovalsResp(rsp *http.Response) (*ListDeliveryApprovalsResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDeliveryApprovalsResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DeliveryApprovalList
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListDeliveryProgramsResp parses an HTTP response from a ListDeliveryProgramsWithResponse call
+func ParseListDeliveryProgramsResp(rsp *http.Response) (*ListDeliveryProgramsResp, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListDeliveryProgramsResp{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest DeliveryProgramList
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

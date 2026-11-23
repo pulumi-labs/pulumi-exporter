@@ -451,6 +451,128 @@ func (c *Client) ListAgentAutomations(ctx context.Context, org string) (*ListAge
 	return &ListAgentAutomationsResponse{Automations: all}, nil
 }
 
+// ListDeliveryPrograms returns all Pulumi Delivery programs of an organization,
+// handling pagination. It returns nil when the organization does not have
+// Delivery enabled.
+func (c *Client) ListDeliveryPrograms(ctx context.Context, org string) (*ListDeliveryProgramsResponse, error) {
+	var programs []DeliveryProgram
+	var contToken *string
+	maxResults := int64(100)
+
+	for {
+		resp, err := c.gen.ListDeliveryProgramsWithResponse(ctx, org, &pulumiapi.ListDeliveryProgramsParams{
+			MaxResults:        &maxResults,
+			ContinuationToken: contToken,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("listing delivery programs: %w", err)
+		}
+		if resp.StatusCode() == http.StatusNotFound {
+			return nil, nil
+		}
+		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+			return nil, fmt.Errorf("listing delivery programs: unexpected status %d", resp.StatusCode())
+		}
+
+		if resp.JSON200.Programs != nil {
+			for _, p := range *resp.JSON200.Programs {
+				programs = append(programs, toDeliveryProgram(p))
+			}
+		}
+
+		if resp.JSON200.ContinuationToken == nil || *resp.JSON200.ContinuationToken == "" {
+			break
+		}
+		contToken = resp.JSON200.ContinuationToken
+	}
+
+	return &ListDeliveryProgramsResponse{Programs: programs}, nil
+}
+
+func toDeliveryProgram(p pulumiapi.DeliveryProgramRow) DeliveryProgram {
+	program := DeliveryProgram{
+		Project:          p.Project,
+		Stack:            p.Stack,
+		Registered:       p.Registered,
+		PendingApprovals: p.PendingApprovals,
+	}
+	if p.LastRun != nil {
+		run := &DeliveryRun{
+			Number:    p.LastRun.Number,
+			Status:    string(p.LastRun.Status.Status),
+			WaitKind:  deliveryWaitKind(p.LastRun.Status),
+			CreatedAt: p.LastRun.CreatedAt,
+		}
+		if p.LastRun.FinishedAt != nil {
+			run.FinishedAt = *p.LastRun.FinishedAt
+		}
+		program.LastRun = run
+	}
+	if p.Stages != nil {
+		for _, s := range *p.Stages {
+			program.Stages = append(program.Stages, DeliveryStage{
+				Name:            s.Name,
+				Status:          string(s.Status.Status),
+				WaitKind:        deliveryWaitKind(s.Status),
+				DeployedRelease: derefInt64(s.DeployedReleaseNumber),
+			})
+		}
+	}
+	return program
+}
+
+func deliveryWaitKind(s pulumiapi.DeliveryStatus) string {
+	if s.WaitKind == nil {
+		return ""
+	}
+	return string(*s.WaitKind)
+}
+
+// ListPendingDeliveryApprovals returns the pending approvals of Delivery gates in
+// an organization, handling pagination. It returns nil when the organization
+// does not have Delivery enabled.
+func (c *Client) ListPendingDeliveryApprovals(ctx context.Context, org string) (*ListDeliveryApprovalsResponse, error) {
+	var approvals []DeliveryApproval
+	var contToken *string
+	maxResults := int64(100)
+	status := pulumiapi.ListDeliveryApprovalsParamsStatus("pending")
+
+	for {
+		resp, err := c.gen.ListDeliveryApprovalsWithResponse(ctx, org, &pulumiapi.ListDeliveryApprovalsParams{
+			MaxResults:        &maxResults,
+			ContinuationToken: contToken,
+			Status:            &status,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("listing delivery approvals: %w", err)
+		}
+		if resp.StatusCode() == http.StatusNotFound {
+			return nil, nil
+		}
+		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
+			return nil, fmt.Errorf("listing delivery approvals: unexpected status %d", resp.StatusCode())
+		}
+
+		if resp.JSON200.Approvals != nil {
+			for _, a := range *resp.JSON200.Approvals {
+				approvals = append(approvals, DeliveryApproval{
+					Project:     a.Project,
+					Stack:       a.Stack,
+					Stage:       derefStr(a.StageName),
+					RequestedAt: a.RequestedAt,
+				})
+			}
+		}
+
+		if resp.JSON200.ContinuationToken == nil || *resp.JSON200.ContinuationToken == "" {
+			break
+		}
+		contToken = resp.JSON200.ContinuationToken
+	}
+
+	return &ListDeliveryApprovalsResponse{Approvals: approvals}, nil
+}
+
 func derefStr(s *string) string {
 	if s == nil {
 		return ""
