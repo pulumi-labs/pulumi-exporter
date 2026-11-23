@@ -22,7 +22,7 @@ const secretResource = new kubernetes.core.v1.Secret("secret", {
 });
 const release = new kubernetes.helm.v3.Release("release", {
     chart: "oci://ghcr.io/pulumi-labs/charts/pulumi-exporter",
-    version: "0.1.9",
+    version: "0.1.10",
     namespace: namespaceResource.metadata.apply(metadata => metadata.name),
     values: {
         existingSecret: secretResource.metadata.apply(metadata => metadata.name),
