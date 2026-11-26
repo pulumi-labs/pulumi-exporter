@@ -1,8 +1,11 @@
 package config
 
 import (
+	"errors"
+	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -38,7 +41,7 @@ func TestDefaults(t *testing.T) {
 		t.Errorf("expected protocol %q, got %q", protocolHTTPProtobuf, cfg.Exporters.Protocol)
 	}
 
-	if cfg.Exporters.Insecure != false {
+	if cfg.Exporters.Insecure {
 		t.Errorf("expected insecure %v, got %v", false, cfg.Exporters.Insecure)
 	}
 }
@@ -97,8 +100,8 @@ otlp:
 		t.Errorf("expected protocol %q, got %q", protocolGRPC, cfg.Exporters.Protocol)
 	}
 
-	if cfg.Exporters.Insecure != true {
-		t.Errorf("expected insecure true, got false")
+	if !cfg.Exporters.Insecure {
+		t.Error("expected insecure true, got false")
 	}
 
 	if cfg.Exporters.Headers["Authorization"] != "Bearer secret" {
@@ -141,8 +144,8 @@ func TestValidateMissingToken(t *testing.T) {
 	}
 
 	err := cfg.Validate()
-	if err == nil {
-		t.Fatal("expected error for missing token, got nil")
+	if !errors.Is(err, ErrMissingAccessToken) {
+		t.Fatalf("Validate() error = %v, want %v", err, ErrMissingAccessToken)
 	}
 
 	if err.Error() != "pulumi access token is required" {
@@ -164,8 +167,8 @@ func TestValidateMissingOrgs(t *testing.T) {
 	}
 
 	err := cfg.Validate()
-	if err == nil {
-		t.Fatal("expected error for missing organizations, got nil")
+	if !errors.Is(err, ErrMissingOrganizations) {
+		t.Fatalf("Validate() error = %v, want %v", err, ErrMissingOrganizations)
 	}
 
 	if err.Error() != "at least one pulumi organization is required" {
@@ -188,8 +191,8 @@ func TestValidateInvalidProtocol(t *testing.T) {
 	}
 
 	err := cfg.Validate()
-	if err == nil {
-		t.Fatal("expected error for invalid protocol, got nil")
+	if !errors.Is(err, ErrUnsupportedProtocol) {
+		t.Fatalf("Validate() error = %v, want %v", err, ErrUnsupportedProtocol)
 	}
 
 	expected := `unsupported OTLP protocol: "invalid" (must be http/protobuf or grpc)`
@@ -225,30 +228,72 @@ func TestValidateSuccess(t *testing.T) {
 func TestParseHeaders(t *testing.T) {
 	t.Parallel()
 
-	cfg := &Config{}
-	cfg.ParseHeaders("key1=value1,key2=value2")
-
-	if len(cfg.Exporters.Headers) != 2 {
-		t.Fatalf("expected 2 headers, got %d", len(cfg.Exporters.Headers))
+	tests := []struct {
+		name    string
+		raw     string
+		want    map[string]string
+		wantErr error
+	}{
+		{name: "empty", raw: "", want: nil},
+		{name: "pairs", raw: "key1=value1,key2=value2", want: map[string]string{"key1": "value1", "key2": "value2"}},
+		{name: "trims whitespace", raw: " a = 1 , b=2 ", want: map[string]string{"a": "1", "b": "2"}},
+		{
+			name: "percent-decodes values",
+			raw:  "Authorization=Basic%20dXNlcjpwYXNz",
+			want: map[string]string{"Authorization": "Basic dXNlcjpwYXNz"},
+		},
+		{name: "keeps = in values", raw: "sig=a=b", want: map[string]string{"sig": "a=b"}},
+		{name: "literal percent", raw: "token=50%25", want: map[string]string{"token": "50%"}},
+		{name: "trailing comma", raw: "api-key=abc,", want: map[string]string{"api-key": "abc"}},
+		{name: "blank entries", raw: "a=1, ,,b=2", want: map[string]string{"a": "1", "b": "2"}},
+		{name: "only separators", raw: " , ", want: nil},
+		{name: "missing separator", raw: "key1", wantErr: ErrMalformedHeader},
+		{name: "invalid key", raw: "bad key=value", wantErr: ErrInvalidHeaderKey},
+		{name: "empty key", raw: "=value", wantErr: ErrInvalidHeaderKey},
+		{name: "invalid escape", raw: "key=%zz", wantErr: ErrInvalidHeaderValue},
 	}
 
-	if cfg.Exporters.Headers["key1"] != "value1" {
-		t.Errorf("expected key1=%q, got %q", "value1", cfg.Exporters.Headers["key1"])
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if cfg.Exporters.Headers["key2"] != "value2" {
-		t.Errorf("expected key2=%q, got %q", "value2", cfg.Exporters.Headers["key2"])
+			cfg := &Config{}
+			err := cfg.ParseHeaders(tt.raw)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("ParseHeaders(%q) error = %v, want %v", tt.raw, err, tt.wantErr)
+			}
+			if !maps.Equal(cfg.Exporters.Headers, tt.want) {
+				t.Errorf("ParseHeaders(%q) = %v, want %v", tt.raw, cfg.Exporters.Headers, tt.want)
+			}
+		})
 	}
 }
 
-func TestParseHeadersEmpty(t *testing.T) {
+func TestParseHeadersErrorsHideSecrets(t *testing.T) {
 	t.Parallel()
 
-	cfg := &Config{}
-	cfg.ParseHeaders("")
+	const secret = "s3cr3t-token"
+	tests := []struct {
+		name string
+		raw  string
+	}{
+		{name: "space instead of =", raw: "x-a=1,Authorization Bearer " + secret},
+		{name: "colon in key", raw: "Authorization: Bearer " + secret + "=x"},
+		{name: "bad escape in value", raw: "Authorization=Bearer%zz" + secret},
+	}
 
-	if cfg.Exporters.Headers != nil {
-		t.Errorf("expected nil headers for empty input, got %v", cfg.Exporters.Headers)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := (&Config{}).ParseHeaders(tt.raw)
+			if err == nil {
+				t.Fatalf("ParseHeaders(%q) returned no error", tt.raw)
+			}
+			if strings.Contains(err.Error(), secret) || strings.Contains(err.Error(), "%zz") {
+				t.Errorf("ParseHeaders error leaks the header value: %v", err)
+			}
+		})
 	}
 }
 
@@ -300,8 +345,8 @@ func TestMaxConcurrencyValidation(t *testing.T) {
 			}
 
 			err := cfg.Validate()
-			if tt.wantErr && err == nil {
-				t.Errorf("expected error for max-concurrency=%d, got nil", tt.value)
+			if tt.wantErr && !errors.Is(err, ErrInvalidConcurrency) {
+				t.Errorf("Validate() error = %v for max-concurrency=%d, want %v", err, tt.value, ErrInvalidConcurrency)
 			}
 			if !tt.wantErr && err != nil {
 				t.Errorf("unexpected error for max-concurrency=%d: %v", tt.value, err)

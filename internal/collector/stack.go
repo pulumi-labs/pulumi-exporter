@@ -9,6 +9,9 @@ import (
 	"github.com/pulumi-labs/pulumi-exporter/internal/client"
 )
 
+// updatesPageSize is how many of the most recent updates are fetched per stack.
+const updatesPageSize = 100
+
 func (c *Collector) collectStack(ctx context.Context, stack client.StackSummary) {
 	stackAttrs := metric.WithAttributes(
 		attribute.String("org", stack.OrgName),
@@ -19,24 +22,24 @@ func (c *Collector) collectStack(ctx context.Context, stack client.StackSummary)
 	// Resource count.
 	rc, err := c.client.GetResourceCount(ctx, stack.OrgName, stack.ProjectName, stack.StackName)
 	if err != nil {
-		c.logger.Error("failed to get resource count",
+		c.logger.ErrorContext(ctx, "failed to get resource count",
 			"org", stack.OrgName, "project", stack.ProjectName, "stack", stack.StackName, "error", err)
 	} else {
 		c.instruments.stackResourceCount.Record(ctx, int64(rc.Count), stackAttrs)
 	}
 
 	// Updates.
-	updates, err := c.client.ListUpdates(ctx, stack.OrgName, stack.ProjectName, stack.StackName, 1, 100)
+	updates, err := c.client.ListUpdates(ctx, stack.OrgName, stack.ProjectName, stack.StackName, 1, updatesPageSize)
 	if err != nil {
-		c.logger.Error("failed to list updates",
+		c.logger.ErrorContext(ctx, "failed to list updates",
 			"org", stack.OrgName, "project", stack.ProjectName, "stack", stack.StackName, "error", err)
 		return
 	}
 
-	stackKey := stack.OrgName + "/" + stack.ProjectName + "/" + stack.StackName
+	key := stackKey{org: stack.OrgName, project: stack.ProjectName, stack: stack.StackName}
 
 	c.mu.Lock()
-	lastVersion := c.lastSeenVersion[stackKey]
+	lastVersion := c.lastSeenVersion[key]
 	c.mu.Unlock()
 
 	var latestEndTime int64
@@ -90,8 +93,8 @@ func (c *Collector) collectStack(ctx context.Context, stack client.StackSummary)
 	// Update last seen version under lock.
 	if maxVersion > 0 {
 		c.mu.Lock()
-		if maxVersion > c.lastSeenVersion[stackKey] {
-			c.lastSeenVersion[stackKey] = maxVersion
+		if maxVersion > c.lastSeenVersion[key] {
+			c.lastSeenVersion[key] = maxVersion
 		}
 		c.mu.Unlock()
 	}

@@ -19,14 +19,21 @@ make docker         # Build Docker image locally
 make release-snapshot # GoReleaser dry run (no publish)
 ```
 
-Always run `make lint` and `make test-race` before considering work done. The linter config (`.golangci.yaml`) enforces:
+Always run `make lint` and `make test-race` before considering work done. The linter config (`.golangci.yaml`) uses `linters.default: all` and only opts out of a short, commented list of linters that conflict with this codebase (exhaustruct, varnamelen, wsl, nlreturn, testpackage, ireturn, gochecknoglobals, depguard, noinlineerr). Highlights:
 
-- **Style**: revive, gocritic, goconst, gofumpt, goimports, tagliatelle (snake_case JSON, kebab-case YAML), misspell, dupword
-- **Bugs**: errcheck, errorlint, copyloopvar, unconvert, unparam, wastedassign, bodyclose
-- **Security**: gosec (G117 excluded — config field name false positive)
-- **Complexity**: gocyclo (max 15), prealloc
-- **Tests**: tparallel, thelper
-- **Hygiene**: nolintlint, forbidigo
+- **Errors**: err113 (no dynamic errors — wrap a sentinel), wrapcheck, errorlint, nilnil (use a sentinel instead of `nil, nil`), errcheck with type assertions
+- **Style**: revive (all rules), gocritic (all checks), staticcheck (all checks), govet (all analyzers incl. strict shadow), modernize, godot, tagliatelle (snake_case JSON, kebab-case YAML; camelCase JSON in `internal/client` to match the Pulumi API)
+- **Logging**: sloglint (key/value pairs, snake_case keys, static messages, `*Context` variants when a ctx is in scope)
+- **Security**: gosec with no excludes, in audit mode
+- **Complexity**: gocyclo/cyclop (15), gocognit (20), funlen (100 lines), nestif, maintidx, mnd (no magic numbers)
+- **Tests**: paralleltest, tparallel, thelper, usetesting (`t.Context()` instead of `context.Background()`)
+- **Hygiene**: nolintlint requires a specific linter and an explanation; forbidigo bans `fmt.Print*` and direct `http.Get`/`http.NewRequest`/`http.DefaultClient` calls
+- **Formatters**: gofumpt (extra rules), goimports, gci, golines (140)
+
+There are no `//nolint` directives and no test-file exclusions. Fix findings instead of suppressing them. The CI workflow pins the golangci-lint version, so a new linter only turns on when the pin is bumped.
+
+### Strings and URLs
+Use the standard library instead of hand-rolled parsing: `strings.Cut`/`strings.SplitSeq` for splitting, `net/url` for URL validation and percent-decoding, `golang.org/x/net/http/httpguts` for header names. Use struct keys (e.g. `stackKey`) rather than concatenating strings for map keys.
 
 ## Project Layout
 
@@ -36,6 +43,7 @@ cmd/pulumiexporter/main.go             → CLI flags, wiring, signal handling
 internal/pulumiapi/client.gen.go        → GENERATED — never edit manually
 internal/client/client.go               → typed wrappers around generated client
 internal/client/types.go                → response structs used by collector
+internal/client/errors.go               → sentinel errors (ErrUnexpectedStatus, ErrFeatureNotEnabled) + client constants
 internal/collector/collector.go         → PulumiAPI interface, ticker loop, collect()
 internal/collector/instruments.go       → all OTel metric instrument definitions
 internal/collector/stack.go             → per-stack metric collection
@@ -67,7 +75,7 @@ artifacthub-repo.yml                    → ArtifactHub repository metadata
 ## Go Version and Module
 
 - Go 1.26+, module `github.com/pulumi-labs/pulumi-exporter`
-- Dependencies: OTel SDK, oapi-codegen runtime, kingpin CLI, golang.org/x/sync
+- Dependencies: OTel SDK, oapi-codegen runtime, kingpin CLI, golang.org/x/net (httpguts)
 
 ## Coding Conventions
 
@@ -75,6 +83,8 @@ artifacthub-repo.yml                    → ArtifactHub repository metadata
 - Wrap all errors with context: `fmt.Errorf("doing X: %w", err)`
 - In collector functions, log errors and return early — never panic
 - Check `resp.StatusCode()` and `resp.JSON200 != nil` on every API call
+- Return a wrapped sentinel, never a dynamic error: `unexpectedStatus(op, code)` wraps `client.ErrUnexpectedStatus`; config errors wrap `config.Err*`
+- A 404 for an optional feature (Neo budget, Agents, Delivery) returns an error wrapping `client.ErrFeatureNotEnabled`; collectors check it with `errors.Is` and skip quietly. Never return `nil, nil`
 
 ### Context Propagation
 - Every blocking or API-calling function takes `context.Context` as first parameter
@@ -82,10 +92,9 @@ artifacthub-repo.yml                    → ArtifactHub repository metadata
 - Respect context cancellation in all goroutines
 
 ### Concurrency Patterns
-- Per-stack collection uses a semaphore (`chan struct{}`) + `sync.WaitGroup`
-- Org-level collection uses `golang.org/x/sync/errgroup` with bounded parallelism
-- Org-level metric sub-collectors run in parallel via `errgroup.Go()`
-- Never start a goroutine without a clear shutdown path
+- Per-stack and per-org fan-out both go through `runBounded` in `collector.go`: a semaphore (`chan struct{}`) + `sync.WaitGroup.Go` that stops starting work once the context is done and waits for in-flight calls
+- Org-level metric sub-collectors run in parallel via `sync.WaitGroup.Go` (they log their own errors)
+- Never start a goroutine without a clear shutdown path: `run()` waits for the collector goroutine (bounded by the shutdown timeout) before flushing the exporter
 
 ### Interface Design
 - `PulumiAPI` interface in `collector.go` defines all API methods the collector needs
@@ -106,7 +115,7 @@ artifacthub-repo.yml                    → ArtifactHub repository metadata
 
 ## Adding a New Metric
 
-1. Add the OTel instrument to `internal/collector/instruments.go` (in the appropriate init function — `NewInstruments` for stack-level, `newOrgInstruments` for org-level)
+1. Add the OTel instrument to `internal/collector/instruments.go` via the `instrumentBuilder` (`b.int64Gauge(...)` etc.) in the matching function — `NewInstruments` for stack-level, `newOrgInstruments`, `newOrgNeoInstruments`, `newOrgAgentInstruments`, or `newDeliveryInstruments`
 2. Record values in the relevant collector file (`stack.go`, `deployments.go`, `org.go`, `agents.go`, or `delivery.go`)
 3. If the metric needs a new API endpoint:
    - Add the operationId to `oapi-codegen.yaml`
@@ -119,7 +128,7 @@ artifacthub-repo.yml                    → ArtifactHub repository metadata
 5. Update the metrics table in `README.md`
 
 ### Cyclomatic Complexity
-The gocyclo limit is 15. `NewInstruments` delegates org-level instruments to `newOrgInstruments` to stay under the limit. Follow this split pattern when adding instruments.
+The gocyclo limit is 15. `instrumentBuilder` collects instrument creation errors and returns them joined from `NewInstruments`, so registering an instrument is one straight-line assignment with no per-call error branch.
 
 ## OpenAPI Code Generation
 
@@ -217,5 +226,5 @@ If you're new to this codebase, read in this order:
 1. `internal/collector/collector.go` — the central interface and collection loop
 2. `internal/collector/instruments.go` — all metric definitions
 3. `internal/client/client.go` — how API calls are made
-4. `internal/collector/org.go` — org-level collection pattern (errgroup)
+4. `internal/collector/org.go` — org-level collection pattern (`sync.WaitGroup.Go`)
 5. `internal/collector/collector_test.go` — mock setup and test patterns

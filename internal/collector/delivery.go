@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
@@ -30,12 +31,12 @@ var deliveryWaitKinds = []string{
 
 func (c *Collector) collectDeliveryPrograms(ctx context.Context, org string) {
 	resp, err := c.client.ListDeliveryPrograms(ctx, org)
-	if err != nil {
-		c.logger.Error("failed to list delivery programs", "org", org, "error", err)
+	if errors.Is(err, client.ErrFeatureNotEnabled) {
+		// Delivery is not enabled for the organization; nothing to record.
 		return
 	}
-	if resp == nil {
-		// Delivery is not enabled for the organization; nothing to record.
+	if err != nil {
+		c.logger.ErrorContext(ctx, "failed to list delivery programs", "org", org, "error", err)
 		return
 	}
 
@@ -101,12 +102,12 @@ func (c *Collector) recordDeliveryProgram(ctx context.Context, org string, p cli
 
 func (c *Collector) collectDeliveryApprovals(ctx context.Context, org string) {
 	resp, err := c.client.ListPendingDeliveryApprovals(ctx, org)
-	if err != nil {
-		c.logger.Error("failed to list delivery approvals", "org", org, "error", err)
+	if errors.Is(err, client.ErrFeatureNotEnabled) {
+		// Delivery is not enabled for the organization; nothing to record.
 		return
 	}
-	if resp == nil {
-		// Delivery is not enabled for the organization; nothing to record.
+	if err != nil {
+		c.logger.ErrorContext(ctx, "failed to list delivery approvals", "org", org, "error", err)
 		return
 	}
 

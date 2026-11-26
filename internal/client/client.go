@@ -6,8 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
-	"time"
+	"net/url"
 
 	"github.com/pulumi-labs/pulumi-exporter/internal/pulumiapi"
 )
@@ -24,13 +23,18 @@ func NewClient(baseURL, token string) (*Client, error) {
 		return nil
 	}
 
-	// Ensure trailing slash for correct relative URL resolution in the generated client.
-	if !strings.HasSuffix(baseURL, "/") {
-		baseURL += "/"
+	// The generated client appends the trailing slash it needs for relative
+	// URL resolution; reject anything that is not an absolute URL up front.
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, fmt.Errorf("parsing API URL: %w", err)
+	}
+	if !u.IsAbs() || u.Host == "" {
+		return nil, fmt.Errorf("parsing API URL %q: %w", baseURL, ErrInvalidAPIURL)
 	}
 
-	httpClient := &http.Client{Timeout: 30 * time.Second}
-	gen, err := pulumiapi.NewClientWithResponses(baseURL,
+	httpClient := &http.Client{Timeout: requestTimeout}
+	gen, err := pulumiapi.NewClientWithResponses(u.String(),
 		pulumiapi.WithHTTPClient(httpClient),
 		pulumiapi.WithRequestEditorFn(authProvider),
 	)
@@ -54,10 +58,11 @@ func (c *Client) ListStacks(ctx context.Context) (*ListStacksResponse, error) {
 			return nil, fmt.Errorf("listing stacks: %w", err)
 		}
 		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-			return nil, fmt.Errorf("listing stacks: unexpected status %d", resp.StatusCode())
+			return nil, unexpectedStatus("listing stacks", resp.StatusCode())
 		}
 
-		for _, s := range resp.JSON200.Stacks {
+		for i := range resp.JSON200.Stacks {
+			s := &resp.JSON200.Stacks[i]
 			allStacks = append(allStacks, StackSummary{
 				OrgName:       s.OrgName,
 				ProjectName:   s.ProjectName,
@@ -83,7 +88,7 @@ func (c *Client) GetResourceCount(ctx context.Context, org, project, stack strin
 		return nil, fmt.Errorf("getting resource count: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("getting resource count: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("getting resource count", resp.StatusCode())
 	}
 
 	return &ResourceCountResponse{
@@ -106,11 +111,11 @@ func (c *Client) ListUpdates(ctx context.Context, org, project, stack string, pa
 		return nil, fmt.Errorf("listing updates: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("listing updates: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("listing updates", resp.StatusCode())
 	}
 
 	var result ListUpdatesResponse
-	if err := json.Unmarshal(resp.Body, &result); err != nil {
+	if err = json.Unmarshal(resp.Body, &result); err != nil {
 		return nil, fmt.Errorf("listing updates: decoding response: %w", err)
 	}
 
@@ -124,11 +129,12 @@ func (c *Client) ListOrgDeployments(ctx context.Context, org string) (*ListDeplo
 		return nil, fmt.Errorf("listing org deployments: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing org deployments: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("listing org deployments", resp.StatusCode())
 	}
 
 	deployments := make([]DeploymentInfo, 0, len(resp.JSON200.Deployments))
-	for _, d := range resp.JSON200.Deployments {
+	for i := range resp.JSON200.Deployments {
+		d := &resp.JSON200.Deployments[i]
 		deployments = append(deployments, DeploymentInfo{
 			ID:      d.Id,
 			Status:  string(d.Status),
@@ -151,10 +157,11 @@ func (c *Client) ListMembers(ctx context.Context, org string) (*ListMembersRespo
 			return nil, fmt.Errorf("listing members: %w", err)
 		}
 		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-			return nil, fmt.Errorf("listing members: unexpected status %d", resp.StatusCode())
+			return nil, unexpectedStatus("listing members", resp.StatusCode())
 		}
 
-		for _, m := range resp.JSON200.Members {
+		for i := range resp.JSON200.Members {
+			m := &resp.JSON200.Members[i]
 			allMembers = append(allMembers, MemberInfo{
 				Role: string(m.Role),
 				User: UserInfo{Name: m.User.Name, GitHubLogin: m.User.GithubLogin},
@@ -177,11 +184,12 @@ func (c *Client) ListTeams(ctx context.Context, org string) (*ListTeamsResponse,
 		return nil, fmt.Errorf("listing teams: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing teams: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("listing teams", resp.StatusCode())
 	}
 
 	teams := make([]TeamInfo, 0, len(resp.JSON200.Teams))
-	for _, t := range resp.JSON200.Teams {
+	for i := range resp.JSON200.Teams {
+		t := &resp.JSON200.Teams[i]
 		teams = append(teams, TeamInfo{
 			Name:        t.Name,
 			DisplayName: t.DisplayName,
@@ -204,10 +212,11 @@ func (c *Client) ListEnvironments(ctx context.Context, org string) (*ListEnviron
 			return nil, fmt.Errorf("listing environments: %w", err)
 		}
 		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-			return nil, fmt.Errorf("listing environments: unexpected status %d", resp.StatusCode())
+			return nil, unexpectedStatus("listing environments", resp.StatusCode())
 		}
 
-		for _, e := range resp.JSON200.Environments {
+		for i := range resp.JSON200.Environments {
+			e := &resp.JSON200.Environments[i]
 			allEnvs = append(allEnvs, EnvironmentInfo{
 				Name:         e.Name,
 				Organization: e.Organization,
@@ -231,11 +240,12 @@ func (c *Client) ListPolicyGroups(ctx context.Context, org string) (*ListPolicyG
 		return nil, fmt.Errorf("listing policy groups: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing policy groups: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("listing policy groups", resp.StatusCode())
 	}
 
 	groups := make([]PolicyGroupInfo, 0, len(resp.JSON200.PolicyGroups))
-	for _, g := range resp.JSON200.PolicyGroups {
+	for i := range resp.JSON200.PolicyGroups {
+		g := &resp.JSON200.PolicyGroups[i]
 		groups = append(groups, PolicyGroupInfo{
 			Name:                  g.Name,
 			NumStacks:             int(g.NumStacks),
@@ -254,11 +264,12 @@ func (c *Client) ListPolicyPacks(ctx context.Context, org string) (*ListPolicyPa
 		return nil, fmt.Errorf("listing policy packs: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing policy packs: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("listing policy packs", resp.StatusCode())
 	}
 
 	packs := make([]PolicyPackInfo, 0, len(resp.JSON200.PolicyPacks))
-	for _, p := range resp.JSON200.PolicyPacks {
+	for i := range resp.JSON200.PolicyPacks {
+		p := &resp.JSON200.PolicyPacks[i]
 		packs = append(packs, PolicyPackInfo{
 			Name:        p.Name,
 			DisplayName: p.DisplayName,
@@ -275,11 +286,12 @@ func (c *Client) ListPolicyViolations(ctx context.Context, org string) (*ListPol
 		return nil, fmt.Errorf("listing policy violations: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing policy violations: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("listing policy violations", resp.StatusCode())
 	}
 
 	violations := make([]PolicyViolation, 0, len(resp.JSON200.PolicyViolations))
-	for _, v := range resp.JSON200.PolicyViolations {
+	for i := range resp.JSON200.PolicyViolations {
+		v := &resp.JSON200.PolicyViolations[i]
 		violations = append(violations, PolicyViolation{
 			ID:          v.Id,
 			ProjectName: v.ProjectName,
@@ -301,7 +313,7 @@ func (c *Client) GetPolicyResultsMetadata(ctx context.Context, org string) (*Pol
 		return nil, fmt.Errorf("getting policy results metadata: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("getting policy results metadata: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("getting policy results metadata", resp.StatusCode())
 	}
 
 	return &PolicyResultsMetadataResponse{
@@ -316,7 +328,7 @@ func (c *Client) GetPolicyResultsMetadata(ctx context.Context, org string) (*Pol
 func (c *Client) ListNeoTasks(ctx context.Context, org string) (*ListNeoTasksResponse, error) {
 	var allTasks []NeoTask
 	var contToken *string
-	pageSize := int64(100)
+	pageSize := int64(defaultPageSize)
 
 	for {
 		resp, err := c.gen.ListTasksWithResponse(ctx, org, &pulumiapi.ListTasksParams{
@@ -327,10 +339,11 @@ func (c *Client) ListNeoTasks(ctx context.Context, org string) (*ListNeoTasksRes
 			return nil, fmt.Errorf("listing neo tasks: %w", err)
 		}
 		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-			return nil, fmt.Errorf("listing neo tasks: unexpected status %d", resp.StatusCode())
+			return nil, unexpectedStatus("listing neo tasks", resp.StatusCode())
 		}
 
-		for _, t := range resp.JSON200.Tasks {
+		for i := range resp.JSON200.Tasks {
+			t := &resp.JSON200.Tasks[i]
 			allTasks = append(allTasks, NeoTask{
 				ID:         t.Id,
 				Name:       t.Name,
@@ -350,6 +363,8 @@ func (c *Client) ListNeoTasks(ctx context.Context, org string) (*ListNeoTasksRes
 }
 
 // GetOrgNeoTokenBudget returns the Pulumi Neo token budget for an organization.
+// It returns an error wrapping ErrFeatureNotEnabled when the organization has
+// no Neo token budget.
 func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, org string) (*NeoTokenBudgetResponse, error) {
 	// No taskId: report the effective budget for the token's own identity.
 	resp, err := c.gen.GetOrgNeoTokenBudgetWithResponse(ctx, org, nil)
@@ -357,12 +372,12 @@ func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, org string) (*NeoToke
 		return nil, fmt.Errorf("getting neo token budget: %w", err)
 	}
 	// A 404 means the organization has no Neo token budget (Neo not enabled or
-	// no plan-derived allowance). Treat that as "no data" rather than an error.
+	// no plan-derived allowance).
 	if resp.StatusCode() == http.StatusNotFound {
-		return nil, nil
+		return nil, featureNotEnabled("getting neo token budget")
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("getting neo token budget: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("getting neo token budget", resp.StatusCode())
 	}
 
 	return &NeoTokenBudgetResponse{
@@ -376,21 +391,23 @@ func (c *Client) GetOrgNeoTokenBudget(ctx context.Context, org string) (*NeoToke
 }
 
 // ListAgents returns the Pulumi Agents defined in an organization.
-// It returns nil when the organization does not have Pulumi Agents enabled.
+// It returns an error wrapping ErrFeatureNotEnabled when the organization does
+// not have Pulumi Agents enabled.
 func (c *Client) ListAgents(ctx context.Context, org string) (*ListAgentsResponse, error) {
 	resp, err := c.gen.ListAgentDefinitionsWithResponse(ctx, org)
 	if err != nil {
 		return nil, fmt.Errorf("listing agents: %w", err)
 	}
 	if resp.StatusCode() == http.StatusNotFound {
-		return nil, nil
+		return nil, featureNotEnabled("listing agents")
 	}
 	if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-		return nil, fmt.Errorf("listing agents: unexpected status %d", resp.StatusCode())
+		return nil, unexpectedStatus("listing agents", resp.StatusCode())
 	}
 
 	agents := make([]Agent, 0, len(resp.JSON200.Definitions))
-	for _, d := range resp.JSON200.Definitions {
+	for i := range resp.JSON200.Definitions {
+		d := &resp.JSON200.Definitions[i]
 		a := Agent{
 			ID:     d.Id,
 			Name:   d.Name,
@@ -409,12 +426,12 @@ func (c *Client) ListAgents(ctx context.Context, org string) (*ListAgentsRespons
 }
 
 // ListAgentAutomations returns all Pulumi Agent automations for an organization,
-// handling pagination. It returns nil when the organization does not have
-// Pulumi Agents enabled.
+// handling pagination. It returns an error wrapping ErrFeatureNotEnabled
+// when the organization does not have Pulumi Agents enabled.
 func (c *Client) ListAgentAutomations(ctx context.Context, org string) (*ListAgentAutomationsResponse, error) {
 	var all []AgentAutomation
 	var contToken *string
-	pageSize := int64(100)
+	pageSize := int64(defaultPageSize)
 
 	for {
 		resp, err := c.gen.ListAgentAutomationsV2WithResponse(ctx, org, &pulumiapi.ListAgentAutomationsV2Params{
@@ -424,14 +441,16 @@ func (c *Client) ListAgentAutomations(ctx context.Context, org string) (*ListAge
 		if err != nil {
 			return nil, fmt.Errorf("listing agent automations: %w", err)
 		}
-		if resp.StatusCode() == http.StatusNotFound {
-			return nil, nil
+		// A 404 on the first page means the feature is off; on a later page it is a failure.
+		if resp.StatusCode() == http.StatusNotFound && contToken == nil {
+			return nil, featureNotEnabled("listing agent automations")
 		}
 		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-			return nil, fmt.Errorf("listing agent automations: unexpected status %d", resp.StatusCode())
+			return nil, unexpectedStatus("listing agent automations", resp.StatusCode())
 		}
 
-		for _, a := range resp.JSON200.Automations {
+		for i := range resp.JSON200.Automations {
+			a := &resp.JSON200.Automations[i]
 			all = append(all, AgentAutomation{
 				ID:            a.Id,
 				Name:          a.Name,
@@ -452,12 +471,12 @@ func (c *Client) ListAgentAutomations(ctx context.Context, org string) (*ListAge
 }
 
 // ListDeliveryPrograms returns all Pulumi Delivery programs of an organization,
-// handling pagination. It returns nil when the organization does not have
-// Delivery enabled.
+// handling pagination. It returns an error wrapping ErrFeatureNotEnabled
+// when the organization does not have Delivery enabled.
 func (c *Client) ListDeliveryPrograms(ctx context.Context, org string) (*ListDeliveryProgramsResponse, error) {
 	var programs []DeliveryProgram
 	var contToken *string
-	maxResults := int64(100)
+	maxResults := int64(defaultPageSize)
 
 	for {
 		resp, err := c.gen.ListDeliveryProgramsWithResponse(ctx, org, &pulumiapi.ListDeliveryProgramsParams{
@@ -467,15 +486,17 @@ func (c *Client) ListDeliveryPrograms(ctx context.Context, org string) (*ListDel
 		if err != nil {
 			return nil, fmt.Errorf("listing delivery programs: %w", err)
 		}
-		if resp.StatusCode() == http.StatusNotFound {
-			return nil, nil
+		// A 404 on the first page means the feature is off; on a later page it is a failure.
+		if resp.StatusCode() == http.StatusNotFound && contToken == nil {
+			return nil, featureNotEnabled("listing delivery programs")
 		}
 		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-			return nil, fmt.Errorf("listing delivery programs: unexpected status %d", resp.StatusCode())
+			return nil, unexpectedStatus("listing delivery programs", resp.StatusCode())
 		}
 
 		if resp.JSON200.Programs != nil {
-			for _, p := range *resp.JSON200.Programs {
+			for i := range *resp.JSON200.Programs {
+				p := &(*resp.JSON200.Programs)[i]
 				programs = append(programs, toDeliveryProgram(p))
 			}
 		}
@@ -489,7 +510,7 @@ func (c *Client) ListDeliveryPrograms(ctx context.Context, org string) (*ListDel
 	return &ListDeliveryProgramsResponse{Programs: programs}, nil
 }
 
-func toDeliveryProgram(p pulumiapi.DeliveryProgramRow) DeliveryProgram {
+func toDeliveryProgram(p *pulumiapi.DeliveryProgramRow) DeliveryProgram {
 	program := DeliveryProgram{
 		Project:          p.Project,
 		Stack:            p.Stack,
@@ -509,7 +530,8 @@ func toDeliveryProgram(p pulumiapi.DeliveryProgramRow) DeliveryProgram {
 		program.LastRun = run
 	}
 	if p.Stages != nil {
-		for _, s := range *p.Stages {
+		for i := range *p.Stages {
+			s := &(*p.Stages)[i]
 			program.Stages = append(program.Stages, DeliveryStage{
 				Name:            s.Name,
 				Status:          string(s.Status.Status),
@@ -529,13 +551,13 @@ func deliveryWaitKind(s pulumiapi.DeliveryStatus) string {
 }
 
 // ListPendingDeliveryApprovals returns the pending approvals of Delivery gates in
-// an organization, handling pagination. It returns nil when the organization
-// does not have Delivery enabled.
+// an organization, handling pagination. It returns an error wrapping
+// ErrFeatureNotEnabled when the organization does not have Delivery enabled.
 func (c *Client) ListPendingDeliveryApprovals(ctx context.Context, org string) (*ListDeliveryApprovalsResponse, error) {
 	var approvals []DeliveryApproval
 	var contToken *string
-	maxResults := int64(100)
-	status := pulumiapi.ListDeliveryApprovalsParamsStatus("pending")
+	maxResults := int64(defaultPageSize)
+	status := pulumiapi.Pending
 
 	for {
 		resp, err := c.gen.ListDeliveryApprovalsWithResponse(ctx, org, &pulumiapi.ListDeliveryApprovalsParams{
@@ -546,15 +568,17 @@ func (c *Client) ListPendingDeliveryApprovals(ctx context.Context, org string) (
 		if err != nil {
 			return nil, fmt.Errorf("listing delivery approvals: %w", err)
 		}
-		if resp.StatusCode() == http.StatusNotFound {
-			return nil, nil
+		// A 404 on the first page means the feature is off; on a later page it is a failure.
+		if resp.StatusCode() == http.StatusNotFound && contToken == nil {
+			return nil, featureNotEnabled("listing delivery approvals")
 		}
 		if resp.StatusCode() != http.StatusOK || resp.JSON200 == nil {
-			return nil, fmt.Errorf("listing delivery approvals: unexpected status %d", resp.StatusCode())
+			return nil, unexpectedStatus("listing delivery approvals", resp.StatusCode())
 		}
 
 		if resp.JSON200.Approvals != nil {
-			for _, a := range *resp.JSON200.Approvals {
+			for i := range *resp.JSON200.Approvals {
+				a := &(*resp.JSON200.Approvals)[i]
 				approvals = append(approvals, DeliveryApproval{
 					Project:     a.Project,
 					Stack:       a.Stack,

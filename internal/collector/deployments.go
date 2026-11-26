@@ -10,7 +10,7 @@ import (
 func (c *Collector) collectOrgDeployments(ctx context.Context, org string) {
 	resp, err := c.client.ListOrgDeployments(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list org deployments", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list org deployments", "org", org, "error", err)
 		return
 	}
 

@@ -1,6 +1,9 @@
 package collector
 
 import (
+	"errors"
+	"fmt"
+
 	"go.opentelemetry.io/otel/metric"
 )
 
@@ -49,281 +52,157 @@ type Instruments struct {
 	deliveryStageDeployedRelease    metric.Int64Gauge
 }
 
+// updateDurationBuckets are the histogram bucket boundaries, in seconds, for
+// pulumi_update_duration_seconds.
+var updateDurationBuckets = []float64{5, 10, 30, 60, 120, 300, 600, 1800}
+
+// instrumentBuilder creates instruments on a meter and collects every creation
+// error, so callers can register instruments without an error check per call.
+type instrumentBuilder struct {
+	meter metric.Meter
+	errs  []error
+}
+
+func (b *instrumentBuilder) record(name string, err error) {
+	if err != nil {
+		b.errs = append(b.errs, fmt.Errorf("creating instrument %s: %w", name, err))
+	}
+}
+
+func (b *instrumentBuilder) int64Gauge(name, description string) metric.Int64Gauge {
+	g, err := b.meter.Int64Gauge(name, metric.WithDescription(description))
+	b.record(name, err)
+	return g
+}
+
+func (b *instrumentBuilder) float64Gauge(name, description string) metric.Float64Gauge {
+	g, err := b.meter.Float64Gauge(name, metric.WithDescription(description))
+	b.record(name, err)
+	return g
+}
+
+func (b *instrumentBuilder) int64Counter(name, description string) metric.Int64Counter {
+	c, err := b.meter.Int64Counter(name, metric.WithDescription(description))
+	b.record(name, err)
+	return c
+}
+
+func (b *instrumentBuilder) float64Histogram(name, description string, buckets []float64) metric.Float64Histogram {
+	h, err := b.meter.Float64Histogram(name,
+		metric.WithDescription(description),
+		metric.WithExplicitBucketBoundaries(buckets...),
+	)
+	b.record(name, err)
+	return h
+}
+
+func (b *instrumentBuilder) err() error {
+	return errors.Join(b.errs...)
+}
+
 // NewInstruments creates all OTel metric instruments.
 func NewInstruments(meter metric.Meter) (*Instruments, error) {
 	var ins Instruments
-	var err error
+	b := &instrumentBuilder{meter: meter}
 
-	if ins.stackResourceCount, err = meter.Int64Gauge("pulumi_stack_resource_count",
-		metric.WithDescription("Number of resources in a Pulumi stack"),
-	); err != nil {
-		return nil, err
-	}
+	ins.stackResourceCount = b.int64Gauge("pulumi_stack_resource_count",
+		"Number of resources in a Pulumi stack")
+	ins.updateDuration = b.float64Histogram("pulumi_update_duration_seconds",
+		"Duration of Pulumi stack updates in seconds", updateDurationBuckets)
+	ins.updateTotal = b.int64Counter("pulumi_update_total",
+		"Total number of Pulumi stack updates")
+	ins.updateResourceChanges = b.int64Counter("pulumi_update_resource_changes",
+		"Number of resource changes per Pulumi update")
+	ins.deploymentStatus = b.int64Gauge("pulumi_deployment_status",
+		"Number of Pulumi deployments by status")
+	ins.stackLastUpdate = b.float64Gauge("pulumi_stack_last_update_timestamp",
+		"Unix timestamp of the last update to a Pulumi stack")
 
-	if ins.updateDuration, err = meter.Float64Histogram("pulumi_update_duration_seconds",
-		metric.WithDescription("Duration of Pulumi stack updates in seconds"),
-		metric.WithExplicitBucketBoundaries(5, 10, 30, 60, 120, 300, 600, 1800),
-	); err != nil {
-		return nil, err
-	}
+	newOrgInstruments(b, &ins)
+	newOrgNeoInstruments(b, &ins)
+	newOrgAgentInstruments(b, &ins)
+	newDeliveryInstruments(b, &ins)
 
-	if ins.updateTotal, err = meter.Int64Counter("pulumi_update_total",
-		metric.WithDescription("Total number of Pulumi stack updates"),
-	); err != nil {
-		return nil, err
-	}
-
-	if ins.updateResourceChanges, err = meter.Int64Counter("pulumi_update_resource_changes",
-		metric.WithDescription("Number of resource changes per Pulumi update"),
-	); err != nil {
-		return nil, err
-	}
-
-	if ins.deploymentStatus, err = meter.Int64Gauge("pulumi_deployment_status",
-		metric.WithDescription("Number of Pulumi deployments by status"),
-	); err != nil {
-		return nil, err
-	}
-
-	if ins.stackLastUpdate, err = meter.Float64Gauge("pulumi_stack_last_update_timestamp",
-		metric.WithDescription("Unix timestamp of the last update to a Pulumi stack"),
-	); err != nil {
-		return nil, err
-	}
-
-	if err = newOrgInstruments(meter, &ins); err != nil {
-		return nil, err
-	}
-
-	if err = newOrgAgentInstruments(meter, &ins); err != nil {
-		return nil, err
-	}
-
-	if err = newDeliveryInstruments(meter, &ins); err != nil {
+	if err := b.err(); err != nil {
 		return nil, err
 	}
 
 	return &ins, nil
 }
 
-func newOrgInstruments(meter metric.Meter, ins *Instruments) error {
-	var err error
-
-	if ins.orgMemberCount, err = meter.Int64Gauge("pulumi_org_member_count",
-		metric.WithDescription("Number of members in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgTeamCount, err = meter.Int64Gauge("pulumi_org_team_count",
-		metric.WithDescription("Number of teams in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgEnvironmentCount, err = meter.Int64Gauge("pulumi_org_environment_count",
-		metric.WithDescription("Number of ESC environments in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgPolicyGroupCount, err = meter.Int64Gauge("pulumi_org_policy_group_count",
-		metric.WithDescription("Number of policy groups in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgPolicyPackCount, err = meter.Int64Gauge("pulumi_org_policy_pack_count",
-		metric.WithDescription("Number of policy packs in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgPolicyViolations, err = meter.Int64Gauge("pulumi_org_policy_violations",
-		metric.WithDescription("Number of policy violations by level and kind"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgPolicyTotal, err = meter.Int64Gauge("pulumi_org_policy_total",
-		metric.WithDescription("Total number of policies in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgPolicyWithIssues, err = meter.Int64Gauge("pulumi_org_policy_with_issues",
-		metric.WithDescription("Number of policies with issues in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgResourcesTotal, err = meter.Int64Gauge("pulumi_org_governed_resources_total",
-		metric.WithDescription("Total number of resources governed by policies in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgResourcesIssues, err = meter.Int64Gauge("pulumi_org_governed_resources_with_issues",
-		metric.WithDescription("Number of governed resources with issues in a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if err = newOrgNeoInstruments(meter, ins); err != nil {
-		return err
-	}
-
-	return nil
+// newOrgInstruments registers the organization membership and policy instruments.
+func newOrgInstruments(b *instrumentBuilder, ins *Instruments) {
+	ins.orgMemberCount = b.int64Gauge("pulumi_org_member_count",
+		"Number of members in a Pulumi organization")
+	ins.orgTeamCount = b.int64Gauge("pulumi_org_team_count",
+		"Number of teams in a Pulumi organization")
+	ins.orgEnvironmentCount = b.int64Gauge("pulumi_org_environment_count",
+		"Number of ESC environments in a Pulumi organization")
+	ins.orgPolicyGroupCount = b.int64Gauge("pulumi_org_policy_group_count",
+		"Number of policy groups in a Pulumi organization")
+	ins.orgPolicyPackCount = b.int64Gauge("pulumi_org_policy_pack_count",
+		"Number of policy packs in a Pulumi organization")
+	ins.orgPolicyViolations = b.int64Gauge("pulumi_org_policy_violations",
+		"Number of policy violations by level and kind")
+	ins.orgPolicyTotal = b.int64Gauge("pulumi_org_policy_total",
+		"Total number of policies in a Pulumi organization")
+	ins.orgPolicyWithIssues = b.int64Gauge("pulumi_org_policy_with_issues",
+		"Number of policies with issues in a Pulumi organization")
+	ins.orgResourcesTotal = b.int64Gauge("pulumi_org_governed_resources_total",
+		"Total number of resources governed by policies in a Pulumi organization")
+	ins.orgResourcesIssues = b.int64Gauge("pulumi_org_governed_resources_with_issues",
+		"Number of governed resources with issues in a Pulumi organization")
 }
 
-// newOrgNeoInstruments registers the Pulumi Neo (AI agent) instruments. It is
-// split out of newOrgInstruments to keep cyclomatic complexity under the limit.
-func newOrgNeoInstruments(meter metric.Meter, ins *Instruments) error {
-	var err error
-
-	if ins.orgNeoTaskCount, err = meter.Int64Gauge("pulumi_org_neo_task_count",
-		metric.WithDescription("Number of Pulumi Neo AI tasks by status"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgNeoTokensUsedMonth, err = meter.Int64Gauge("pulumi_org_neo_tokens_used_current_month",
-		metric.WithDescription("Neo tokens consumed by AI tasks created in the current calendar month (matches the Pulumi Cloud billing-period usage)"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgNeoTokensUsedTotal, err = meter.Int64Gauge("pulumi_org_neo_tokens_used_total",
-		metric.WithDescription("Total Neo tokens consumed across all Pulumi Neo AI tasks (lifetime)"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgNeoTokenBudgetConsumed, err = meter.Int64Gauge("pulumi_org_neo_token_budget_consumed",
-		metric.WithDescription("Neo tokens consumed in the current budget window for a Pulumi organization"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgNeoTokenBudgetAllowance, err = meter.Int64Gauge("pulumi_org_neo_token_budget_allowance",
-		metric.WithDescription("Effective Neo token allowance for the current budget window (base plus any active bonus)"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgNeoTokenBudgetExhausted, err = meter.Int64Gauge("pulumi_org_neo_token_budget_exhausted",
-		metric.WithDescription("Whether the Neo token budget for the current window is exhausted (1) or not (0)"),
-	); err != nil {
-		return err
-	}
-
-	return nil
+// newOrgNeoInstruments registers the Pulumi Neo (AI agent) instruments.
+func newOrgNeoInstruments(b *instrumentBuilder, ins *Instruments) {
+	ins.orgNeoTaskCount = b.int64Gauge("pulumi_org_neo_task_count",
+		"Number of Pulumi Neo AI tasks by status")
+	ins.orgNeoTokensUsedMonth = b.int64Gauge("pulumi_org_neo_tokens_used_current_month",
+		"Neo tokens consumed by AI tasks created in the current calendar month "+
+			"(matches the Pulumi Cloud billing-period usage)")
+	ins.orgNeoTokensUsedTotal = b.int64Gauge("pulumi_org_neo_tokens_used_total",
+		"Total Neo tokens consumed across all Pulumi Neo AI tasks (lifetime)")
+	ins.orgNeoTokenBudgetConsumed = b.int64Gauge("pulumi_org_neo_token_budget_consumed",
+		"Neo tokens consumed in the current budget window for a Pulumi organization")
+	ins.orgNeoTokenBudgetAllowance = b.int64Gauge("pulumi_org_neo_token_budget_allowance",
+		"Effective Neo token allowance for the current budget window (base plus any active bonus)")
+	ins.orgNeoTokenBudgetExhausted = b.int64Gauge("pulumi_org_neo_token_budget_exhausted",
+		"Whether the Neo token budget for the current window is exhausted (1) or not (0)")
 }
 
-// newOrgAgentInstruments registers the Pulumi Agent and agent
-// automation instruments.
-func newOrgAgentInstruments(meter metric.Meter, ins *Instruments) error {
-	var err error
-
-	if ins.orgAgentCount, err = meter.Int64Gauge("pulumi_org_agent_count",
-		metric.WithDescription("Number of Pulumi Agents in an organization by paused state"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgAgentRunsStarted, err = meter.Int64Gauge("pulumi_org_agent_runs_started",
-		metric.WithDescription("Total number of runs a Pulumi Agent has started (lifetime, organization-wide)"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgAgentRunsRunning, err = meter.Int64Gauge("pulumi_org_agent_runs_running",
-		metric.WithDescription("Number of runs of a Pulumi Agent that are currently running"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgAgentAutomationCount, err = meter.Int64Gauge("pulumi_org_agent_automation_count",
-		metric.WithDescription("Number of Pulumi Agent automations by kind, paused state, and last run status"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgAgentAutomationNextRun, err = meter.Float64Gauge("pulumi_org_agent_automation_next_run_timestamp",
-		metric.WithDescription("Unix timestamp of the next scheduled run of a Pulumi Agent automation"),
-	); err != nil {
-		return err
-	}
-
-	return nil
+// newOrgAgentInstruments registers the Pulumi Agent and agent automation instruments.
+func newOrgAgentInstruments(b *instrumentBuilder, ins *Instruments) {
+	ins.orgAgentCount = b.int64Gauge("pulumi_org_agent_count",
+		"Number of Pulumi Agents in an organization by paused state")
+	ins.orgAgentRunsStarted = b.int64Gauge("pulumi_org_agent_runs_started",
+		"Total number of runs a Pulumi Agent has started (lifetime, organization-wide)")
+	ins.orgAgentRunsRunning = b.int64Gauge("pulumi_org_agent_runs_running",
+		"Number of runs of a Pulumi Agent that are currently running")
+	ins.orgAgentAutomationCount = b.int64Gauge("pulumi_org_agent_automation_count",
+		"Number of Pulumi Agent automations by kind, paused state, and last run status")
+	ins.orgAgentAutomationNextRun = b.float64Gauge("pulumi_org_agent_automation_next_run_timestamp",
+		"Unix timestamp of the next scheduled run of a Pulumi Agent automation")
 }
 
 // newDeliveryInstruments registers the Pulumi Delivery instruments.
-func newDeliveryInstruments(meter metric.Meter, ins *Instruments) error {
-	var err error
-
-	if ins.orgDeliveryProgramCount, err = meter.Int64Gauge("pulumi_org_delivery_program_count",
-		metric.WithDescription("Number of Pulumi Delivery programs in an organization by registration state"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgDeliveryProgramsByLastRun, err = meter.Int64Gauge("pulumi_org_delivery_programs_by_last_run_status",
-		metric.WithDescription("Number of Pulumi Delivery programs by the status of their latest run"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgDeliveryStagesByStatus, err = meter.Int64Gauge("pulumi_org_delivery_stages_by_status",
-		metric.WithDescription("Number of Pulumi Delivery stages by their status in the latest run"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgDeliveryStagesWaiting, err = meter.Int64Gauge("pulumi_org_delivery_stages_waiting",
-		metric.WithDescription("Number of waiting Pulumi Delivery stages by what they wait for"),
-	); err != nil {
-		return err
-	}
-
-	if ins.orgDeliveryOldestApprovalAge, err = meter.Float64Gauge("pulumi_org_delivery_oldest_pending_approval_age_seconds",
-		metric.WithDescription("Age in seconds of the oldest pending Pulumi Delivery approval (0 when none is pending)"),
-	); err != nil {
-		return err
-	}
-
-	return newDeliveryProgramInstruments(meter, ins)
-}
-
-// newDeliveryProgramInstruments registers the per-program Pulumi Delivery
-// instruments. It is split out of newDeliveryInstruments to keep cyclomatic
-// complexity under the limit.
-func newDeliveryProgramInstruments(meter metric.Meter, ins *Instruments) error {
-	var err error
-
-	if ins.deliveryProgramPendingApprovals, err = meter.Int64Gauge("pulumi_delivery_program_pending_approvals",
-		metric.WithDescription("Number of approvals a Pulumi Delivery program is waiting for"),
-	); err != nil {
-		return err
-	}
-
-	if ins.deliveryProgramLastRunTimestamp, err = meter.Float64Gauge("pulumi_delivery_program_last_run_timestamp",
-		metric.WithDescription("Unix timestamp of when the latest run of a Pulumi Delivery program was created"),
-	); err != nil {
-		return err
-	}
-
-	if ins.deliveryProgramLastRunDuration, err = meter.Float64Gauge("pulumi_delivery_program_last_run_duration_seconds",
-		metric.WithDescription("Duration in seconds of the latest finished run of a Pulumi Delivery program"),
-	); err != nil {
-		return err
-	}
-
-	if ins.deliveryStageDeployedRelease, err = meter.Int64Gauge("pulumi_delivery_stage_deployed_release",
-		metric.WithDescription("Number of the release deployed at a Pulumi Delivery stage"),
-	); err != nil {
-		return err
-	}
-
-	return nil
+func newDeliveryInstruments(b *instrumentBuilder, ins *Instruments) {
+	ins.orgDeliveryProgramCount = b.int64Gauge("pulumi_org_delivery_program_count",
+		"Number of Pulumi Delivery programs in an organization by registration state")
+	ins.orgDeliveryProgramsByLastRun = b.int64Gauge("pulumi_org_delivery_programs_by_last_run_status",
+		"Number of Pulumi Delivery programs by the status of their latest run")
+	ins.orgDeliveryStagesByStatus = b.int64Gauge("pulumi_org_delivery_stages_by_status",
+		"Number of Pulumi Delivery stages by their status in the latest run")
+	ins.orgDeliveryStagesWaiting = b.int64Gauge("pulumi_org_delivery_stages_waiting",
+		"Number of waiting Pulumi Delivery stages by what they wait for")
+	ins.orgDeliveryOldestApprovalAge = b.float64Gauge("pulumi_org_delivery_oldest_pending_approval_age_seconds",
+		"Age in seconds of the oldest pending Pulumi Delivery approval (0 when none is pending)")
+	ins.deliveryProgramPendingApprovals = b.int64Gauge("pulumi_delivery_program_pending_approvals",
+		"Number of approvals a Pulumi Delivery program is waiting for")
+	ins.deliveryProgramLastRunTimestamp = b.float64Gauge("pulumi_delivery_program_last_run_timestamp",
+		"Unix timestamp of when the latest run of a Pulumi Delivery program was created")
+	ins.deliveryProgramLastRunDuration = b.float64Gauge("pulumi_delivery_program_last_run_duration_seconds",
+		"Duration in seconds of the latest finished run of a Pulumi Delivery program")
+	ins.deliveryStageDeployedRelease = b.int64Gauge("pulumi_delivery_stage_deployed_release",
+		"Number of the release deployed at a Pulumi Delivery stage")
 }

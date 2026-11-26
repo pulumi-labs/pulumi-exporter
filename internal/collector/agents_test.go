@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"context"
 	"maps"
 	"testing"
 
@@ -79,7 +78,7 @@ func TestCollectAgents(t *testing.T) {
 
 			api := &mockAPI{agents: map[string]*client.ListAgentsResponse{testOrg: tt.agents}}
 			c, reader := newTestCollector(t, api)
-			ctx := context.Background()
+			ctx := t.Context()
 
 			c.collectAgents(ctx, testOrg)
 
@@ -142,7 +141,7 @@ func TestCollectAgentAutomations(t *testing.T) {
 
 			api := &mockAPI{automations: map[string]*client.ListAgentAutomationsResponse{testOrg: tt.automations}}
 			c, reader := newTestCollector(t, api)
-			ctx := context.Background()
+			ctx := t.Context()
 
 			c.collectAgentAutomations(ctx, testOrg)
 

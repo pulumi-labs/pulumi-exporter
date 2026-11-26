@@ -14,12 +14,29 @@ Configure via CLI flags, environment variables, or a YAML file. Flags take prece
 | `--otlp.endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` | `localhost:4318` | OTLP receiver endpoint (host:port) |
 | `--otlp.protocol` | `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` | `http/protobuf` or `grpc` |
 | `--otlp.insecure` | `OTEL_EXPORTER_OTLP_INSECURE` | `false` | Disable TLS |
-| `--otlp.headers` | `OTEL_EXPORTER_OTLP_HEADERS` | *(empty)* | Comma-separated `key=value` pairs |
+| `--otlp.headers` | `OTEL_EXPORTER_OTLP_HEADERS` | *(empty)* | Comma-separated `key=value` pairs, percent-encoded (see [OTLP headers](#otlp-headers)) |
 | `--otlp.url-path` | `OTEL_EXPORTER_OTLP_METRICS_URL_PATH` | *(default OTel path)* | Custom URL path for OTLP metrics endpoint |
 | `--config.file` | `PULUMI_EXPORTER_CONFIG_FILE` | *(none)* | Path to YAML config file |
 | `--web.listen-address` | `PULUMI_EXPORTER_LISTEN_ADDRESS` | `:8080` | Health check listen address |
 
 OTLP environment variable names follow the [OpenTelemetry SDK specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/).
+
+### OTLP headers
+
+`--otlp.headers` / `OTEL_EXPORTER_OTLP_HEADERS` uses the [OpenTelemetry header format](https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specifying-headers-via-environment-variables):
+
+- Entries are separated by commas, and each entry is `key=value`. Only the first `=` splits an entry, so values may contain `=`.
+- Values are percent-decoded. Write a literal `%` as `%25` and a literal `,` as `%2C`. Spaces may be written as-is or as `%20`.
+- Keys must be valid HTTP header names.
+- Empty entries, such as the one a trailing comma leaves, are ignored.
+
+The exporter refuses to start when an entry has no `=`, an invalid key, or an invalid percent-encoding (for example `50%` instead of `50%25`). The error names the entry by its position and never prints the value, because header values are usually credentials.
+
+```bash
+OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic%20dXNlcjpwYXNz,x-scope-orgid=tenant-1"
+```
+
+Headers set with the flag or environment variable replace the `otlp.headers` map from the YAML file. YAML values are used verbatim and are not percent-decoded.
 
 ## YAML Config File
 

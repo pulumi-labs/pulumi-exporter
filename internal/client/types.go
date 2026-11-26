@@ -1,4 +1,3 @@
-//nolint:tagliatelle // JSON field names match Pulumi Cloud API response format
 package client
 
 import "time"
@@ -155,8 +154,8 @@ type NeoTask struct {
 	ID         string    `json:"id"`
 	Name       string    `json:"name"`
 	Status     string    `json:"status"`
-	TokensUsed int64     `json:"tokens_used"`
-	CreatedAt  time.Time `json:"created_at"`
+	TokensUsed int64     `json:"tokensUsed"`
+	CreatedAt  time.Time `json:"createdAt"`
 }
 
 // NeoTokenBudgetResponse represents the response from GET /api/orgs/{org}/neo/token-budget.

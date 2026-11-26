@@ -3,6 +3,7 @@ package exporter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -18,6 +19,9 @@ const (
 	protocolHTTPProtobuf = "http/protobuf"
 	protocolGRPC         = "grpc"
 )
+
+// ErrUnsupportedProtocol is returned for an OTLP protocol other than http/protobuf or grpc.
+var ErrUnsupportedProtocol = errors.New("unsupported OTLP protocol")
 
 // OTLPConfig holds OTLP exporter configuration.
 type OTLPConfig struct {
@@ -76,7 +80,7 @@ func NewExporter(ctx context.Context, cfg *OTLPConfig, version string) (*Exporte
 
 		exp, err = otlpmetricgrpc.New(ctx, opts...)
 	default:
-		return nil, fmt.Errorf("unsupported OTLP protocol: %q", cfg.Protocol)
+		return nil, fmt.Errorf("%w: %q", ErrUnsupportedProtocol, cfg.Protocol)
 	}
 
 	if err != nil {
@@ -100,5 +104,8 @@ func (e *Exporter) Meter() metric.Meter {
 
 // Shutdown gracefully shuts down the MeterProvider, flushing any remaining metrics.
 func (e *Exporter) Shutdown(ctx context.Context) error {
-	return e.meterProvider.Shutdown(ctx)
+	if err := e.meterProvider.Shutdown(ctx); err != nil {
+		return fmt.Errorf("shutting down meter provider: %w", err)
+	}
+	return nil
 }

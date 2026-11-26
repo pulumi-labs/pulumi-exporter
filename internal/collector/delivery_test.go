@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"context"
 	"math"
 	"testing"
 	"time"
@@ -15,44 +14,59 @@ const (
 	testDeliveryWaiting  = "waiting"
 	testDeliveryApproval = "approval"
 	testDeliveryMain     = "main"
-	testDeliveryDev      = "dev"
+	testStackDev         = "dev"
 	testDeliveryShop     = "org=test-org,project=shop,stack=main"
 )
 
-func TestCollectDeliveryPrograms(t *testing.T) {
-	t.Parallel()
+// deliveryProgramsCase is a test case for TestCollectDeliveryPrograms.
+type deliveryProgramsCase struct {
+	name          string
+	programs      *client.ListDeliveryProgramsResponse
+	wantPrograms  map[string]int64
+	wantLastRun   map[string]int64
+	wantStages    map[string]int64
+	wantWaiting   map[string]int64
+	wantPending   map[string]int64
+	wantTimestamp map[string]float64
+	wantDuration  map[string]float64
+	wantRelease   map[string]int64
+}
 
-	created := time.Date(2026, time.November, 23, 14, 5, 15, 0, time.UTC)
-
-	tests := []struct {
-		name          string
-		programs      *client.ListDeliveryProgramsResponse
-		wantPrograms  map[string]int64
-		wantLastRun   map[string]int64
-		wantStages    map[string]int64
-		wantWaiting   map[string]int64
-		wantPending   map[string]int64
-		wantTimestamp map[string]float64
-		wantDuration  map[string]float64
-		wantRelease   map[string]int64
-	}{
+// deliveryProgramsCases returns the TestCollectDeliveryPrograms cases for runs created at created.
+func deliveryProgramsCases(created time.Time) []deliveryProgramsCase {
+	return []deliveryProgramsCase{
 		{
 			name: "programs with runs and stages",
 			programs: &client.ListDeliveryProgramsResponse{Programs: []client.DeliveryProgram{
 				{
-					Project: "shop", Stack: testDeliveryMain, Registered: true,
-					LastRun: &client.DeliveryRun{Number: 10, Status: testResultOK, CreatedAt: created, FinishedAt: created.Add(9 * time.Minute)},
-					Stages:  []client.DeliveryStage{{Name: testDeliveryDev, Status: testResultOK, DeployedRelease: 10}},
+					Project:    "shop",
+					Stack:      testDeliveryMain,
+					Registered: true,
+					LastRun: &client.DeliveryRun{
+						Number:     10,
+						Status:     testResultOK,
+						CreatedAt:  created,
+						FinishedAt: created.Add(9 * time.Minute),
+					},
+					Stages: []client.DeliveryStage{{Name: testStackDev, Status: testResultOK, DeployedRelease: 10}},
 				},
 				{
-					Project: "gated", Stack: testDeliveryMain, Registered: true, PendingApprovals: 1,
-					LastRun: &client.DeliveryRun{Number: 1, Status: testDeliveryWaiting, WaitKind: testDeliveryApproval, CreatedAt: created},
+					Project:          "gated",
+					Stack:            testDeliveryMain,
+					Registered:       true,
+					PendingApprovals: 1,
+					LastRun: &client.DeliveryRun{
+						Number:    1,
+						Status:    testDeliveryWaiting,
+						WaitKind:  testDeliveryApproval,
+						CreatedAt: created,
+					},
 					Stages: []client.DeliveryStage{
-						{Name: testDeliveryDev, Status: testResultOK, DeployedRelease: 1},
+						{Name: testStackDev, Status: testResultOK, DeployedRelease: 1},
 						{Name: "prod", Status: testDeliveryWaiting, WaitKind: testDeliveryApproval},
 					},
 				},
-				{Project: "local", Stack: testDeliveryDev},
+				{Project: "local", Stack: testStackDev},
 			}},
 			wantPrograms: map[string]int64{
 				"org=test-org,registered=true":  2,
@@ -100,14 +114,19 @@ func TestCollectDeliveryPrograms(t *testing.T) {
 			programs: nil,
 		},
 	}
+}
 
+func TestCollectDeliveryPrograms(t *testing.T) {
+	t.Parallel()
+
+	tests := deliveryProgramsCases(time.Date(2026, time.November, 23, 14, 5, 15, 0, time.UTC))
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			api := &mockAPI{delivery: map[string]*client.ListDeliveryProgramsResponse{testOrg: tt.programs}}
 			c, reader := newTestCollector(t, api)
-			ctx := context.Background()
+			ctx := t.Context()
 
 			c.collectDeliveryPrograms(ctx, testOrg)
 
@@ -143,7 +162,7 @@ func TestCollectDeliveryApprovals(t *testing.T) {
 			name: "oldest pending approval",
 			approvals: &client.ListDeliveryApprovalsResponse{Approvals: []client.DeliveryApproval{
 				{Project: "gated", Stack: testDeliveryMain, Stage: "prod", RequestedAt: now.Add(-30 * time.Minute)},
-				{Project: "fleet", Stack: testDeliveryDev, Stage: "canary", RequestedAt: now.Add(-2 * time.Hour)},
+				{Project: "fleet", Stack: testStackDev, Stage: "canary", RequestedAt: now.Add(-2 * time.Hour)},
 			}},
 			wantAge: (2 * time.Hour).Seconds(),
 		},
@@ -165,7 +184,7 @@ func TestCollectDeliveryApprovals(t *testing.T) {
 
 			api := &mockAPI{approvals: map[string]*client.ListDeliveryApprovalsResponse{testOrg: tt.approvals}}
 			c, reader := newTestCollector(t, api)
-			ctx := context.Background()
+			ctx := t.Context()
 
 			c.collectDeliveryApprovals(ctx, testOrg)
 

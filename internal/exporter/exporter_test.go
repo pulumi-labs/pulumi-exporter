@@ -1,14 +1,14 @@
 package exporter
 
 import (
-	"context"
+	"errors"
 	"testing"
 )
 
 func TestNewExporterHTTP(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	cfg := &OTLPConfig{
 		Endpoint: "localhost:4318",
 		Protocol: protocolHTTPProtobuf,
@@ -19,7 +19,7 @@ func TestNewExporterHTTP(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewExporter() returned unexpected error: %v", err)
 	}
-	defer func() { _ = exp.Shutdown(ctx) }()
+	defer shutdown(t, exp)
 
 	if m := exp.Meter(); m == nil {
 		t.Fatal("Meter() returned nil")
@@ -29,7 +29,7 @@ func TestNewExporterHTTP(t *testing.T) {
 func TestNewExporterGRPC(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	cfg := &OTLPConfig{
 		Endpoint: "localhost:4317",
 		Protocol: protocolGRPC,
@@ -40,7 +40,7 @@ func TestNewExporterGRPC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewExporter() returned unexpected error: %v", err)
 	}
-	defer func() { _ = exp.Shutdown(ctx) }()
+	defer shutdown(t, exp)
 
 	if m := exp.Meter(); m == nil {
 		t.Fatal("Meter() returned nil")
@@ -50,7 +50,7 @@ func TestNewExporterGRPC(t *testing.T) {
 func TestNewExporterInvalidProtocol(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	cfg := &OTLPConfig{
 		Endpoint: "localhost:4317",
 		Protocol: "invalid",
@@ -58,15 +58,15 @@ func TestNewExporterInvalidProtocol(t *testing.T) {
 	}
 
 	_, err := NewExporter(ctx, cfg, "0.0.1-test")
-	if err == nil {
-		t.Fatal("NewExporter() expected error for invalid protocol, got nil")
+	if !errors.Is(err, ErrUnsupportedProtocol) {
+		t.Fatalf("NewExporter() error = %v, want %v", err, ErrUnsupportedProtocol)
 	}
 }
 
 func TestShutdown(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
+	ctx := t.Context()
 	cfg := &OTLPConfig{
 		Endpoint: "localhost:4318",
 		Protocol: protocolHTTPProtobuf,
@@ -78,7 +78,15 @@ func TestShutdown(t *testing.T) {
 		t.Fatalf("NewExporter() returned unexpected error: %v", err)
 	}
 
-	// Shutdown may return a connection error when no collector is running,
-	// which is expected in tests. We just verify it does not panic.
-	_ = exp.Shutdown(ctx)
+	shutdown(t, exp)
+}
+
+// shutdown shuts the exporter down. It may return a connection error when no
+// collector is running, which is expected in tests, so the error is only logged.
+func shutdown(t *testing.T, exp *Exporter) {
+	t.Helper()
+
+	if err := exp.Shutdown(t.Context()); err != nil {
+		t.Logf("shutdown: %v", err)
+	}
 }
