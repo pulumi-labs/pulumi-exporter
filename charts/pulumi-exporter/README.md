@@ -1,6 +1,6 @@
 # Pulumi Cloud Exporter
 
-![Version: 0.1.11](https://img.shields.io/badge/Version-0.1.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.8](https://img.shields.io/badge/AppVersion-0.1.8-informational?style=flat-square)
+![Version: 0.1.12](https://img.shields.io/badge/Version-0.1.12-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.9](https://img.shields.io/badge/AppVersion-0.1.9-informational?style=flat-square)
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/pulumi-exporter&style=for-the-badge)](https://artifacthub.io/packages/search?repo=pulumi-exporter)
 ![Pulumi](https://img.shields.io/badge/Pulumi-8A3391?style=for-the-badge&logo=pulumi&logoColor=white)
@@ -22,7 +22,7 @@ Polls the Pulumi API on a configurable interval and pushes metrics over OTLP to 
 To install the chart using the OCI artifact, run:
 
 ```bash
-helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter --version 0.1.11
+helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter --version 0.1.12
 ```
 
 Requires Helm >= 3.8.0.
@@ -31,7 +31,7 @@ Requires Helm >= 3.8.0.
 
 ```bash
 helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter \
-  --version 0.1.11 \
+  --version 0.1.12 \
   --set pulumiAccessToken=pul-xxxxxxxxxxxx \
   --set "pulumiOrganizations={my-org}" \
   --set otlp.endpoint=otel-collector:4318 \
@@ -51,7 +51,7 @@ Then install with:
 
 ```bash
 helm install pulumi-exporter oci://ghcr.io/pulumi-labs/charts/pulumi-exporter \
-  --version 0.1.11 \
+  --version 0.1.12 \
   --set existingSecret=pulumi-credentials \
   --set "pulumiOrganizations={my-org,another-org}" \
   --set otlp.endpoint=otel-collector:4318 \
@@ -80,7 +80,7 @@ helm uninstall pulumi-exporter
 | nameOverride | string | `""` | String to override the default generated name |
 | nodeSelector | object | `{}` | Set the node selector for the pod. |
 | otlp.endpoint | string | `""` | OTLP exporter endpoint (host:port) |
-| otlp.headers | string | `""` | Additional OTLP headers as comma-separated key=value pairs. Breaking for exporter versions after 0.1.8: values are percent-decoded (write a literal % as %25, a comma as %2C), and the exporter refuses to start on a malformed entry. See https://github.com/pulumi-labs/pulumi-exporter/blob/main/docs/configuration.md#otlp-headers |
+| otlp.headers | string | `""` | Additional OTLP headers as comma-separated key=value pairs. Since exporter 0.1.9, values are percent-decoded (write a literal % as %25, a comma as %2C), and the exporter refuses to start on a malformed entry. See https://github.com/pulumi-labs/pulumi-exporter/blob/main/docs/configuration.md#otlp-headers |
 | otlp.insecure | bool | `false` | Disable TLS for OTLP endpoint |
 | otlp.protocol | string | `"http/protobuf"` | OTLP protocol: "http/protobuf" or "grpc" |
 | otlp.urlPath | string | `""` | Custom URL path for OTLP metrics endpoint |
