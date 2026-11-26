@@ -10,7 +10,7 @@ keywords:
   - exporter
   - prometheus
 type: application
-version: 0.1.10
+version: 0.1.11
 appVersion: 0.1.8
 home: https://github.com/pulumi-labs/pulumi-exporter/
 sources:
@@ -22,8 +22,10 @@ maintainers:
 annotations:
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/changes: |
-    - kind: added
-      description: Pulumi Delivery metrics (programs, runs, stages, deployed releases, pending approvals) via appVersion 0.1.8
+    - kind: fixed
+      description: Quote container args so values containing " #" or ": " (for example in otlp.headers) reach the exporter intact
+    - kind: changed
+      description: Document the OTLP header format (percent-decoded values in exporter versions after 0.1.8) on the otlp.headers value
   artifacthub.io/images: |
     - name: pulumi-exporter
       image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.8

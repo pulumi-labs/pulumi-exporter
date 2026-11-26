@@ -33,26 +33,26 @@ spec:
           image: {{ template "pulumi-exporter.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
-            - --pulumi.organizations={{ join "," .Values.pulumiOrganizations }}
-            - --pulumi.collect-interval={{ .Values.collectInterval }}
-            - --pulumi.max-concurrency={{ .Values.maxConcurrency }}
+            - {{ printf "--pulumi.organizations=%s" (join "," .Values.pulumiOrganizations) | quote }}
+            - {{ printf "--pulumi.collect-interval=%v" .Values.collectInterval | quote }}
+            - {{ printf "--pulumi.max-concurrency=%v" .Values.maxConcurrency | quote }}
             {{- if .Values.pulumiAPIURL }}
-            - --pulumi.api-url={{ .Values.pulumiAPIURL }}
+            - {{ printf "--pulumi.api-url=%s" .Values.pulumiAPIURL | quote }}
             {{- end }}
             {{- if .Values.otlp.endpoint }}
-            - --otlp.endpoint={{ .Values.otlp.endpoint }}
+            - {{ printf "--otlp.endpoint=%s" .Values.otlp.endpoint | quote }}
             {{- end }}
             {{- if .Values.otlp.protocol }}
-            - --otlp.protocol={{ .Values.otlp.protocol }}
+            - {{ printf "--otlp.protocol=%s" .Values.otlp.protocol | quote }}
             {{- end }}
             {{- if .Values.otlp.insecure }}
             - --otlp.insecure
             {{- end }}
             {{- if .Values.otlp.urlPath }}
-            - --otlp.url-path={{ .Values.otlp.urlPath }}
+            - {{ printf "--otlp.url-path=%s" .Values.otlp.urlPath | quote }}
             {{- end }}
             {{- if .Values.otlp.headers }}
-            - --otlp.headers={{ .Values.otlp.headers }}
+            - {{ printf "--otlp.headers=%s" .Values.otlp.headers | quote }}
             {{- end }}
           ports:
             - name: health
