@@ -1,40 +1,171 @@
 version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
 linters:
-  enable:
-    - bodyclose
-    - copyloopvar
-    - dupword
-    - errcheck
-    - errorlint
-    - forbidigo
-    - goconst
-    - gocritic
-    - gocyclo
-    - gosec
-    - misspell
-    - nolintlint
-    - prealloc
-    - revive
-    - tagliatelle
-    - thelper
-    - tparallel
-    - unconvert
-    - unparam
-    - wastedassign
+  # Start from every linter golangci-lint ships and opt out explicitly.
+  # Each disabled linter carries the reason it does not fit this codebase.
+  default: all
+  disable:
+    - depguard          # import policy is enforced with forbidigo below instead of an allow-list
+    - exhaustruct       # deprecated alias of exhaustruct_v5
+    - gomodguard        # deprecated alias of gomodguard_v2
+    - exhaustruct_v5    # OTel/oapi option structs are designed for partial initialisation
+    - gochecknoglobals  # appinfo build metadata must be package vars for -ldflags -X injection
+    - ireturn           # Exporter.Meter() returns the OTel metric.Meter interface by design
+    - nlreturn          # pure whitespace style, covered by gofumpt
+    - noinlineerr       # `if err := f(); err != nil` is idiomatic Go
+    - testpackage       # tests exercise unexported collector internals (mockAPI, instruments)
+    - varnamelen        # short names (c, s, ok, wg) are idiomatic Go
+    - wsl               # deprecated
+    - wsl_v5            # pure whitespace style, covered by gofumpt
+
   settings:
+    cyclop:
+      max-complexity: 15
+      package-average: 8
+    dupl:
+      threshold: 120
+    errcheck:
+      check-type-assertions: true
+    exhaustive:
+      default-signifies-exhaustive: true
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: ^print(ln)?$
+          msg: use log/slog
+        - pattern: ^fmt\.Print(f|ln)?$
+          msg: use log/slog
+        - pattern: ^http\.(Get|Head|Post|PostForm|NewRequest|NewRequestWithContext)$
+          msg: call the Pulumi API through the generated client in internal/pulumiapi
+        - pattern: ^http\.DefaultClient$
+          msg: call the Pulumi API through the generated client in internal/pulumiapi
+    funlen:
+      lines: 100
+      statements: 60
+      ignore-comments: true
+    gocognit:
+      min-complexity: 20
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocritic:
+      enable-all: true
+      disabled-checks:
+        - hugeParam        # API response structs are passed by value on purpose (immutable snapshots)
+        - unnamedResult    # conflicts with nonamedreturns
+    gocyclo:
+      min-complexity: 15
+    godot:
+      scope: declarations
+    gosec:
+      excludes: []
+      config:
+        global:
+          audit: true
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment   # struct layout is chosen for readability, not padding
+      settings:
+        shadow:
+          strict: true
+    interfacebloat:
+      max: 20              # PulumiAPI intentionally mirrors one method per API operation
+    lll:
+      line-length: 140
+    mnd:
+      ignored-functions:
+        - ^time\.
+    nakedret:
+      max-func-lines: 0
+    nestif:
+      min-complexity: 4
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+    perfsprint:
+      strconcat: false
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: add-constant         # covered by mnd
+          disabled: true
+        - name: cognitive-complexity # covered by gocognit
+          disabled: true
+        - name: cyclomatic           # covered by gocyclo/cyclop
+          disabled: true
+        - name: function-length      # covered by funlen
+          disabled: true
+        - name: line-length-limit    # covered by lll
+          disabled: true
+        - name: max-public-structs   # client/types.go is a DTO package
+          disabled: true
+        - name: unused-receiver      # receivers on mocks must satisfy PulumiAPI
+          disabled: true
+    sloglint:
+      kv-only: true
+      context: scope
+      static-msg: true
+      key-naming-case: snake
+    staticcheck:
+      checks:
+        - all
     tagliatelle:
       case:
         rules:
           json: snake
           yaml: kebab
-    gocyclo:
-      min-complexity: 15
-    gosec:
-      excludes:
-        - G117
+        overrides:
+          # The Pulumi Cloud REST API uses camelCase JSON field names.
+          - pkg: internal/client
+            rules:
+              json: goCamel
+    unparam:
+      check-exported: true
+    usetesting:
+      context-background: true
+      context-todo: true
+    usestdlibvars:
+      http-method: true
+      http-status-code: true
+      time-weekday: true
+      time-month: true
+      time-layout: true
+      crypto-hash: true
+      default-rpc-path: true
+      sql-isolation-level: true
+      tls-signature-scheme: true
+      constant-kind: true
+
+  exclusions:
+    generated: strict
+    paths:
+      - internal/pulumiapi/client\.gen\.go
+
 formatters:
   enable:
+    - gci
     - gofumpt
     - goimports
+    - golines
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
+    gofumpt:
+      extra:
+        group-params: true
+        clothe-returns: true
+    golines:
+      max-len: 140
   exclusions:
-    generated: lax
+    generated: strict
+    paths:
+      - internal/pulumiapi/client\.gen\.go

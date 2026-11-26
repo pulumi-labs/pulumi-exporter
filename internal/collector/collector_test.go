@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 
 const (
 	testOrg        = "test-org"
+	testProject    = "my-project"
 	testStackKey   = "test-org/my-project/dev"
 	testUpdateKind = "update"
 	testResultOK   = "succeeded"
@@ -87,8 +89,7 @@ func (m *mockAPI) ListNeoTasks(_ context.Context, org string) (*client.ListNeoTa
 }
 
 func (m *mockAPI) GetOrgNeoTokenBudget(_ context.Context, org string) (*client.NeoTokenBudgetResponse, error) {
-	// Returns nil when no budget is configured, mirroring the client's 404 handling.
-	return m.neoBudget[org], nil
+	return orNotEnabled(m.neoBudget, org)
 }
 
 func (m *mockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client.PolicyResultsMetadataResponse, error) {
@@ -96,21 +97,29 @@ func (m *mockAPI) GetPolicyResultsMetadata(_ context.Context, _ string) (*client
 }
 
 func (m *mockAPI) ListAgents(_ context.Context, org string) (*client.ListAgentsResponse, error) {
-	// Returns nil when Pulumi Agents are not enabled, mirroring the client's 404 handling.
-	return m.agents[org], nil
+	return orNotEnabled(m.agents, org)
 }
 
 func (m *mockAPI) ListAgentAutomations(_ context.Context, org string) (*client.ListAgentAutomationsResponse, error) {
-	return m.automations[org], nil
+	return orNotEnabled(m.automations, org)
 }
 
 func (m *mockAPI) ListDeliveryPrograms(_ context.Context, org string) (*client.ListDeliveryProgramsResponse, error) {
-	// Returns nil when Delivery is not enabled, mirroring the client's 404 handling.
-	return m.delivery[org], nil
+	return orNotEnabled(m.delivery, org)
 }
 
 func (m *mockAPI) ListPendingDeliveryApprovals(_ context.Context, org string) (*client.ListDeliveryApprovalsResponse, error) {
-	return m.approvals[org], nil
+	return orNotEnabled(m.approvals, org)
+}
+
+// orNotEnabled returns the configured response for org, or an error wrapping
+// client.ErrFeatureNotEnabled when none is configured, mirroring the client's
+// 404 handling.
+func orNotEnabled[T any](responses map[string]*T, org string) (*T, error) {
+	if r := responses[org]; r != nil {
+		return r, nil
+	}
+	return nil, fmt.Errorf("mock %s: %w", org, client.ErrFeatureNotEnabled)
 }
 
 func newTestCollector(t *testing.T, api PulumiAPI) (*Collector, *sdkmetric.ManualReader) {
@@ -163,12 +172,12 @@ func TestCollectStack(t *testing.T) {
 	}
 
 	c, reader := newTestCollector(t, api)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	stack := client.StackSummary{
 		OrgName:     testOrg,
-		ProjectName: "my-project",
-		StackName:   "dev",
+		ProjectName: testProject,
+		StackName:   testStackDev,
 	}
 
 	c.collectStack(ctx, stack)
@@ -224,7 +233,7 @@ func TestCollectOrgDeployments(t *testing.T) {
 	}
 
 	c, reader := newTestCollector(t, api)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	c.collectOrgDeployments(ctx, testOrg)
 
@@ -277,7 +286,7 @@ func TestCollectNeoTokens(t *testing.T) {
 	}
 
 	c, reader := newTestCollector(t, api)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	c.collectNeoTasks(ctx, testOrg)
 	c.collectNeoTokenBudget(ctx, testOrg, metric.WithAttributes(attribute.String("org", testOrg)))
@@ -347,12 +356,12 @@ func TestLastSeenVersionTracking(t *testing.T) {
 	}
 
 	c, reader := newTestCollector(t, api)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	stack := client.StackSummary{
 		OrgName:     testOrg,
-		ProjectName: "my-project",
-		StackName:   "dev",
+		ProjectName: testProject,
+		StackName:   testStackDev,
 	}
 
 	// First collection should process both updates.
@@ -364,7 +373,7 @@ func TestLastSeenVersionTracking(t *testing.T) {
 	}
 
 	// Verify lastSeenVersion was updated.
-	key := testStackKey
+	key := stackKey{org: testOrg, project: testProject, stack: testStackDev}
 	if c.lastSeenVersion[key] != 2 {
 		t.Errorf("expected lastSeenVersion=2, got %d", c.lastSeenVersion[key])
 	}
@@ -409,7 +418,7 @@ func TestCollectConcurrency(t *testing.T) {
 	}
 
 	c, _ := newTestCollector(t, api)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	// This should not deadlock with the semaphore.
 	c.collect(ctx)
@@ -439,7 +448,7 @@ func TestCollectTimeout(t *testing.T) {
 	}
 
 	// Cancel the parent context quickly; collect should respect it.
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
 	defer cancel()
 
 	// collect should return without hanging thanks to context cancellation.
@@ -465,7 +474,7 @@ type slowMockAPI struct {
 func (m *slowMockAPI) ListStacks(ctx context.Context) (*client.ListStacksResponse, error) {
 	select {
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return nil, fmt.Errorf("slow mock: %w", ctx.Err())
 	case <-time.After(m.delay):
 		return &client.ListStacksResponse{}, nil
 	}

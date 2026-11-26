@@ -12,6 +12,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/pulumi-labs/pulumi-exporter/internal/config"
 )
 
 const (
@@ -76,7 +78,7 @@ func NewExporter(ctx context.Context, cfg *OTLPConfig, version string) (*Exporte
 
 		exp, err = otlpmetricgrpc.New(ctx, opts...)
 	default:
-		return nil, fmt.Errorf("unsupported OTLP protocol: %q", cfg.Protocol)
+		return nil, fmt.Errorf("%w: %q", config.ErrUnsupportedProtocol, cfg.Protocol)
 	}
 
 	if err != nil {
@@ -100,5 +102,8 @@ func (e *Exporter) Meter() metric.Meter {
 
 // Shutdown gracefully shuts down the MeterProvider, flushing any remaining metrics.
 func (e *Exporter) Shutdown(ctx context.Context) error {
-	return e.meterProvider.Shutdown(ctx)
+	if err := e.meterProvider.Shutdown(ctx); err != nil {
+		return fmt.Errorf("shutting down meter provider: %w", err)
+	}
+	return nil
 }

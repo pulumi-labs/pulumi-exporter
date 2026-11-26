@@ -2,18 +2,42 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/alecthomas/kingpin/v2"
+	"golang.org/x/net/http/httpguts"
 	"gopkg.in/yaml.v3"
 )
 
 const (
 	protocolHTTPProtobuf = "http/protobuf"
 	protocolGRPC         = "grpc"
+
+	minConcurrency = 1
+	maxConcurrency = 100
+)
+
+var (
+	// ErrMissingAccessToken is returned when no Pulumi access token is configured.
+	ErrMissingAccessToken = errors.New("pulumi access token is required")
+	// ErrMissingOrganizations is returned when no Pulumi organization is configured.
+	ErrMissingOrganizations = errors.New("at least one pulumi organization is required")
+	// ErrInvalidConcurrency is returned when max-concurrency is out of range.
+	ErrInvalidConcurrency = errors.New("invalid max-concurrency")
+	// ErrUnsupportedProtocol is returned for an OTLP protocol other than http/protobuf or grpc.
+	ErrUnsupportedProtocol = errors.New("unsupported OTLP protocol")
+	// ErrMalformedHeader is returned for an OTLP header entry without "=".
+	ErrMalformedHeader = errors.New("expected key=value")
+	// ErrInvalidHeaderKey is returned for an OTLP header key that is not a valid HTTP field name.
+	ErrInvalidHeaderKey = errors.New("invalid HTTP header field name")
+	// ErrInvalidHeaderValue is returned for an OTLP header value with an invalid percent-encoding.
+	ErrInvalidHeaderValue = errors.New("invalid percent-encoding in header value (write a literal % as %25)")
 )
 
 // Config holds the complete application configuration.
@@ -93,12 +117,12 @@ func RegisterFlags(app *kingpin.Application) *Config {
 
 // LoadFile loads a YAML configuration file and overlays it onto the existing config.
 func (c *Config) LoadFile(path string) error {
-	data, err := os.ReadFile(path) //nolint:gosec // path comes from user-provided config flag
+	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return fmt.Errorf("reading config file: %w", err)
 	}
 
-	if err := yaml.Unmarshal(data, c); err != nil {
+	if err = yaml.Unmarshal(data, c); err != nil {
 		return fmt.Errorf("parsing config file: %w", err)
 	}
 
@@ -106,20 +130,45 @@ func (c *Config) LoadFile(path string) error {
 }
 
 // ParseHeaders parses a comma-separated list of key=value pairs into the Headers map.
-func (c *Config) ParseHeaders(raw string) {
-	if raw == "" {
-		return
-	}
-
-	c.Exporters.Headers = make(map[string]string)
-
-	pairs := strings.Split(raw, ",")
-	for _, pair := range pairs {
-		kv := strings.SplitN(strings.TrimSpace(pair), "=", 2)
-		if len(kv) == 2 {
-			c.Exporters.Headers[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+// The format follows the OpenTelemetry OTEL_EXPORTER_OTLP_HEADERS specification:
+// values are percent-decoded, and keys must be valid HTTP header field names.
+// Empty entries, such as the one a trailing comma produces, are skipped.
+//
+// Header values are usually credentials, so errors name the entry by its
+// 1-based position and never include the raw entry or value.
+func (c *Config) ParseHeaders(raw string) error {
+	headers := make(map[string]string)
+	position := 0
+	for pair := range strings.SplitSeq(raw, ",") {
+		position++
+		if strings.TrimSpace(pair) == "" {
+			continue
 		}
+
+		rawKey, rawValue, found := strings.Cut(pair, "=")
+		if !found {
+			return fmt.Errorf("parsing OTLP header entry %d: %w", position, ErrMalformedHeader)
+		}
+
+		key := strings.TrimSpace(rawKey)
+		if !httpguts.ValidHeaderFieldName(key) {
+			return fmt.Errorf("parsing OTLP header entry %d: %w", position, ErrInvalidHeaderKey)
+		}
+
+		// Trim before decoding, so spaces written as %20 survive.
+		value, err := url.PathUnescape(strings.TrimSpace(rawValue))
+		if err != nil {
+			// The url.EscapeError text quotes part of the value, so drop it.
+			return fmt.Errorf("parsing OTLP header %q (entry %d): %w", key, position, ErrInvalidHeaderValue)
+		}
+
+		headers[key] = value
 	}
+
+	if len(headers) > 0 {
+		c.Exporters.Headers = headers
+	}
+	return nil
 }
 
 // NormalizeOrganizations splits comma-separated organization values into individual entries.
@@ -127,9 +176,8 @@ func (c *Config) ParseHeaders(raw string) {
 func (c *Config) NormalizeOrganizations() {
 	var normalized []string
 	for _, org := range c.Pulumi.Organizations {
-		for _, part := range strings.Split(org, ",") {
-			trimmed := strings.TrimSpace(part)
-			if trimmed != "" {
+		for part := range strings.SplitSeq(org, ",") {
+			if trimmed := strings.TrimSpace(part); trimmed != "" {
 				normalized = append(normalized, trimmed)
 			}
 		}
@@ -140,22 +188,24 @@ func (c *Config) NormalizeOrganizations() {
 // Validate checks that required configuration values are present.
 func (c *Config) Validate() error {
 	if c.Pulumi.AccessToken == "" {
-		return fmt.Errorf("pulumi access token is required")
+		return ErrMissingAccessToken
 	}
 
 	if len(c.Pulumi.Organizations) == 0 {
-		return fmt.Errorf("at least one pulumi organization is required")
+		return ErrMissingOrganizations
 	}
 
-	if c.Pulumi.MaxConcurrency < 1 || c.Pulumi.MaxConcurrency > 100 {
-		return fmt.Errorf("max-concurrency must be between 1 and 100, got %d", c.Pulumi.MaxConcurrency)
+	if c.Pulumi.MaxConcurrency < minConcurrency || c.Pulumi.MaxConcurrency > maxConcurrency {
+		return fmt.Errorf("max-concurrency must be between %d and %d, got %d: %w",
+			minConcurrency, maxConcurrency, c.Pulumi.MaxConcurrency, ErrInvalidConcurrency)
 	}
 
 	switch c.Exporters.Protocol {
 	case protocolHTTPProtobuf, protocolGRPC:
 		// valid
 	default:
-		return fmt.Errorf("unsupported OTLP protocol: %q (must be http/protobuf or grpc)", c.Exporters.Protocol)
+		return fmt.Errorf("%w: %q (must be %s or %s)",
+			ErrUnsupportedProtocol, c.Exporters.Protocol, protocolHTTPProtobuf, protocolGRPC)
 	}
 
 	return nil

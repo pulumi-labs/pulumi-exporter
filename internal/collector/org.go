@@ -2,37 +2,40 @@ package collector
 
 import (
 	"context"
+	"errors"
+	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-	"golang.org/x/sync/errgroup"
+
+	"github.com/pulumi-labs/pulumi-exporter/internal/client"
 )
 
 func (c *Collector) collectOrgMetrics(ctx context.Context, org string) {
 	orgAttr := metric.WithAttributes(attribute.String("org", org))
 
-	g, gCtx := errgroup.WithContext(ctx)
-	g.Go(func() error { c.collectMembers(gCtx, org, orgAttr); return nil })
-	g.Go(func() error { c.collectTeams(gCtx, org, orgAttr); return nil })
-	g.Go(func() error { c.collectEnvironments(gCtx, org, orgAttr); return nil })
-	g.Go(func() error { c.collectPolicyGroups(gCtx, org, orgAttr); return nil })
-	g.Go(func() error { c.collectPolicyPacks(gCtx, org, orgAttr); return nil })
-	g.Go(func() error { c.collectPolicyViolations(gCtx, org); return nil })
-	g.Go(func() error { c.collectNeoTasks(gCtx, org); return nil })
-	g.Go(func() error { c.collectNeoTokenBudget(gCtx, org, orgAttr); return nil })
-	g.Go(func() error { c.collectPolicyResultsMetadata(gCtx, org, orgAttr); return nil })
-	g.Go(func() error { c.collectAgents(gCtx, org); return nil })
-	g.Go(func() error { c.collectAgentAutomations(gCtx, org); return nil })
-	g.Go(func() error { c.collectDeliveryPrograms(gCtx, org); return nil })
-	g.Go(func() error { c.collectDeliveryApprovals(gCtx, org); return nil })
-	_ = g.Wait()
+	var wg sync.WaitGroup
+	wg.Go(func() { c.collectMembers(ctx, org, orgAttr) })
+	wg.Go(func() { c.collectTeams(ctx, org, orgAttr) })
+	wg.Go(func() { c.collectEnvironments(ctx, org, orgAttr) })
+	wg.Go(func() { c.collectPolicyGroups(ctx, org, orgAttr) })
+	wg.Go(func() { c.collectPolicyPacks(ctx, org, orgAttr) })
+	wg.Go(func() { c.collectPolicyViolations(ctx, org) })
+	wg.Go(func() { c.collectNeoTasks(ctx, org) })
+	wg.Go(func() { c.collectNeoTokenBudget(ctx, org, orgAttr) })
+	wg.Go(func() { c.collectPolicyResultsMetadata(ctx, org, orgAttr) })
+	wg.Go(func() { c.collectAgents(ctx, org) })
+	wg.Go(func() { c.collectAgentAutomations(ctx, org) })
+	wg.Go(func() { c.collectDeliveryPrograms(ctx, org) })
+	wg.Go(func() { c.collectDeliveryApprovals(ctx, org) })
+	wg.Wait()
 }
 
 func (c *Collector) collectMembers(ctx context.Context, org string, attrs metric.MeasurementOption) {
 	resp, err := c.client.ListMembers(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list members", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list members", "org", org, "error", err)
 		return
 	}
 	c.instruments.orgMemberCount.Record(ctx, int64(len(resp.Members)), attrs)
@@ -41,7 +44,7 @@ func (c *Collector) collectMembers(ctx context.Context, org string, attrs metric
 func (c *Collector) collectTeams(ctx context.Context, org string, attrs metric.MeasurementOption) {
 	resp, err := c.client.ListTeams(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list teams", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list teams", "org", org, "error", err)
 		return
 	}
 	c.instruments.orgTeamCount.Record(ctx, int64(len(resp.Teams)), attrs)
@@ -50,7 +53,7 @@ func (c *Collector) collectTeams(ctx context.Context, org string, attrs metric.M
 func (c *Collector) collectEnvironments(ctx context.Context, org string, attrs metric.MeasurementOption) {
 	resp, err := c.client.ListEnvironments(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list environments", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list environments", "org", org, "error", err)
 		return
 	}
 	c.instruments.orgEnvironmentCount.Record(ctx, int64(len(resp.Environments)), attrs)
@@ -59,7 +62,7 @@ func (c *Collector) collectEnvironments(ctx context.Context, org string, attrs m
 func (c *Collector) collectPolicyGroups(ctx context.Context, org string, attrs metric.MeasurementOption) {
 	resp, err := c.client.ListPolicyGroups(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list policy groups", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list policy groups", "org", org, "error", err)
 		return
 	}
 	c.instruments.orgPolicyGroupCount.Record(ctx, int64(len(resp.PolicyGroups)), attrs)
@@ -68,7 +71,7 @@ func (c *Collector) collectPolicyGroups(ctx context.Context, org string, attrs m
 func (c *Collector) collectPolicyPacks(ctx context.Context, org string, attrs metric.MeasurementOption) {
 	resp, err := c.client.ListPolicyPacks(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list policy packs", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list policy packs", "org", org, "error", err)
 		return
 	}
 	c.instruments.orgPolicyPackCount.Record(ctx, int64(len(resp.PolicyPacks)), attrs)
@@ -77,7 +80,7 @@ func (c *Collector) collectPolicyPacks(ctx context.Context, org string, attrs me
 func (c *Collector) collectPolicyViolations(ctx context.Context, org string) {
 	resp, err := c.client.ListPolicyViolations(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list policy violations", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list policy violations", "org", org, "error", err)
 		return
 	}
 
@@ -106,7 +109,7 @@ func (c *Collector) collectPolicyViolations(ctx context.Context, org string) {
 func (c *Collector) collectPolicyResultsMetadata(ctx context.Context, org string, attrs metric.MeasurementOption) {
 	resp, err := c.client.GetPolicyResultsMetadata(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to get policy results metadata", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to get policy results metadata", "org", org, "error", err)
 		return
 	}
 	c.instruments.orgPolicyTotal.Record(ctx, resp.PolicyTotalCount, attrs)
@@ -118,7 +121,7 @@ func (c *Collector) collectPolicyResultsMetadata(ctx context.Context, org string
 func (c *Collector) collectNeoTasks(ctx context.Context, org string) {
 	resp, err := c.client.ListNeoTasks(ctx, org)
 	if err != nil {
-		c.logger.Error("failed to list neo tasks", "org", org, "error", err)
+		c.logger.ErrorContext(ctx, "failed to list neo tasks", "org", org, "error", err)
 		return
 	}
 
@@ -149,12 +152,12 @@ func (c *Collector) collectNeoTasks(ctx context.Context, org string) {
 
 func (c *Collector) collectNeoTokenBudget(ctx context.Context, org string, attrs metric.MeasurementOption) {
 	resp, err := c.client.GetOrgNeoTokenBudget(ctx, org)
-	if err != nil {
-		c.logger.Error("failed to get neo token budget", "org", org, "error", err)
+	if errors.Is(err, client.ErrFeatureNotEnabled) {
+		// The organization has no Neo token budget; nothing to record.
 		return
 	}
-	if resp == nil {
-		// Organization has no Neo token budget; nothing to record.
+	if err != nil {
+		c.logger.ErrorContext(ctx, "failed to get neo token budget", "org", org, "error", err)
 		return
 	}
 

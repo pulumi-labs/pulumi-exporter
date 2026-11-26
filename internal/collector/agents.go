@@ -2,11 +2,14 @@ package collector
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+
+	"github.com/pulumi-labs/pulumi-exporter/internal/client"
 )
 
 // noLastRunStatus labels automations that have not run yet.
@@ -14,12 +17,12 @@ const noLastRunStatus = "none"
 
 func (c *Collector) collectAgents(ctx context.Context, org string) {
 	resp, err := c.client.ListAgents(ctx, org)
-	if err != nil {
-		c.logger.Error("failed to list agents", "org", org, "error", err)
+	if errors.Is(err, client.ErrFeatureNotEnabled) {
+		// Pulumi Agents are not enabled for the organization; nothing to record.
 		return
 	}
-	if resp == nil {
-		// Pulumi Agents are not enabled for the organization; nothing to record.
+	if err != nil {
+		c.logger.ErrorContext(ctx, "failed to list agents", "org", org, "error", err)
 		return
 	}
 
@@ -48,12 +51,12 @@ func (c *Collector) collectAgents(ctx context.Context, org string) {
 
 func (c *Collector) collectAgentAutomations(ctx context.Context, org string) {
 	resp, err := c.client.ListAgentAutomations(ctx, org)
-	if err != nil {
-		c.logger.Error("failed to list agent automations", "org", org, "error", err)
+	if errors.Is(err, client.ErrFeatureNotEnabled) {
+		// Pulumi Agents are not enabled for the organization; nothing to record.
 		return
 	}
-	if resp == nil {
-		// Pulumi Agents are not enabled for the organization; nothing to record.
+	if err != nil {
+		c.logger.ErrorContext(ctx, "failed to list agent automations", "org", org, "error", err)
 		return
 	}
 
@@ -68,10 +71,10 @@ func (c *Collector) collectAgentAutomations(ctx context.Context, org string) {
 		if a.NextExecution == "" {
 			continue
 		}
-		next, err := time.Parse(time.RFC3339, a.NextExecution)
-		if err != nil {
-			c.logger.Warn("invalid agent automation next execution time",
-				"org", org, "automation", a.Name, "value", a.NextExecution, "error", err)
+		next, parseErr := time.Parse(time.RFC3339, a.NextExecution)
+		if parseErr != nil {
+			c.logger.WarnContext(ctx, "invalid agent automation next execution time",
+				"org", org, "automation", a.Name, "value", a.NextExecution, "error", parseErr)
 			continue
 		}
 		c.instruments.orgAgentAutomationNextRun.Record(ctx, float64(next.Unix()), metric.WithAttributes(
