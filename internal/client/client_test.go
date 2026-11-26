@@ -22,6 +22,7 @@ func TestNewClientAPIURL(t *testing.T) {
 		{name: "missing scheme", baseURL: "api.pulumi.com", wantErr: ErrInvalidAPIURL},
 		{name: "missing host", baseURL: "https://", wantErr: ErrInvalidAPIURL},
 		{name: "empty", baseURL: "", wantErr: ErrInvalidAPIURL},
+		{name: "unparsable port", baseURL: "https://api.pulumi.com:abc", wantErr: ErrInvalidAPIURL},
 	}
 
 	for _, tt := range tests {

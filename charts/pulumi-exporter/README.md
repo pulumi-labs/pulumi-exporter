@@ -80,7 +80,7 @@ helm uninstall pulumi-exporter
 | nameOverride | string | `""` | String to override the default generated name |
 | nodeSelector | object | `{}` | Set the node selector for the pod. |
 | otlp.endpoint | string | `""` | OTLP exporter endpoint (host:port) |
-| otlp.headers | string | `""` | Additional OTLP headers as comma-separated key=value pairs. Exporter versions after 0.1.8 percent-decode values (write a literal % as %25, a comma as %2C) and refuse to start on a malformed entry. See https://github.com/pulumi-labs/pulumi-exporter/blob/main/docs/configuration.md#otlp-headers |
+| otlp.headers | string | `""` | Additional OTLP headers as comma-separated key=value pairs. Breaking for exporter versions after 0.1.8: values are percent-decoded (write a literal % as %25, a comma as %2C), and the exporter refuses to start on a malformed entry. See https://github.com/pulumi-labs/pulumi-exporter/blob/main/docs/configuration.md#otlp-headers |
 | otlp.insecure | bool | `false` | Disable TLS for OTLP endpoint |
 | otlp.protocol | string | `"http/protobuf"` | OTLP protocol: "http/protobuf" or "grpc" |
 | otlp.urlPath | string | `""` | Custom URL path for OTLP metrics endpoint |

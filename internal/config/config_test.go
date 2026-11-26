@@ -244,6 +244,7 @@ func TestParseHeaders(t *testing.T) {
 		},
 		{name: "keeps = in values", raw: "sig=a=b", want: map[string]string{"sig": "a=b"}},
 		{name: "literal percent", raw: "token=50%25", want: map[string]string{"token": "50%"}},
+		{name: "keeps encoded edge spaces", raw: "pad= %20abc%20 ", want: map[string]string{"pad": " abc "}},
 		{name: "trailing comma", raw: "api-key=abc,", want: map[string]string{"api-key": "abc"}},
 		{name: "blank entries", raw: "a=1, ,,b=2", want: map[string]string{"a": "1", "b": "2"}},
 		{name: "only separators", raw: " , ", want: nil},

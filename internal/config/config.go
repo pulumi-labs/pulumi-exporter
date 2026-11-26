@@ -155,13 +155,14 @@ func (c *Config) ParseHeaders(raw string) error {
 			return fmt.Errorf("parsing OTLP header entry %d: %w", position, ErrInvalidHeaderKey)
 		}
 
-		value, err := url.PathUnescape(rawValue)
+		// Trim before decoding, so spaces written as %20 survive.
+		value, err := url.PathUnescape(strings.TrimSpace(rawValue))
 		if err != nil {
 			// The url.EscapeError text quotes part of the value, so drop it.
 			return fmt.Errorf("parsing OTLP header %q (entry %d): %w", key, position, ErrInvalidHeaderValue)
 		}
 
-		headers[key] = strings.TrimSpace(value)
+		headers[key] = value
 	}
 
 	if len(headers) > 0 {

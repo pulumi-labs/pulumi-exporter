@@ -3,6 +3,8 @@ package exporter
 import (
 	"errors"
 	"testing"
+
+	"github.com/pulumi-labs/pulumi-exporter/internal/config"
 )
 
 func TestNewExporterHTTP(t *testing.T) {
@@ -58,8 +60,8 @@ func TestNewExporterInvalidProtocol(t *testing.T) {
 	}
 
 	_, err := NewExporter(ctx, cfg, "0.0.1-test")
-	if !errors.Is(err, ErrUnsupportedProtocol) {
-		t.Fatalf("NewExporter() error = %v, want %v", err, ErrUnsupportedProtocol)
+	if !errors.Is(err, config.ErrUnsupportedProtocol) {
+		t.Fatalf("NewExporter() error = %v, want %v", err, config.ErrUnsupportedProtocol)
 	}
 }
 

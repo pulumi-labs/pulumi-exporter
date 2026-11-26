@@ -24,8 +24,15 @@ import (
 const (
 	// readHeaderTimeout bounds how long the health server waits for request headers.
 	readHeaderTimeout = 5 * time.Second
-	// shutdownTimeout bounds the graceful shutdown of the health server and exporter.
-	shutdownTimeout = 10 * time.Second
+	// The shutdown steps have separate budgets that add up to 25s, under the
+	// 30s default Kubernetes termination grace period.
+
+	// serverShutdownTimeout bounds the graceful shutdown of the health server.
+	serverShutdownTimeout = 5 * time.Second
+	// collectorStopTimeout bounds the wait for an in-flight collection.
+	collectorStopTimeout = 10 * time.Second
+	// flushTimeout bounds the final exporter flush.
+	flushTimeout = 10 * time.Second
 )
 
 // Main is the entrypoint for the pulumi-exporter application. It returns the
@@ -76,9 +83,9 @@ func run() error {
 
 	coll, err := collector.NewCollector(apiClient, cfg, exp.Meter(), logger)
 	if err != nil {
-		shutdownCtx, shutdownCancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
-		defer shutdownCancel()
-		return errors.Join(fmt.Errorf("creating collector: %w", err), exp.Shutdown(shutdownCtx))
+		flushCtx, flushCancel := context.WithTimeout(context.WithoutCancel(ctx), flushTimeout)
+		defer flushCancel()
+		return errors.Join(fmt.Errorf("creating collector: %w", err), exp.Shutdown(flushCtx))
 	}
 
 	collectorDone := make(chan struct{})
@@ -100,27 +107,38 @@ func run() error {
 	<-ctx.Done()
 	// signal.NotifyContext sets a cause that names the received signal.
 	logger.InfoContext(ctx, "shutting down", "reason", context.Cause(ctx).Error())
+	// Stop capturing signals, so a second Ctrl-C or SIGTERM force-stops the
+	// process while shutdown is still running.
+	cancel()
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.WithoutCancel(ctx), shutdownTimeout)
-	defer shutdownCancel()
+	shutdown(context.WithoutCancel(ctx), logger, srv, collectorDone, exp)
+	return nil
+}
 
-	if shutdownErr := srv.Shutdown(shutdownCtx); shutdownErr != nil {
-		logger.ErrorContext(shutdownCtx, "health check server shutdown error", "error", shutdownErr)
+// shutdown stops the health server, waits for the collector to finish its
+// in-flight collection, and then flushes the exporter. Each step has its own
+// timeout, so a stuck collector cannot use up the time the flush needs.
+func shutdown(ctx context.Context, logger *slog.Logger, srv *http.Server, collectorDone <-chan struct{}, exp *exporter.Exporter) {
+	srvCtx, srvCancel := context.WithTimeout(ctx, serverShutdownTimeout)
+	defer srvCancel()
+	if err := srv.Shutdown(srvCtx); err != nil {
+		logger.ErrorContext(srvCtx, "health check server shutdown error", "error", err)
 	}
 
 	// Let an in-flight collection finish recording before the exporter flushes.
 	select {
 	case <-collectorDone:
-	case <-shutdownCtx.Done():
-		logger.WarnContext(shutdownCtx, "collector did not stop before the shutdown timeout")
+	case <-time.After(collectorStopTimeout):
+		logger.WarnContext(ctx, "collector did not stop before the timeout", "timeout", collectorStopTimeout.String())
 	}
 
-	if shutdownErr := exp.Shutdown(shutdownCtx); shutdownErr != nil {
-		logger.ErrorContext(shutdownCtx, "exporter shutdown error", "error", shutdownErr)
+	flushCtx, flushCancel := context.WithTimeout(ctx, flushTimeout)
+	defer flushCancel()
+	if err := exp.Shutdown(flushCtx); err != nil {
+		logger.ErrorContext(flushCtx, "exporter shutdown error", "error", err)
 	}
 
-	logger.InfoContext(shutdownCtx, "pulumi-exporter stopped")
-	return nil
+	logger.InfoContext(ctx, "pulumi-exporter stopped")
 }
 
 // parseConfig parses flags, environment variables, and the optional config
@@ -176,8 +194,8 @@ func newHealthServer(addr string) *http.Server {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", ok)
-	mux.HandleFunc("GET /readyz", ok)
+	mux.HandleFunc("/healthz", ok)
+	mux.HandleFunc("/readyz", ok)
 
 	return &http.Server{
 		Addr:              addr,

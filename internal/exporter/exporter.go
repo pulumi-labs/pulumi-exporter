@@ -3,7 +3,6 @@ package exporter
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -13,15 +12,14 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/pulumi-labs/pulumi-exporter/internal/config"
 )
 
 const (
 	protocolHTTPProtobuf = "http/protobuf"
 	protocolGRPC         = "grpc"
 )
-
-// ErrUnsupportedProtocol is returned for an OTLP protocol other than http/protobuf or grpc.
-var ErrUnsupportedProtocol = errors.New("unsupported OTLP protocol")
 
 // OTLPConfig holds OTLP exporter configuration.
 type OTLPConfig struct {
@@ -80,7 +78,7 @@ func NewExporter(ctx context.Context, cfg *OTLPConfig, version string) (*Exporte
 
 		exp, err = otlpmetricgrpc.New(ctx, opts...)
 	default:
-		return nil, fmt.Errorf("%w: %q", ErrUnsupportedProtocol, cfg.Protocol)
+		return nil, fmt.Errorf("%w: %q", config.ErrUnsupportedProtocol, cfg.Protocol)
 	}
 
 	if err != nil {

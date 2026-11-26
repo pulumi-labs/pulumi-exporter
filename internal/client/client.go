@@ -27,7 +27,7 @@ func NewClient(baseURL, token string) (*Client, error) {
 	// URL resolution; reject anything that is not an absolute URL up front.
 	u, err := url.Parse(baseURL)
 	if err != nil {
-		return nil, fmt.Errorf("parsing API URL: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrInvalidAPIURL, err)
 	}
 	if !u.IsAbs() || u.Host == "" {
 		return nil, fmt.Errorf("parsing API URL %q: %w", baseURL, ErrInvalidAPIURL)
