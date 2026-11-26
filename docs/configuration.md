@@ -38,7 +38,7 @@ OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic%20dXNlcjpwYXNz,x-scope-orgid=ten
 
 Headers set with the flag or environment variable replace the `otlp.headers` map from the YAML file. YAML values are used verbatim and are not percent-decoded.
 
-> **Upgrading from 0.1.8 or earlier:** those versions sent flag and environment header values verbatim. A value that contains a valid escape now changes without any error: `ab%41cd` is sent as `abAcd`. Before upgrading, check your header values for `%` and write each literal `%` as `%25`, or move the headers to the YAML file, where values are not decoded.
+> **Upgrading to 0.1.9 from 0.1.8 or earlier:** those versions sent flag and environment header values verbatim. A value that contains a valid escape now changes without any error: `ab%41cd` is sent as `abAcd`. Before upgrading, check your header values for `%` and write each literal `%` as `%25`, or move the headers to the YAML file, where values are not decoded.
 
 ## YAML Config File
 

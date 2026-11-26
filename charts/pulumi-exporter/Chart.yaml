@@ -10,8 +10,8 @@ keywords:
   - exporter
   - prometheus
 type: application
-version: 0.1.11
-appVersion: 0.1.8
+version: 0.1.12
+appVersion: 0.1.9
 home: https://github.com/pulumi-labs/pulumi-exporter/
 sources:
   - https://github.com/pulumi-labs/pulumi-exporter/
@@ -22,13 +22,13 @@ maintainers:
 annotations:
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/changes: |
-    - kind: fixed
-      description: Quote container args so values containing " #" or ": " (for example in otlp.headers) reach the exporter intact
     - kind: changed
-      description: "Document the OTLP header format on otlp.headers. Breaking for exporter versions after 0.1.8: header values are percent-decoded, so a literal % must be written as %25"
+      description: "Breaking via appVersion 0.1.9: OTLP header values are percent-decoded, so write a literal % as %25; a malformed header entry stops startup"
+    - kind: fixed
+      description: Graceful shutdown waits for the in-flight collection before flushing metrics, via appVersion 0.1.9
   artifacthub.io/images: |
     - name: pulumi-exporter
-      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.8
+      image: ghcr.io/pulumi-labs/pulumi-exporter:0.1.9
   artifacthub.io/license: MIT
   artifacthub.io/maintainers: |
     - name: pulumi-labs
