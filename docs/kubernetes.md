@@ -132,7 +132,15 @@ The chart ships with two GitHub Actions workflows:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `helm-publish.yaml` | Push to `main` touching `charts/**` | ArtifactHub lint, OCI push to GHCR, cosign sign |
+| `helm-publish.yaml` | Push to `main` touching `charts/**`, a successful `v*` tag release, or manual dispatch | Sets `appVersion` and the image from the release tag, regenerates the README, ArtifactHub lint, OCI push to GHCR, cosign sign |
 | `lint-and-test.yaml` | PR touching `charts/**` | Trivy IaC scan, ct lint, ArtifactHub lint, kind cluster + ct install |
 
 Charts are published as OCI artifacts to `oci://ghcr.io/pulumi-labs/charts/pulumi-exporter`.
+
+### How a chart version ships
+
+The chart has its own version, separate from the exporter version. A published chart always points at a released exporter image: the publish job takes `appVersion` from the latest `v*` tag, not from `Chart.yaml`. Each chart version is published once.
+
+- **Chart-only change:** bump `version` in `Chart.yaml`. Merging to `main` publishes it with the current exporter release.
+- **Change to the exporter and the chart:** bump `version` in the same PR. The chart is published after the next exporter release, with that release's version.
+- **New exporter release:** bump the chart `version` before tagging. If you tag without a bump, the publish job fails and asks for one.

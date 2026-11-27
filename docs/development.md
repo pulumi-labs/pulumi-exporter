@@ -77,6 +77,8 @@ Run `make help` to see all targets:
 | `make deps` | Download and tidy Go module dependencies |
 | `make tools` | Install development tools (oapi-codegen, helm-docs) |
 
+To release, bump the chart `version` in `charts/pulumi-exporter/Chart.yaml` if the chart should ship the new exporter, then push a `v*` tag on `main`. GoReleaser publishes the binaries and images. When it finishes, `helm-publish.yaml` publishes the chart with `appVersion` set to the tag. See [Kubernetes: how a chart version ships](kubernetes.md#how-a-chart-version-ships).
+
 ## Project Structure
 
 ```
@@ -115,6 +117,7 @@ pulumi-exporter/
 ├── .github/
 │   ├── configs/                         # ct-lint, cr, lintconf configs
 │   ├── dependabot.yaml                  # Automated dependency updates
+│   ├── scripts/                         # chart-publish-plan.sh (chart publish decision)
 │   └── workflows/                       # CI, lint, helm-publish, lint-and-test
 ├── .goreleaser.yaml                     # Multi-arch builds, signing, SBOM
 └── .golangci.yaml                       # Linter configuration

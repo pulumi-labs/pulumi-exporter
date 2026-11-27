@@ -5,11 +5,33 @@ on:
       - main
     paths:
       - "charts/**"
+  # Publish chart changes that waited for a release, stamped with the released appVersion.
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+  workflow_dispatch:
 
 permissions: read-all
 
+concurrency:
+  group: chart-publish
+  cancel-in-progress: false
+
+env:
+  CHART_DIR: charts/pulumi-exporter
+  HELM_DOCS_VERSION: 1.14.2
+  HELM_DOCS_SHA256: a8cf72ada34fad93285ba2a452b38bdc5bd52cc9a571236244ec31022928d6cc
+
 jobs:
   publish:
+    # After CI, run only for a successful release of a v* tag.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      startsWith(github.event.workflow_run.head_branch, 'v'))
     permissions:
       contents: read
       packages: write
@@ -18,15 +40,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # After a release, publish the chart as it was at the released commit.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
 
       - name: Install Helm
         uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
-
-      - name: Run Artifact Hub lint
-        run: |
-          curl -s https://api.github.com/repos/artifacthub/hub/releases/latest | grep -E 'browser_download_url' | grep linux_amd64.tar.gz\" | grep -Eo 'https://[^\"]*' | xargs wget -O - | tar -xz
-          ./ah lint -p charts/pulumi-exporter || exit 1
-          rm -f ./ah
 
       - name: Login to GHCR
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
@@ -35,13 +55,45 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Decide whether to publish
+        id: plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.workflow_run.head_branch }}
+          CHART_REF: oci://ghcr.io/${{ github.repository_owner }}/charts/pulumi-exporter
+        run: .github/scripts/chart-publish-plan.sh
+
+      - name: Stamp appVersion and image from the release tag
+        if: steps.plan.outputs.publish == 'true'
+        env:
+          APP_VERSION: ${{ steps.plan.outputs.app_version }}
+        run: |
+          yq -i '.appVersion = strenv(APP_VERSION) |
+            .annotations["artifacthub.io/images"] |= sub("ghcr\.io/pulumi-labs/pulumi-exporter:\S+", "ghcr.io/pulumi-labs/pulumi-exporter:" + strenv(APP_VERSION))' \
+            "${CHART_DIR}/Chart.yaml"
+          curl -sSfL -o "${RUNNER_TEMP}/helm-docs.tar.gz" \
+            "https://github.com/norwoodj/helm-docs/releases/download/v${HELM_DOCS_VERSION}/helm-docs_${HELM_DOCS_VERSION}_Linux_x86_64.tar.gz"
+          echo "${HELM_DOCS_SHA256}  ${RUNNER_TEMP}/helm-docs.tar.gz" | sha256sum -c -
+          tar -xzf "${RUNNER_TEMP}/helm-docs.tar.gz" -C "${RUNNER_TEMP}" helm-docs
+          "${RUNNER_TEMP}/helm-docs" -c "${CHART_DIR}" -t README.md.gotmpl -o README.md
+          git diff --stat
+
+      - name: Run Artifact Hub lint
+        if: steps.plan.outputs.publish == 'true'
+        run: |
+          curl -s https://api.github.com/repos/artifacthub/hub/releases/latest | grep -E 'browser_download_url' | grep linux_amd64.tar.gz\" | grep -Eo 'https://[^\"]*' | xargs wget -O - | tar -xz
+          ./ah lint -p "${CHART_DIR}" || exit 1
+          rm -f ./ah
+
       - name: Install Cosign
+        if: steps.plan.outputs.publish == 'true'
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Package and push chart to GHCR
+        if: steps.plan.outputs.publish == 'true'
         run: |
-          helm package charts/pulumi-exporter -d .helm-packages
+          helm package "${CHART_DIR}" -d .helm-packages
           for pkg in .helm-packages/*.tgz; do
             helm push "${pkg}" oci://ghcr.io/"${GITHUB_REPOSITORY_OWNER}"/charts |& tee .digest
-            cosign sign -y $(awk -F "[, ]+" '/Pushed/{print $NF}' .digest)
+            cosign sign -y "$(awk -F "[, ]+" '/Pushed/{print $NF}' .digest)"
           done
