@@ -68,7 +68,8 @@ artifacthub-repo.yml                    → ArtifactHub repository metadata
 .github/configs/                        → ct-lint, lintconf YAML configs
 .github/workflows/ci.yaml              → Build + test on PRs; GoReleaser release on tags
 .github/workflows/lint.yaml            → golangci-lint on PRs and pushes to main
-.github/workflows/helm-publish.yaml     → Chart publish (OCI push to GHCR + cosign)
+.github/workflows/helm-publish.yaml     → Chart publish (OCI push to GHCR + cosign), after chart pushes and tag releases
+.github/scripts/chart-publish-plan.sh   → Decides whether helm-publish pushes, and which appVersion it stamps
 .github/workflows/lint-and-test.yaml    → CT lint + Trivy + kind install on PRs
 ```
 
@@ -181,16 +182,19 @@ make helm-test-e2e  # kind-create + ct-install + kind-delete
 
 ### Versioning
 
-- `Chart.yaml` `version` = chart version (bump when templates/values change)
-- `Chart.yaml` `appVersion` = application image version
+- `Chart.yaml` `version` = chart version (bump when templates/values change, and to ship a new app release)
+- `Chart.yaml` `appVersion` = application image version. The publish job overwrites it, and the `artifacthub.io/images` annotation, with the release tag, so a published chart never points at an unreleased image. The values in git need no hand bump.
 - `_helpers.tpl` `pulumi-exporter.image` defaults tag to `.Chart.AppVersion` when `image.tag` is empty
-- Update `artifacthub.io/images` annotation when bumping `appVersion`
+- A chart version is published once. `.github/scripts/chart-publish-plan.sh` decides whether a run publishes:
+  - Push to `main` with only chart changes since the latest `v*` tag: publish now, stamped with that tag.
+  - Push to `main` with app changes (`*.go`, `go.mod`, `go.sum`, `Dockerfile`, `.goreleaser.yaml`) since the latest tag: wait, and publish after the next release.
+  - After a tag release: publish the chart from the tagged commit. If that chart version is already published with an older appVersion, the job fails and asks for a chart version bump.
 
 ### CI/CD Workflows
 
 - **`ci.yaml`** — triggers on pushes to `main` and PRs: runs tests + build. On `v*` tags: GoReleaser release (multi-platform binaries, Docker images to GHCR, cosign signing, SBOM via Syft).
 - **`lint.yaml`** — triggers on pushes to `main` and PRs: runs golangci-lint.
-- **`helm-publish.yaml`** — triggers on push to `main` touching `charts/**`. Runs ArtifactHub lint, packages chart, pushes OCI to `ghcr.io`, cosign signs.
+- **`helm-publish.yaml`** — triggers on push to `main` touching `charts/**`, after a successful `CI` run for a `v*` tag, and on manual dispatch. Decides via `chart-publish-plan.sh`, stamps `appVersion` + image from the release tag, regenerates the packaged README with helm-docs, runs ArtifactHub lint, packages chart, pushes OCI to `ghcr.io`, cosign signs.
 - **`lint-and-test.yaml`** — triggers on PRs touching `charts/**`. Runs Trivy IaC scan, ct lint, ArtifactHub lint, kind cluster + ct install.
 - Config files: `.github/configs/ct-lint.yaml`, `lintconf.yaml`
 
@@ -205,8 +209,8 @@ The chart supports two modes for the Pulumi access token:
 1. Edit templates/values as needed
 2. Run `make helm-docs` to regenerate `charts/pulumi-exporter/README.md`
 3. Run `make helm-test` to validate (lint, template, ct lint)
-4. Bump `version` in `Chart.yaml` if templates/values changed
-5. Bump `appVersion` + `artifacthub.io/images` if the app image changed
+4. Bump `version` in `Chart.yaml` if templates/values changed. In a PR that also changes app code, the bump ships with the next release
+5. To ship a new app release in the chart, bump `version` before tagging (in the release PR or any PR merged before the tag). `appVersion` is stamped from the tag
 
 ## Docker Compose Stack
 
